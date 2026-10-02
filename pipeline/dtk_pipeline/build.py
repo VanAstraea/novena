@@ -75,7 +75,8 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
 
     stages, fetched = penguin.load(server)
     recs = items_mod.recipes(server)
-    for st in stages:
+    for st in stages:  # furniture and other non-items drop out of the published rates
+        st.drops = {i: r for i, r in st.drops.items() if i in gd.table("item_table", server)["items"] or i in gd.table("item_table", "cn")["items"]}
         wanted |= set(st.drops)
     for item, f in recs.items():
         wanted |= {item, *(i for i, _ in f["costs"])}
