@@ -28,7 +28,9 @@ def build(server: str) -> dict:
     chars = gd.table("character_table", server)
     by_name = {_name_key(e["name"]): cid for cid, e in chars.items() if cid.startswith("char_")}
     pool = []
-    for stars, names in re.findall(r"\n(★+)\s*\n(.+?)(?=\n-{3,}|\Z)", g["recruitDetail"], re.S):
+    # CN writes "\r\n" line ends and a literal backslash-n after the stars; EN plain newlines
+    detail = g["recruitDetail"].replace("\r\n", "\n").replace("\\n", "\n")
+    for stars, names in re.findall(r"\n(★+)\s*\n(.+?)(?=\n-{3,}|\Z)", detail, re.S):
         for name in re.sub(r"<[^>]+>", "", names).split("/"):
             cid = by_name.get(_name_key(name))
             if not cid:

@@ -35,7 +35,7 @@ export function specFromQuery(d: OpDetail, get: (k: string) => string | null, pr
   const m = get(`${prefix}m`);
   const spec: BuildSpec = {
     elite: n("e", base.elite), level: n("lv", NaN), pot: n("p", 1), trust: n("t", 100),
-    module: m && /^[XYAD][1-3]$/.test(m) ? { letter: m[0], stage: +m[1] } : null,
+    module: m && /^[A-Z][1-3]$/.test(m) ? { letter: m[0], stage: +m[1] } : null,
     skill: n("s", (base.skill ?? 0) + 1) - 1, skillLevel: n("sl", base.skillLevel!),
   };
   if (Number.isNaN(spec.level)) spec.level = d.phases[Math.min(spec.elite, d.phases.length - 1)].max;
@@ -260,8 +260,10 @@ export function CostsView({ d }: { d: OpDetail }) {
   const values = itemsSig.value?.values || {};
   const rows = costRows(d);
   const total = rows.reduce<Cost>((acc, r) => add(acc, r.cost), {});
+  const onlyLmd = Object.keys(total).every((k) => k === LMD || k === "EXP");
   return (
     <>
+      {onlyLmd && d.skills.length > 0 && <p class="note">The game tables list no materials for this operator's skills and modules: it's upgraded another way (for example through Integrated Strategies).</p>}
       <div class="table-wrap">
         <table class="cards">
           <thead><tr><th>Upgrade</th><th>Materials</th><th class="num">Sanity value</th></tr></thead>

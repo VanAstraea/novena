@@ -4,7 +4,7 @@ const PAGES: [string, RegExp][] = [
   ["/", /Doctor's Toolkit/],
   ["/operators", /Operators/],
   ["/operator/char_202_demkni", /Saria/],
-  ["/operator/char_202_demkni?tab=skills", /Calcification/],
+  ["/operator/char_202_demkni?tab=skills", /Saria/],
   ["/compare?ops=char_202_demkni,char_1028_texas2", /Compare operators/],
   ["/planner?t=char_202_demkni:E2%20L90%20S2M3", /Upgrade planner/],
   ["/farming?items=30073:5", /Farming planner/],
@@ -38,6 +38,11 @@ for (const [path, heading] of PAGES) {
     expect(errors).toEqual([]);
   });
 }
+
+test("skills tab shows every skill", async ({ page }) => {
+  await page.goto("/operator/char_202_demkni?tab=skills");
+  await expect(page.getByRole("heading", { name: /S3 · Calcification/ })).toBeVisible();
+});
 
 test("search finds an operator with Ctrl+K", async ({ page }) => {
   await page.goto("/");

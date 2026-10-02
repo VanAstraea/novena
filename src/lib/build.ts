@@ -10,7 +10,7 @@ export interface Target {
   modules: Record<string, number>; // letter -> stage 1-3
 }
 
-const TOKENS = /\b(?:E(?<elite>[0-2])|L(?:v|vl)?\s?(?<level>\d{1,2})|SL\s?(?<sl>[1-7])|S(?<skill>[1-3])\s?M(?<m>[1-3])|Mod(?:ule)?\s?(?<mod>[XYAD])\s?(?<stage>[1-3])?)\b/gi;
+const TOKENS = /\b(?:E(?<elite>[0-2])|L(?:v|vl)?\s?(?<level>\d{1,2})|SL\s?(?<sl>[1-7])|S(?<skill>[1-3])\s?M(?<m>[1-3])|Mod(?:ule)?\s?(?<mod>[XYADB])\s?(?<stage>[1-3])?)\b/gi;
 
 export const emptyTarget = (): Target => ({ elite: 0, level: 0, skillLevel: 0, masteries: {}, modules: {} });
 

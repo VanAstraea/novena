@@ -170,7 +170,7 @@ function Table({ cols, usage, is, ids }: { cols: Col[]; usage: UsageFile; is: IS
           <tbody>
             <tr>
               <th scope="row">Build</th>
-              {cols.map((c, i) => <td key={i} style={{ minWidth: "220px" }}><BuildControls d={c.d} spec={c.spec} onChange={(s) => setCol(i, s)} /></td>)}
+              {cols.map((c, i) => <td key={i}><BuildControls d={c.d} spec={c.spec} onChange={(s) => setCol(i, s)} /></td>)}
             </tr>
             <Section n={cols.length} title="Stats" />
             <Row label="HP" better="high" values={stats.map((s) => s.total.hp)} render={fmt} />

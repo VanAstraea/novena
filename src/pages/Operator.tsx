@@ -1,4 +1,4 @@
-import { useMemo } from "preact/hooks";
+import { useEffect, useMemo } from "preact/hooks";
 import { BuildControls, CommunityView, CostsView, ModulesView, RiicView, SkillView, specFromQuery, specToQuery, StatsView, TalentsView } from "../components/OpParts";
 import { Avatar, Await, metaSig, Rich, Stars, Tabs, useAsync } from "../components/ui";
 import { integrated, operator, operators, recruit as loadRecruit, usage as loadUsage } from "../lib/data";
@@ -41,6 +41,10 @@ function View({ d, op, ops, usageRow, is, tags }: {
     { key: "base", label: "Base skills" }, { key: "costs", label: "Upgrade costs" }, { key: "community", label: "Community" },
   ];
   const skillLevel = spec.skillLevel || 7;
+  useEffect(() => { // after the shell sets its generic title
+    const t = setTimeout(() => (document.title = `${op.name} · Doctor's Toolkit`), 0);
+    return () => clearTimeout(t);
+  }, [op.id]);
   return (
     <div class="stack fade-in">
       <div class="row" style={{ gap: "14px" }}>

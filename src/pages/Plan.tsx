@@ -51,6 +51,7 @@ function PlanView({ ops }: { ops: Map<string, OpIndex> }) {
         book, costs, constTable: meta.const, values: items.values, roster: states,
         available: opsList.filter((o) => o.on.includes(s)).map((o) => o.id),
         shared: opsList.filter((o) => o.patch).map((o) => o.id),
+        fixed: opsList.filter((o) => o.obtain === "is").map((o) => o.id),
         weights: { main: 0.25, event: 0.35, annihilation: 0.1, cc: 0.2, supply: 0.05, other: 0.05 },
         top, support: support ? SUPPORT_SLOTS : 0, goals: goalStates(targets.value, states, costs, ops),
       }, (phase, done, total) => setProgress(total > 1 ? `${phase} (${done}/${total})` : phase));

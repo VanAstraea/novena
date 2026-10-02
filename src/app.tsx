@@ -71,9 +71,9 @@ function AccountStrip() {
   const pages = PAGES.filter((p) => p.nav === "account");
   if (!pages.some((p) => p.path === path)) return null;
   return (
-    <nav class="tabs" aria-label="My account" style={{ maxWidth: "1280px", margin: "8px auto 0", padding: "0 16px" }}>
+    <nav class="tabs" aria-label="My account pages" style={{ maxWidth: "1280px", margin: "8px auto 0", padding: "0 16px" }}>
       {pages.map((p) => (
-        <a key={p.path} role="tab" class="btn ghost" href={href(p.path)} aria-selected={p.path === path}
+        <a key={p.path} class="btn ghost" href={href(p.path)} aria-current={p.path === path ? "page" : undefined}
           style={{ borderBottom: p.path === path ? "2px solid var(--accent)" : "2px solid transparent", borderRadius: 0 }}>
           {p.short || p.title}
         </a>

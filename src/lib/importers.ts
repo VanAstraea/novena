@@ -31,7 +31,7 @@ function sanitize(r: Partial<RosterOp> & { id: string }, known: Map<string, OpIn
   if (!op) return null;
   const elite = clamp(r.elite, 0, op.rarity >= 4 ? 2 : op.rarity === 3 ? 1 : 0, 0);
   const modules: Record<string, number> = {};
-  for (const [k, v] of Object.entries(r.modules || {})) if (/^[XYAD]$/.test(k) && op.mods.includes(k)) modules[k] = clamp(v, 0, 3, 0);
+  for (const [k, v] of Object.entries(r.modules || {})) if (/^[A-Z]$/.test(k) && op.mods.includes(k)) modules[k] = clamp(v, 0, 3, 0);
   return {
     id: r.id, elite, level: clamp(r.level, 1, 90, 1), pot: clamp(r.pot, 1, 6, 1), skillLevel: clamp(r.skillLevel, 1, 7, 1),
     masteries: (Array.isArray(r.masteries) ? r.masteries : []).slice(0, 3).map((m) => clamp(m, 0, 3, 0)), modules,
@@ -86,7 +86,7 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
       if (!v.owned) continue;
       const modules: Record<string, number> = {};
       for (const [k, n] of Object.entries(v.module || {})) {
-        const letter = /^[XYAD]$/i.test(k) ? k.toUpperCase() : letters.get(k);
+        const letter = /^[A-Z]$/i.test(k) ? k.toUpperCase() : letters.get(k);
         if (letter && Number(n) > 0) modules[letter] = Number(n);
       }
       put({ id: v.id, elite: v.promotion, level: v.level, pot: v.potential, skillLevel: v.skillLevel,

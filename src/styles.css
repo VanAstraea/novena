@@ -171,7 +171,7 @@ label { font-weight: 550; }
   border: 1px solid var(--border); background: var(--surface); font-size: 0.9rem; cursor: pointer; color: var(--text);
 }
 .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .seg button { border: 0; border-radius: 0; min-height: 32px; background: var(--surface); }
 .seg button + button { border-left: 1px solid var(--border); }
 
@@ -279,6 +279,12 @@ dialog.search::backdrop { background: rgba(0, 0, 0, 0.5); }
 .cmp-col { min-width: 220px; }
 .cmp-table td, .cmp-table th { min-width: 140px; }
 .cmp-table th[scope="row"] { position: sticky; left: 0; background: var(--surface); z-index: 1; min-width: 120px; }
+
+@media (max-width: 560px) {
+  .cmp-table th[scope="row"] { min-width: 76px; max-width: 92px; font-size: 0.8rem; padding: 6px; }
+  .cmp-table td, .cmp-table thead th { min-width: 160px; }
+  .cmp-table td .row { gap: 4px; }
+}
 
 /* --- phones: tables become two-column cards ------------------------------------------------------------------- */
 @media (max-width: 560px) {

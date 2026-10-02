@@ -231,6 +231,7 @@ export interface PlanInput {
   roster: Record<string, { elite: number; level: number; skillLevel: number; masteries: number[]; modules: Record<string, number> }>;
   available: string[]; // char ids on the server (for borrowable support)
   shared: string[]; // alternate forms whose promotion belongs to the base form
+  fixed?: string[]; // operators upgraded outside materials (obtained in IS): scored, never suggested
   weights: Record<string, number>;
   top: number;
   support: number;
@@ -379,7 +380,9 @@ export function makePlan(input: PlanInput, progress?: (phase: string, done: numb
   }
   const goalValue = goalSteps.length ? cov.value() : null;
 
+  const fixed = new Set(input.fixed || []);
   const candidates = (cid: string): PlanStep[] => {
+    if (fixed.has(cid)) return [];
     const current = cov.roster.get(cid)!;
     const seen = new Set<string>();
     const out: PlanStep[] = [];

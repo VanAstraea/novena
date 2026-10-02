@@ -89,7 +89,7 @@ function RoomRow({ room, team, ops }: { room: Room; team: Team; ops: Map<string,
           {team.members.map((m) => { const op = ops.get(m); return op ? <a key={m} class="op-cell" href={href(`/operator/${m}`)} title={op.name}><Avatar op={op} size="sm" /><small>{op.name}</small></a> : null; })}
           {!team.members.length && <span class="muted">Anyone</span>}
         </span>
-        {team.group && <small class="muted">{team.group}</small>}
+        {team.group && <small class="muted">skill combination</small>}
         {team.boosts && Object.keys(team.boosts).length > 0 && <small class="muted">{Object.entries(team.boosts).map(([f, v]) => `${ROOM_LABEL[f as keyof typeof ROOM_LABEL]}s +${v}%`).join(", ")}</small>}
       </td>
       <td data-label="Bonus" class="num">{team.efficiency ? `+${fmt(team.efficiency)}%` : "–"}</td>

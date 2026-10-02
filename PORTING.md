@@ -78,7 +78,7 @@ for four servers that computes in the browser.
 
 ## Browser compute notes
 
-- The LP has a few hundred columns; HiGHS WASM solves it in tens of ms. `highs` is about 1 MB of WASM, fetched only
+- The LP has a few hundred columns; HiGHS WASM solves it in tens of ms. `highs` is a 3.5 MB WASM file (1.2 MB gzipped), fetched only
   when the Farming page solves.
 - Costs, crafting and recruitment are plain TypeScript over the per-operator JSON. An operator's detail file holds
   everything its pages need (stats, skills at all levels, modules, base skills, costs), so Compare loads at most four
