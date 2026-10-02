@@ -1,8 +1,8 @@
 """Build every published data file.
 
-    python -m dtk_pipeline.build [--servers en,cn] [--no-copilot]
+    python -m novena_pipeline.build [--servers en,cn] [--no-copilot]
 
-Writes to DTK_OUT (default public/data/v1/). Layout:
+Writes to NOVENA_OUT (default public/data/v1/). Layout:
 
     manifest.json                 build time, data version, each source's date
     common/usage.json             community usage, builds, investment (CN-sourced, shared by every server)
@@ -25,11 +25,11 @@ import shutil
 import time
 from pathlib import Path
 
-from dtk_pipeline import OUT_DIR, SERVERS
-from dtk_pipeline import gamedata as gd
-from dtk_pipeline import items as items_mod
-from dtk_pipeline import base, guidebook, operators, recruit, roguelike, upcoming, usage
-from dtk_pipeline.sources import copilot, penguin, yituliu
+from novena_pipeline import OUT_DIR, SERVERS
+from novena_pipeline import gamedata as gd
+from novena_pipeline import items as items_mod
+from novena_pipeline import base, guidebook, operators, recruit, roguelike, upcoming, usage
+from novena_pipeline.sources import copilot, penguin, yituliu
 
 DATA_VERSION = 1
 

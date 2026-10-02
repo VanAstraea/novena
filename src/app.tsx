@@ -38,7 +38,7 @@ function Header() {
   return (
     <header class="top">
       <div class="top-row">
-        <a class="brand" href={href("/")} aria-label="Doctor's Toolkit home"><Logo /><span class="brand-name">Doctor's Toolkit</span></a>
+        <a class="brand" href={href("/")} aria-label="Novena home"><Logo /><span class="brand-name">Novena</span></a>
         <div class="top-actions">
           <button class="ghost" onClick={() => (searchOpen.value = true)} aria-label="Search (Ctrl+K)" title="Search (Ctrl+K)">
             <span aria-hidden="true">⌕</span><span class="sr-only">Search</span>
@@ -126,7 +126,7 @@ function Page() {
     m.page.load().then((mod) => { cache.set(key, mod.default); force((n) => n + 1); });
   }, [key]);
   useEffect(() => {
-    document.title = m && m.page.path !== "/" ? `${m.page.title} · Doctor's Toolkit` : "Doctor's Toolkit · Arknights companion";
+    document.title = m && m.page.path !== "/" ? `${m.page.title} · Novena` : "Novena · Arknights companion";
   }, [key]);
   if (!m) {
     return (

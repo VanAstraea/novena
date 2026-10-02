@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from dtk_pipeline import OUT_DIR
+from novena_pipeline import OUT_DIR
 
 pytestmark = pytest.mark.skipif(not (OUT_DIR / "manifest.json").exists(), reason="no built data (run the pipeline first)")
 

@@ -9,8 +9,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from dtk_pipeline import SERVERS, gamedata as gd
-from dtk_pipeline.text import blackboard, fill, markup
+from novena_pipeline import SERVERS, gamedata as gd
+from novena_pipeline.text import blackboard, fill, markup
 
 STAT_KEYS = {"maxHp": "hp", "atk": "atk", "def": "def", "magicResistance": "res", "cost": "cost", "blockCnt": "block",
              "baseAttackTime": "interval", "respawnTime": "respawn", "attackSpeed": "aspd"}

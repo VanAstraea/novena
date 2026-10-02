@@ -13,8 +13,8 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from dtk_pipeline import CACHE_DIR
-from dtk_pipeline.net import get_json_within
+from novena_pipeline import CACHE_DIR
+from novena_pipeline.net import get_json_within
 
 API = "https://prts.maa.plus/copilot/query?page={page}&limit={limit}&order_by=id"
 CACHE = CACHE_DIR / "sources" / "copilot_jobs.json.gz"

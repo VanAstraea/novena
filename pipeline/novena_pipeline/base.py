@@ -18,8 +18,8 @@ from __future__ import annotations
 
 import re
 
-from dtk_pipeline import CACHE_DIR, gamedata as gd
-from dtk_pipeline.net import cached_json
+from novena_pipeline import CACHE_DIR, gamedata as gd
+from novena_pipeline.net import cached_json
 
 MAA_URL = "https://raw.githubusercontent.com/MaaAssistantArknights/MaaAssistantArknights/dev/resource/infrast.json"
 FACILITIES = ("Trade", "Mfg", "Power", "Control", "Reception", "Office")

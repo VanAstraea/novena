@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from dtk_pipeline import text, usage
-from dtk_pipeline.sources import copilot, values
-from dtk_pipeline.sources.penguin import Stage
-from dtk_pipeline.upcoming import featured
+from novena_pipeline import text, usage
+from novena_pipeline.sources import copilot, values
+from novena_pipeline.sources.penguin import Stage
+from novena_pipeline.upcoming import featured
 
 
 def test_fill_formats_like_the_game():

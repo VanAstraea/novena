@@ -8,8 +8,8 @@ a good opener. Names are CN (some Latin), resolved to char ids here.
 
 from __future__ import annotations
 
-from dtk_pipeline import CACHE_DIR, gamedata as gd
-from dtk_pipeline.net import cached_json
+from novena_pipeline import CACHE_DIR, gamedata as gd
+from novena_pipeline.net import cached_json
 
 MAA = "https://raw.githubusercontent.com/MaaAssistantArknights/MaaAssistantArknights/dev/resource/roguelike/{}/recruitment.json"
 THEMES = {"rogue_1": "Phantom", "rogue_2": "Mizuki", "rogue_3": "Sami", "rogue_4": "Sarkaz", "rogue_5": "JieGarden"}

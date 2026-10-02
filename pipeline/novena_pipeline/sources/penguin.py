@@ -10,8 +10,8 @@ import re
 import time
 from dataclasses import dataclass, field
 
-from dtk_pipeline import CACHE_DIR
-from dtk_pipeline.net import cached_json
+from novena_pipeline import CACHE_DIR
+from novena_pipeline.net import cached_json
 
 API = "https://penguin-stats.io/PenguinStats/api/v2"
 REGION = {"en": "US", "jp": "JP", "kr": "KR", "cn": "CN"}

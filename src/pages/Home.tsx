@@ -58,7 +58,7 @@ export default function Home() {
   return (
     <div class="stack fade-in">
       <section class="hero">
-        <h1>Doctor's Toolkit</h1>
+        <h1>Novena</h1>
         <p class="muted" style={{ maxWidth: "60ch", margin: 0 }}>A free, open-source Arknights companion. No sign-up, no tracking: everything you enter stays in this browser.</p>
         <button class="searchbox" onClick={() => (searchOpen.value = true)} aria-label="Search: find an operator, item or stage">
           <span aria-hidden="true">⌕</span> Find an operator, item or stage <kbd>Ctrl K</kbd>

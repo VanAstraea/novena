@@ -42,7 +42,7 @@ function View({ d, op, ops, usageRow, is, tags }: {
   ];
   const skillLevel = spec.skillLevel || 7;
   useEffect(() => { // after the shell sets its generic title
-    const t = setTimeout(() => (document.title = `${op.name} · Doctor's Toolkit`), 0);
+    const t = setTimeout(() => (document.title = `${op.name} · Novena`), 0);
     return () => clearTimeout(t);
   }, [op.id]);
   return (

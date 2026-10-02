@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from dtk_pipeline import gamedata as gd
-from dtk_pipeline.sources import penguin, values as server_values
-from dtk_pipeline.text import plain
+from novena_pipeline import gamedata as gd
+from novena_pipeline.sources import penguin, values as server_values
+from novena_pipeline.text import plain
 
 DUALCHIP = re.compile(r"^32\d3$")  # Dualchips are Factory recipes (2 Chip Packs + 1 Chip Catalyst), not Workshop
 EXP_CARDS = {"2001": 200, "2002": 400, "2003": 1000, "2004": 2000}

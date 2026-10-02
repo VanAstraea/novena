@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const PAGES: [string, RegExp][] = [
-  ["/", /Doctor's Toolkit/],
+  ["/", /Novena/],
   ["/operators", /Operators/],
   ["/operator/char_202_demkni", /Saria/],
   ["/operator/char_202_demkni?tab=skills", /Saria/],

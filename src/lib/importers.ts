@@ -1,11 +1,12 @@
 // Roster imports. Accepted, detected by shape:
-//   - Doctor's Toolkit roster files (this site's own export)
+//   - Novena roster files (this site's own export)
 //   - a raw `account/syncData` JSON (what other community tools save)
 //   - Krooster's operator export (an object keyed by char id with owned / promotion / potential / mastery / module)
 import type { OpIndex } from "../types";
 import type { Account, RosterOp } from "../state";
 
-export const ROSTER_APP = "doctors-toolkit-roster";
+export const ROSTER_APP = "novena-roster";
+const OLD_ROSTER_APPS = ["doctors-toolkit-roster"]; // the working title, before the name Novena
 
 export interface Imported {
   ops: Record<string, RosterOp>;
@@ -49,10 +50,10 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
     if (s) out[s.id] = s; else skipped++;
   };
 
-  if (data?.app === ROSTER_APP && Array.isArray(data.ops)) {
+  if ((data?.app === ROSTER_APP || OLD_ROSTER_APPS.includes(data?.app)) && Array.isArray(data.ops)) {
     data.ops.forEach((r: any) => put(r));
     const depot = Object.fromEntries(Object.entries(data.depot || {}).filter(([, v]) => Number(v) > 0).map(([k, v]) => [k, Number(v)]));
-    return { ops: out, depot, savings: data.savings, format: "Doctor's Toolkit roster file", skipped };
+    return { ops: out, depot, savings: data.savings, format: "Novena roster file", skipped };
   }
 
   const troop = data?.user?.troop?.chars ?? data?.troop?.chars;
@@ -95,7 +96,7 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
     return { ops: out, format: "Krooster export", skipped };
   }
 
-  throw new Error("Couldn't read this file: it isn't a Doctor's Toolkit roster, game sync data or a Krooster export.");
+  throw new Error("Couldn't read this file: it isn't a Novena roster, game sync data or a Krooster export.");
 }
 
 export function exportRoster(a: Account, server: string) {

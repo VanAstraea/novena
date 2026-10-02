@@ -1,7 +1,7 @@
 // Everything the user enters stays in this browser: localStorage and IndexedDB, and
 // memory if both are blocked (private windows). Nothing here is ever sent anywhere.
 
-const DB = "doctors-toolkit";
+const DB = "novena";
 const STORE = "kv";
 let dbp: Promise<IDBDatabase | null> | null = null;
 const memory = new Map<string, unknown>();
@@ -29,7 +29,7 @@ function open(): Promise<IDBDatabase | null> {
 
 export async function getItem<T>(key: string): Promise<T | undefined> {
   try {
-    const raw = localStorage.getItem(`dtk.${key}`);
+    const raw = localStorage.getItem(`novena.${key}`);
     if (raw !== null) return JSON.parse(raw) as T;
   } catch { /* blocked */ }
   const db = await open();
@@ -49,10 +49,10 @@ export async function getItem<T>(key: string): Promise<T | undefined> {
 export async function setItem(key: string, value: unknown): Promise<void> {
   memory.set(key, value);
   try {
-    localStorage.setItem(`dtk.${key}`, JSON.stringify(value));
+    localStorage.setItem(`novena.${key}`, JSON.stringify(value));
   } catch {
     // too big or blocked: drop any older copy so it can't shadow the IndexedDB one on the next read
-    try { localStorage.removeItem(`dtk.${key}`); } catch { /* blocked */ }
+    try { localStorage.removeItem(`novena.${key}`); } catch { /* blocked */ }
   }
   const db = await open();
   if (db) {
@@ -83,7 +83,7 @@ export async function keys(): Promise<string[]> {
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k?.startsWith("dtk.") && k !== "dtk.theme") out.add(k.slice(4));
+      if (k?.startsWith("novena.") && k !== "novena.theme") out.add(k.slice(7));
     }
   } catch { /* blocked */ }
   return [...out];
@@ -101,14 +101,14 @@ export async function clearAll(): Promise<void> {
     });
   }
   try {
-    for (const k of Object.keys(localStorage)) if (k.startsWith("dtk.")) localStorage.removeItem(k);
+    for (const k of Object.keys(localStorage)) if (k.startsWith("novena.")) localStorage.removeItem(k);
   } catch { /* blocked */ }
 }
 
 /** Small synchronous preferences (theme, server, last tab). */
 export function pref(key: string, fallback: string): string {
   try {
-    return localStorage.getItem(`dtk.${key}`) ?? fallback;
+    return localStorage.getItem(`novena.${key}`) ?? fallback;
   } catch {
     return fallback;
   }
@@ -116,6 +116,6 @@ export function pref(key: string, fallback: string): string {
 
 export function setPref(key: string, value: string): void {
   try {
-    localStorage.setItem(`dtk.${key}`, value);
+    localStorage.setItem(`novena.${key}`, value);
   } catch { /* blocked */ }
 }

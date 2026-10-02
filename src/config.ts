@@ -5,4 +5,4 @@ export const SUPPORT: { label: string; url: string }[] = [
   // { label: "GitHub Sponsors", url: "https://github.com/sponsors/<you>" },
 ];
 
-export const REPO_URL = "https://github.com/doctors-toolkit/doctors-toolkit";
+export const REPO_URL = "https://github.com/novena-arknights/novena";

@@ -1,12 +1,12 @@
-# Porting notes: ako → Doctor's Toolkit
+# Porting notes: ako → Novena
 
-Doctor's Toolkit (DTK) grows out of **ako** (Arknights Account Optimizer, a private Python tool with a local
-dashboard). This file says what moves over, what stays behind, and what changes because DTK is a public static site
+Novena grows out of **ako** (Arknights Account Optimizer, a private Python tool with a local
+dashboard). This file says what moves over, what stays behind, and what changes because Novena is a public static site
 for four servers that computes in the browser.
 
 ## Architecture
 
-| Part | ako | DTK |
+| Part | ako | Novena |
 |---|---|---|
 | Account data | ArkPRTS login + `account/syncData` snapshots on disk | Manual entry in the browser, roster files (this site's export, raw syncData, Krooster) and depot screenshots read in the browser. Stored in localStorage and IndexedDB. Never sent anywhere. |
 | Community + game data | Downloaded on demand by each user's tool | Downloaded **once a day by GitHub Actions** (`pipeline/`), processed into compact static JSON under `/data/v1/`, and served from GitHub Pages. Browsers never call Penguin, Yituliu, MAA Copilot or the game-data mirrors. |
@@ -24,9 +24,9 @@ for four servers that computes in the browser.
 
 ## Modules
 
-### Ported to the pipeline (Python, `pipeline/dtk_pipeline/`)
+### Ported to the pipeline (Python, `pipeline/novena_pipeline/`)
 
-| ako | DTK | Change |
+| ako | Novena | Change |
 |---|---|---|
 | `gamedata.py` | `gamedata.py` | Same mirror (ArknightsAssets/ArknightsGamedata), all four locales. Adds tables ako never needed: `skill_table`, `battle_equip_table`, `range_table`, `handbook_team_table`, `handbook_info_table` (gender for the Male/Female recruitment tags), `char_meta_table` (alter forms). |
 | `sources/penguin.py` | `sources/penguin.py` | All four regions (US, JP, KR, CN). Output trimmed to stages that drop something. |
@@ -40,7 +40,7 @@ for four servers that computes in the browser.
 
 ### Ported to TypeScript (`src/lib/`)
 
-| ako | DTK | Notes |
+| ako | Novena | Notes |
 |---|---|---|
 | `costs.py` | `lib/costs.ts` | Same model: Counter of item id → count, LMD = `4001`, EXP pseudo-item. Golden-tested against ako. |
 | `crafting.py` | `lib/crafting.ts` | `Stock.pay` with the same one-craft-at-a-time rule; Dualchips from Factory formulas. Golden-tested. |
@@ -59,7 +59,7 @@ for four servers that computes in the browser.
   job tracking, `web/automation_api.py`, `static/routines.js`, and every MAA export (`views.base_maa`, `farm_maa`,
   `roguelike_maa`). Nothing drives the game client.
 - **Any game login:** `fetcher.py` (ArkPRTS). Logging in through a reverse-engineered client likely breaches Yostar's
-  Terms of Service, so DTK has no login at all, not even a local one. A local exporter was built and then removed.
+  Terms of Service, so Novena has no login at all, not even a local one. A local exporter was built and then removed.
 - `store.py`, `plancache.py`, `progress.py`'s snapshot diffing (snapshots live in the browser now), `web/app.py`
   (no server), packaging (no exe), `art.py`'s caching proxy (the browser loads images from the mirror directly).
 - Account-only views that need live sync state: timers, today checklist, consumables, run sheet, base map from
@@ -67,7 +67,7 @@ for four servers that computes in the browser.
 
 ## Depot from screenshots (new, not in ako)
 
-ako read the depot from the game's sync data. DTK can't log in on anyone's behalf, so the depot can also come from
+ako read the depot from the game's sync data. Novena can't log in on anyone's behalf, so the depot can also come from
 screenshots the user takes: `src/lib/depot/` runs `@arkntools/depot-recognition` (MIT, Arknights Toolbox) in a Web
 Worker. Templates are built at runtime from the art mirror (item art on its rarity background, 183 px), so no game
 art is hosted. One change to the library's flow: it narrows candidates by the depot's sort order, which breaks when

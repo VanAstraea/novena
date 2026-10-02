@@ -18,8 +18,8 @@ import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 
-from dtk_pipeline import gamedata as gd
-from dtk_pipeline.sources import copilot
+from novena_pipeline import gamedata as gd
+from novena_pipeline.sources import copilot
 
 CATEGORIES = ("main", "event", "annihilation", "cc", "supply", "other")
 DEFAULT_WEIGHTS = {"main": 0.25, "event": 0.35, "annihilation": 0.10, "cc": 0.20, "supply": 0.05, "other": 0.05}

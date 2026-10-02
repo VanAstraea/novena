@@ -183,14 +183,14 @@ function Import({ ops }: { ops: OpIndex[] }) {
     const blob = new Blob([JSON.stringify(exportRoster(account.value, s), null, 1)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `dtk-roster-${s}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `novena-roster-${s}-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
   };
   return (
     <div class="grid two">
       <section class="card">
         <h2>Import</h2>
-        <p>Accepted: a Doctor's Toolkit roster file, game sync data (syncData JSON), or a Krooster operator export.</p>
+        <p>Accepted: a Novena roster file, game sync data (syncData JSON), or a Krooster operator export.</p>
         <p class="muted">For your depot, the easiest way is screenshots: <a href={href("/roster", { tab: "depot" })}>Depot → Import from screenshots</a>.</p>
         <div class="row">
           <div class="seg" role="group" aria-label="Import mode">

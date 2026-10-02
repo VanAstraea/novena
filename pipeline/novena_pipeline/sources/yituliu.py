@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from dtk_pipeline import CACHE_DIR
-from dtk_pipeline.net import cached_json
+from novena_pipeline import CACHE_DIR
+from novena_pipeline.net import cached_json
 
 OPERATORS = "https://backend.yituliu.cn/survey/operator/result/v2"
 VALUES = "https://raw.githubusercontent.com/Arknights-yituliu/frontend-v2-plus/HEAD/src/static/json/material/item_info.json"

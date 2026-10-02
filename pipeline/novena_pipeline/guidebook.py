@@ -21,9 +21,9 @@ from __future__ import annotations
 import statistics
 from collections import defaultdict
 
-from dtk_pipeline import gamedata as gd
-from dtk_pipeline.sources import copilot
-from dtk_pipeline.usage import StageIndex, ids_by_cn_name, job_weight
+from novena_pipeline import gamedata as gd
+from novena_pipeline.sources import copilot
+from novena_pipeline.usage import StageIndex, ids_by_cn_name, job_weight
 
 MIN_LEVEL_SAMPLES = 5
 CERTAIN = 1 - 1e-9

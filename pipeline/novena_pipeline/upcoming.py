@@ -15,9 +15,9 @@ import time
 from collections import defaultdict
 from datetime import datetime, timezone
 
-from dtk_pipeline import gamedata as gd
-from dtk_pipeline.sources import copilot
-from dtk_pipeline.usage import StageIndex, ids_by_cn_name, stage_presence
+from novena_pipeline import gamedata as gd
+from novena_pipeline.sources import copilot
+from novena_pipeline.usage import StageIndex, ids_by_cn_name, stage_presence
 
 RECENT_EVENTS = 8
 DAY = 86400

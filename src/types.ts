@@ -1,4 +1,4 @@
-// Shapes of the published data files (pipeline/dtk_pipeline/build.py documents the layout).
+// Shapes of the published data files (pipeline/novena_pipeline/build.py documents the layout).
 
 export type Server = "en" | "jp" | "kr" | "cn";
 export type ItemList = [string, number][];

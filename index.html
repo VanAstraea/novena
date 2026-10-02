@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Doctor's Toolkit · Arknights companion</title>
+    <title>Novena · Arknights companion</title>
     <meta name="description" content="A free, open-source Arknights companion: operator database, compare, upgrade and farming planners, recruitment calculator. No account, no tracking; your data stays in your browser." />
     <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#14171c" />
@@ -11,12 +11,12 @@
     <link rel="preload" href="/fonts/saira-100-900-latin.woff2" as="font" type="font/woff2" crossorigin />
     <script>
       // Apply the saved theme before first paint (no flash). Storage may be blocked: fall back to the system theme.
-      try { var t = localStorage.getItem("dtk.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+      try { var t = localStorage.getItem("novena.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
     </script>
   </head>
   <body>
     <div id="app"></div>
-    <noscript>Doctor's Toolkit needs JavaScript: every calculation runs in your browser.</noscript>
+    <noscript>Novena needs JavaScript: every calculation runs in your browser.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

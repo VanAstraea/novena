@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import re
 
-from dtk_pipeline import gamedata as gd
-from dtk_pipeline.operators import gender
+from novena_pipeline import gamedata as gd
+from novena_pipeline.operators import gender
 
 CLASS_TAG_ID = {"WARRIOR": 1, "SNIPER": 2, "TANK": 3, "MEDIC": 4, "SUPPORT": 5, "CASTER": 6, "SPECIAL": 7, "PIONEER": 8}
 POSITION_TAG_ID = {"MELEE": 9, "RANGED": 10}

@@ -5,7 +5,7 @@ flair). Fill in the two links, add 2–3 screenshots or a short GIF, and post fr
 
 ---
 
-**Title:** I made a free, open-source Arknights companion: operator compare, upgrade/farming planner, recruitment calc (all servers, no login)
+**Title:** I made Novena, a free, open-source Arknights companion: operator compare, upgrade/farming planner, recruitment calc (all servers, no login)
 
 **Body:**
 

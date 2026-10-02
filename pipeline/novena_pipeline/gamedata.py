@@ -9,8 +9,8 @@ from __future__ import annotations
 from functools import cache
 from typing import Any
 
-from dtk_pipeline import CACHE_DIR
-from dtk_pipeline.net import cached_json
+from novena_pipeline import CACHE_DIR
+from novena_pipeline.net import cached_json
 
 BASE_URL = "https://raw.githubusercontent.com/ArknightsAssets/ArknightsGamedata/master/{locale}/gamedata/excel/{table}.json"
 MAX_AGE = 20 * 3600  # the daily run refreshes everything

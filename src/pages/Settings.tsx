@@ -5,7 +5,8 @@ import { clearAll, getItem, keys, setItem } from "../lib/storage";
 import { SERVERS, server, theme, type Theme } from "../state";
 import type { Server } from "../types";
 
-export const BACKUP_APP = "doctors-toolkit";
+export const BACKUP_APP = "novena";
+const OLD_BACKUP_APPS = ["doctors-toolkit"]; // the working title, before the name Novena
 
 export async function makeBackup() {
   const data: Record<string, unknown> = {};
@@ -27,14 +28,14 @@ export default function Settings() {
 
   const exportAll = async () => {
     const b = await makeBackup();
-    download(`doctors-toolkit-backup-${b.exported.slice(0, 10)}.json`, JSON.stringify(b, null, 1));
+    download(`novena-backup-${b.exported.slice(0, 10)}.json`, JSON.stringify(b, null, 1));
     setMsg(`Saved a backup with ${Object.keys(b.data).length} entries.`);
   };
 
   const importFile = async (file: File) => {
     try {
       const b = JSON.parse(await file.text());
-      if (b?.app !== BACKUP_APP || typeof b.data !== "object") throw new Error("That isn't a Doctor's Toolkit backup file.");
+      if ((b?.app !== BACKUP_APP && !OLD_BACKUP_APPS.includes(b?.app)) || typeof b.data !== "object") throw new Error("That isn't a Novena backup file.");
       for (const [k, v] of Object.entries(b.data as Record<string, unknown>)) {
         if (/^(account|targets|prefs)\.(en|jp|kr|cn)$/.test(k)) await setItem(k, v);
       }

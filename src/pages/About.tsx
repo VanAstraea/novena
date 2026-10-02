@@ -25,9 +25,9 @@ export default function About() {
   const m = useAsync(manifest, []);
   return (
     <div class="stack fade-in">
-      <h1>About Doctor's Toolkit</h1>
+      <h1>About Novena</h1>
       <section class="card">
-        <p>Doctor's Toolkit is a free, open-source companion for Arknights: an operator database, side-by-side comparison, upgrade and farming planners, a recruitment calculator, community rankings and a look at what's coming from CN. It's a fan project, made by a player for players.</p>
+        <p>Novena is a free, open-source companion for Arknights: an operator database, side-by-side comparison, upgrade and farming planners, a recruitment calculator, community rankings and a look at what's coming from CN. It's a fan project, made by a player for players.</p>
         <p><strong>Not affiliated with Hypergryph, Yostar or Gryphline.</strong> Arknights and all game assets belong to their owners. The code is MIT-licensed: <a href={REPO_URL} rel="noopener">source on GitHub</a>.</p>
         <p><strong>No automation.</strong> This tool never drives the game client. It only reads public data and what you type in.</p>
       </section>

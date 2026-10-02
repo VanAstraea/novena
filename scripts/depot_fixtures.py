@@ -27,7 +27,7 @@ GROUPS = ("material", "chip", "skill", "module", "exp", "other")
 
 def get(url: str) -> bytes | None:
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "doctors-toolkit-tests"})
+        req = urllib.request.Request(url, headers={"User-Agent": "novena-tests"})
         with urllib.request.urlopen(req, timeout=60) as r:
             return r.read()
     except Exception:

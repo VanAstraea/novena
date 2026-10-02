@@ -1,4 +1,4 @@
-Doctor's Toolkit bundles the following open-source software. Their licenses follow.
+Novena bundles the following open-source software. Their licenses follow.
 
 ================================================================================
 @arkntools/depot-recognition 1.8.1 (MIT)

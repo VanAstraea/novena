@@ -12,9 +12,9 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from dtk_pipeline import USER_AGENT
+from novena_pipeline import USER_AGENT
 
-OFFLINE = os.environ.get("DTK_OFFLINE") == "1"  # local runs: use whatever is cached, however old
+OFFLINE = os.environ.get("NOVENA_OFFLINE") == "1"  # local runs: use whatever is cached, however old
 
 
 def get_bytes(url: str, timeout: int = 120, attempts: int = 3) -> bytes:
