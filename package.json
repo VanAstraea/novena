@@ -1,0 +1,27 @@
+{
+  "name": "doctors-toolkit",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build && node scripts/postbuild.mjs",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "smoke": "playwright test"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.3",
+    "highs": "^1.15.3",
+    "preact": "^11.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@preact/preset-vite": "^2.10.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
+  }
+}

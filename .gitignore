@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.cache/
+public/data/
+test-results/
+playwright-report/
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/

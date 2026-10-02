@@ -1,0 +1,2525 @@
+{
+ "char_1028_texas2": {
+  "desc": "Significantly <b>reduced</b> Redeployment Time",
+  "id": "char_1028_texas2",
+  "modules": [
+   {
+    "cost": [
+     [
+      [
+       "mod_unlock_token",
+       4
+      ],
+      [
+       "30125",
+       2
+      ],
+      [
+       "4001",
+       80000
+      ]
+     ],
+     [
+      [
+       "mod_unlock_token",
+       4
+      ],
+      [
+       "mod_update_token_1",
+       60
+      ],
+      [
+       "30145",
+       3
+      ],
+      [
+       "4001",
+       100000
+      ]
+     ],
+     [
+      [
+       "mod_unlock_token",
+       4
+      ],
+      [
+       "mod_update_token_2",
+       20
+      ],
+      [
+       "30115",
+       4
+      ],
+      [
+       "4001",
+       120000
+      ]
+     ]
+    ],
+    "icon": "EXE-Y",
+    "id": "uniequip_002_texas2",
+    "letter": "Y",
+    "name": "Blueberry & Dark Chocolate",
+    "stages": [
+     {
+      "attrs": {
+       "atk": 40.0,
+       "hp": 140.0
+      },
+      "talents": [],
+      "trait": [
+       "When there are no allied units in the four adjacent tiles, ATK <b>+10%</b>"
+      ]
+     },
+     {
+      "attrs": {
+       "atk": 53.0,
+       "hp": 160.0
+      },
+      "talents": [
+       {
+        "desc": "Gains +25% ATK during the duration of the passive skill; When defeating an enemy for the first time, fully restores HP and reactivates the effects of the passive skill",
+        "name": "Texas Tradition"
+       }
+      ],
+      "trait": [
+       "When there are no allied units in the four adjacent tiles, ATK <b>+10%</b>"
+      ]
+     },
+     {
+      "attrs": {
+       "atk": 65.0,
+       "hp": 180.0
+      },
+      "talents": [
+       {
+        "desc": "Gains +28% ATK during the duration of the passive skill; When defeating an enemy for the first time, fully restores HP and reactivates the effects of the passive skill",
+        "name": "Texas Tradition"
+       }
+      ],
+      "trait": [
+       "When there are no allied units in the four adjacent tiles, ATK <b>+10%</b>"
+      ]
+     }
+    ],
+    "unlock": {
+     "elite": 2,
+     "level": 60
+    }
+   }
+  ],
+  "phases": [
+   {
+    "cost": [],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 323,
+     "block": 1,
+     "cost": 8,
+     "def": 206,
+     "hp": 996,
+     "interval": 0.93,
+     "res": 0.0,
+     "respawn": 18
+    },
+    "lmd": 0,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 219,
+     "block": 1,
+     "cost": 8,
+     "def": 144,
+     "hp": 747,
+     "interval": 0.93,
+     "res": 0.0,
+     "respawn": 18
+    },
+    "max": 50,
+    "range": "1-1"
+   },
+   {
+    "cost": [
+     [
+      "3281",
+      5
+     ],
+     [
+      "30052",
+      6
+     ],
+     [
+      "30032",
+      5
+     ]
+    ],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 443,
+     "block": 1,
+     "cost": 10,
+     "def": 268,
+     "hp": 1246,
+     "interval": 0.93,
+     "res": 0.0,
+     "respawn": 18
+    },
+    "lmd": 30000,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 323,
+     "block": 1,
+     "cost": 10,
+     "def": 206,
+     "hp": 996,
+     "interval": 0.93,
+     "res": 0.0,
+     "respawn": 18
+    },
+    "max": 80,
+    "range": "1-1"
+   },
+   {
+    "cost": [
+     [
+      "3283",
+      4
+     ],
+     [
+      "30125",
+      4
+     ],
+     [
+      "30044",
+      7
+     ]
+    ],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 569,
+     "block": 1,
+     "cost": 10,
+     "def": 320,
+     "hp": 1598,
+     "interval": 0.93,
+     "res": 0.0,
+     "respawn": 18
+    },
+    "lmd": 180000,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 443,
+     "block": 1,
+     "cost": 10,
+     "def": 268,
+     "hp": 1246,
+     "interval": 0.93,
+     "res": 0.0,
+     "respawn": 18
+    },
+    "max": 90,
+    "range": "1-1"
+   }
+  ],
+  "pots": [
+   {
+    "desc": "DP Cost -1",
+    "mods": {
+     "cost": -1.0
+    }
+   },
+   {
+    "desc": "ATK +22",
+    "mods": {
+     "atk": 22.0
+    }
+   },
+   {
+    "desc": "Redeployment Time -2 sec",
+    "mods": {
+     "respawn": -2.0
+    }
+   },
+   {
+    "desc": "Improves Second Talent",
+    "mods": {}
+   },
+   {
+    "desc": "DP Cost -1",
+    "mods": {
+     "cost": -1.0
+    }
+   }
+  ],
+  "riic": [
+   {
+    "desc": "When this Operator is assigned to be the Trainer in the Training Room, <b>Specialist</b> and <b>Vanguard</b> Operators' Specialization training speed <b>+30%</b>",
+    "elite": 0,
+    "icon": "bskill_train_specialist&pioneer1",
+    "level": 1,
+    "name": "Silence as a Sword",
+    "room": "TRAINING"
+   },
+   {
+    "desc": "When this Operator is assigned to be the Trainer in the Training Room, <b>Specialist</b> and <b>Vanguard</b> Operators' Specialization training speed <b>+30%</b>; if training a skill to Specialization Level <b>2</b>, training speed will be further increased by <b>+50%</b>",
+    "elite": 2,
+    "icon": "bskill_train2_specialist&pioneer1",
+    "level": 1,
+    "name": "Break the Shackles",
+    "room": "TRAINING"
+   }
+  ],
+  "skillUp": [
+   [
+    [
+     "3301",
+     5
+    ]
+   ],
+   [
+    [
+     "3301",
+     5
+    ],
+    [
+     "30061",
+     4
+    ],
+    [
+     "30031",
+     4
+    ]
+   ],
+   [
+    [
+     "3302",
+     8
+    ],
+    [
+     "30012",
+     7
+    ]
+   ],
+   [
+    [
+     "3302",
+     8
+    ],
+    [
+     "30022",
+     4
+    ],
+    [
+     "30052",
+     4
+    ]
+   ],
+   [
+    [
+     "3302",
+     8
+    ],
+    [
+     "31033",
+     6
+    ]
+   ],
+   [
+    [
+     "3303",
+     8
+    ],
+    [
+     "30093",
+     5
+    ],
+    [
+     "31063",
+     3
+    ]
+   ]
+  ],
+  "skills": [
+   {
+    "ammo": false,
+    "icon": "skchr_texas2_1",
+    "id": "skchr_texas2_1",
+    "levels": [
+     {
+      "desc": "After deployment, gains ATK <b>+25%</b>; Attacks Silence the target for <b>3</b> seconds and cause them to take <b>200</b> Arts damage per second during that duration",
+      "dur": 10.0,
+      "init": 0,
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, gains ATK <b>+30%</b>; Attacks Silence the target for <b>3</b> seconds and cause them to take <b>220</b> Arts damage per second during that duration",
+      "dur": 10.0,
+      "init": 0,
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, gains ATK <b>+35%</b>; Attacks Silence the target for <b>3</b> seconds and cause them to take <b>240</b> Arts damage per second during that duration",
+      "dur": 10.0,
+      "init": 0,
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, gains ATK <b>+40%</b>; Attacks Silence the target for <b>5</b> seconds and cause them to take <b>260</b> Arts damage per second during that duration",
+      "dur": 11.0,
+      "init": 0,
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, gains ATK <b>+45%</b>; Attacks Silence the target for <b>5</b> seconds and cause them to take <b>280</b> Arts damage per second during that duration",
+      "dur": 11.0,
+      "init": 0,
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, gains ATK <b>+50%</b>; Attacks Silence the target for <b>5</b> seconds and cause them to take <b>300</b> Arts damage per second during that duration",
+      "dur": 11.0,
+      "init": 0,
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, gains ATK <b>+55%</b>; Attacks Silence the target for <b>8</b> seconds and cause them to take <b>320</b> Arts damage per second during that duration",
+      "dur": 12.0,
+      "init": 0,
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, gains ATK <b>+60%</b>; Attacks Silence the target for <b>8</b> seconds and cause them to take <b>350</b> Arts damage per second during that duration",
+      "dur": 12.0,
+      "init": 0,
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, gains ATK <b>+65%</b>; Attacks Silence the target for <b>8</b> seconds and cause them to take <b>380</b> Arts damage per second during that duration",
+      "dur": 12.0,
+      "init": 0,
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, gains ATK <b>+70%</b>; Attacks Silence the target for <b>10</b> seconds and cause them to take <b>400</b> Arts damage per second during that duration",
+      "dur": 12.0,
+      "init": 0,
+      "sp": 0
+     }
+    ],
+    "mastery": [
+     {
+      "cost": [
+       [
+        "3303",
+        8
+       ],
+       [
+        "30064",
+        3
+       ],
+       [
+        "31063",
+        4
+       ]
+      ],
+      "hours": 8
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        12
+       ],
+       [
+        "30074",
+        4
+       ],
+       [
+        "31034",
+        5
+       ]
+      ],
+      "hours": 16
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        15
+       ],
+       [
+        "30155",
+        6
+       ],
+       [
+        "30054",
+        4
+       ]
+      ],
+      "hours": 24
+     }
+    ],
+    "name": "Silent Drizzle",
+    "sp": "passive",
+    "type": "passive"
+   },
+   {
+    "ammo": false,
+    "icon": "skchr_texas2_2",
+    "id": "skchr_texas2_2",
+    "levels": [
+     {
+      "desc": "After deployment, immediately deals <b>120%</b> ATK as Arts damage to all surrounding enemies and inflicts <b>-10%</b> RES for <b>8</b> seconds; ATK <b>+20%</b>, attacks hit 2 times and deal Arts damage",
+      "dur": 8.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>130%</b> ATK as Arts damage to all surrounding enemies and inflicts <b>-10%</b> RES for <b>8</b> seconds; ATK <b>+23%</b>, attacks hit 2 times and deal Arts damage",
+      "dur": 8.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>140%</b> ATK as Arts damage to all surrounding enemies and inflicts <b>-10%</b> RES for <b>8</b> seconds; ATK <b>+26%</b>, attacks hit 2 times and deal Arts damage",
+      "dur": 8.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>150%</b> ATK as Arts damage to all surrounding enemies and inflicts <b>-15%</b> RES for <b>8</b> seconds; ATK <b>+30%</b>, attacks hit 2 times and deal Arts damage",
+      "dur": 8.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>160%</b> ATK as Arts damage to all surrounding enemies and inflicts <b>-15%</b> RES for <b>8</b> seconds; ATK <b>+33%</b>, attacks hit 2 times and deal Arts damage",
+      "dur": 8.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>170%</b> ATK as Arts damage to all surrounding enemies and inflicts <b>-15%</b> RES for <b>8</b> seconds; ATK <b>+36%</b>, attacks hit 2 times and deal Arts damage",
+      "dur": 8.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>180%</b> ATK as Arts damage to all surrounding enemies and inflicts <b>-20%</b> RES for <b>10</b> seconds; ATK <b>+40%</b>, attacks hit 2 times and deal Arts damage",
+      "dur": 10.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>200%</b> ATK as Arts damage to all surrounding enemies and inflicts <b>-25%</b> RES for <b>10</b> seconds; ATK <b>+45%</b>, attacks hit 2 times and deal Arts damage",
+      "dur": 10.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>220%</b> ATK as Arts damage to all surrounding enemies and inflicts <b>-30%</b> RES for <b>10</b> seconds; ATK <b>+50%</b>, attacks hit 2 times and deal Arts damage",
+      "dur": 10.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>240%</b> ATK as Arts damage to all surrounding enemies and inflicts <b>-30%</b> RES for <b>10</b> seconds; ATK <b>+55%</b>, attacks hit 2 times and deal Arts damage",
+      "dur": 10.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     }
+    ],
+    "mastery": [
+     {
+      "cost": [
+       [
+        "3303",
+        8
+       ],
+       [
+        "30074",
+        4
+       ],
+       [
+        "30083",
+        8
+       ]
+      ],
+      "hours": 8
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        12
+       ],
+       [
+        "30014",
+        4
+       ],
+       [
+        "30054",
+        8
+       ]
+      ],
+      "hours": 16
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        15
+       ],
+       [
+        "30115",
+        6
+       ],
+       [
+        "31044",
+        6
+       ]
+      ],
+      "hours": 24
+     }
+    ],
+    "name": "Unrelenting Downpour",
+    "sp": "passive",
+    "type": "passive"
+   },
+   {
+    "ammo": false,
+    "icon": "skchr_texas2_3",
+    "id": "skchr_texas2_3",
+    "levels": [
+     {
+      "desc": "After deployment, immediately deals <b>100%</b> ATK as Arts damage twice to all surrounding enemies and <i data-t=\"ba.stun\">Stuns</i> them for <b>1</b> seconds, then releases a Sword Rain at up to <b>2</b> different targets within range every second that deals <b>70%</b> ATK as Arts damage and <i data-t=\"ba.stun\">Stuns</i> for <b>0.2</b> seconds",
+      "dur": 6.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>105%</b> ATK as Arts damage twice to all surrounding enemies and <i data-t=\"ba.stun\">Stuns</i> them for <b>1</b> seconds, then releases a Sword Rain at up to <b>2</b> different targets within range every second that deals <b>75%</b> ATK as Arts damage and <i data-t=\"ba.stun\">Stuns</i> for <b>0.2</b> seconds",
+      "dur": 6.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>110%</b> ATK as Arts damage twice to all surrounding enemies and <i data-t=\"ba.stun\">Stuns</i> them for <b>1</b> seconds, then releases a Sword Rain at up to <b>2</b> different targets within range every second that deals <b>80%</b> ATK as Arts damage and <i data-t=\"ba.stun\">Stuns</i> for <b>0.2</b> seconds",
+      "dur": 6.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>115%</b> ATK as Arts damage twice to all surrounding enemies and <i data-t=\"ba.stun\">Stuns</i> them for <b>1.5</b> seconds, then releases a Sword Rain at up to <b>2</b> different targets within range every second that deals <b>85%</b> ATK as Arts damage and <i data-t=\"ba.stun\">Stuns</i> for <b>0.2</b> seconds",
+      "dur": 6.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>120%</b> ATK as Arts damage twice to all surrounding enemies and <i data-t=\"ba.stun\">Stuns</i> them for <b>1.5</b> seconds, then releases a Sword Rain at up to <b>2</b> different targets within range every second that deals <b>90%</b> ATK as Arts damage and <i data-t=\"ba.stun\">Stuns</i> for <b>0.2</b> seconds",
+      "dur": 6.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>125%</b> ATK as Arts damage twice to all surrounding enemies and <i data-t=\"ba.stun\">Stuns</i> them for <b>1.5</b> seconds, then releases a Sword Rain at up to <b>2</b> different targets within range every second that deals <b>95%</b> ATK as Arts damage and <i data-t=\"ba.stun\">Stuns</i> for <b>0.2</b> seconds",
+      "dur": 6.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>130%</b> ATK as Arts damage twice to all surrounding enemies and <i data-t=\"ba.stun\">Stuns</i> them for <b>1.5</b> seconds, then releases a Sword Rain at up to <b>3</b> different targets within range every second that deals <b>100%</b> ATK as Arts damage and <i data-t=\"ba.stun\">Stuns</i> for <b>0.2</b> seconds",
+      "dur": 7.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>135%</b> ATK as Arts damage twice to all surrounding enemies and <i data-t=\"ba.stun\">Stuns</i> them for <b>2</b> seconds, then releases a Sword Rain at up to <b>3</b> different targets within range every second that deals <b>110%</b> ATK as Arts damage and <i data-t=\"ba.stun\">Stuns</i> for <b>0.2</b> seconds",
+      "dur": 7.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>150%</b> ATK as Arts damage twice to all surrounding enemies and <i data-t=\"ba.stun\">Stuns</i> them for <b>2</b> seconds, then releases a Sword Rain at up to <b>3</b> different targets within range every second that deals <b>120%</b> ATK as Arts damage and <i data-t=\"ba.stun\">Stuns</i> for <b>0.2</b> seconds",
+      "dur": 8.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     },
+     {
+      "desc": "After deployment, immediately deals <b>165%</b> ATK as Arts damage twice to all surrounding enemies and <i data-t=\"ba.stun\">Stuns</i> them for <b>2</b> seconds, then releases a Sword Rain at up to <b>4</b> different targets within range every second that deals <b>130%</b> ATK as Arts damage and <i data-t=\"ba.stun\">Stuns</i> for <b>0.2</b> seconds",
+      "dur": 8.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 0
+     }
+    ],
+    "mastery": [
+     {
+      "cost": [
+       [
+        "3303",
+        8
+       ],
+       [
+        "31064",
+        4
+       ],
+       [
+        "30063",
+        4
+       ]
+      ],
+      "hours": 8
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        12
+       ],
+       [
+        "31034",
+        4
+       ],
+       [
+        "31014",
+        8
+       ]
+      ],
+      "hours": 16
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        15
+       ],
+       [
+        "30125",
+        6
+       ],
+       [
+        "30094",
+        5
+       ]
+      ],
+      "hours": 24
+     }
+    ],
+    "name": "Torrential Sword Rain",
+    "sp": "passive",
+    "type": "passive"
+   }
+  ],
+  "src": "en",
+  "talents": [
+   [
+    {
+     "desc": "Gains +10% ATK during the duration of the passive skill; When defeating an enemy for the first time, fully restores HP and reactivates the effects of the passive skill",
+     "elite": 1,
+     "level": 1,
+     "name": "Texas Tradition",
+     "pot": 0
+    },
+    {
+     "desc": "Gains +20% ATK during the duration of the passive skill; When defeating an enemy for the first time, fully restores HP and reactivates the effects of the passive skill",
+     "elite": 2,
+     "level": 1,
+     "name": "Texas Tradition",
+     "pot": 0
+    }
+   ],
+   [
+    {
+     "desc": "Before defeating an enemy for the first time after each deployment, gains +8 ASPD and reduces all damage taken by 25%",
+     "elite": 2,
+     "level": 1,
+     "name": "Texas Swordsmanship",
+     "pot": 0
+    },
+    {
+     "desc": "Before defeating an enemy for the first time after each deployment, gains +10 <b>(+2)</b> ASPD and reduces all damage taken by 30% <b>(+5%)</b>",
+     "elite": 2,
+     "level": 1,
+     "name": "Texas Swordsmanship",
+     "pot": 4
+    }
+   ]
+  ],
+  "trait": null,
+  "trust": {
+   "atk": 90
+  }
+ },
+ "char_120_hibisc": {
+  "desc": "Restores the HP of allies",
+  "id": "char_120_hibisc",
+  "modules": [],
+  "phases": [
+   {
+    "cost": [],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 248,
+     "block": 1,
+     "cost": 15,
+     "def": 82,
+     "hp": 975,
+     "interval": 2.85,
+     "res": 0.0,
+     "respawn": 70
+    },
+    "lmd": 0,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 153,
+     "block": 1,
+     "cost": 15,
+     "def": 61,
+     "hp": 682,
+     "interval": 2.85,
+     "res": 0.0,
+     "respawn": 70
+    },
+    "max": 40,
+    "range": "3-1"
+   },
+   {
+    "cost": [],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 345,
+     "block": 1,
+     "cost": 17,
+     "def": 110,
+     "hp": 1220,
+     "interval": 2.85,
+     "res": 0.0,
+     "respawn": 70
+    },
+    "lmd": 10000,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 248,
+     "block": 1,
+     "cost": 17,
+     "def": 82,
+     "hp": 975,
+     "interval": 2.85,
+     "res": 0.0,
+     "respawn": 70
+    },
+    "max": 55,
+    "range": "3-3"
+   }
+  ],
+  "pots": [
+   {
+    "desc": "DP Cost -1",
+    "mods": {
+     "cost": -1.0
+    }
+   },
+   {
+    "desc": "Redeployment Time -4 sec",
+    "mods": {
+     "respawn": -4.0
+    }
+   },
+   {
+    "desc": "ATK +18",
+    "mods": {
+     "atk": 18.0
+    }
+   },
+   {
+    "desc": "Redeployment Time -6 sec",
+    "mods": {
+     "respawn": -6.0
+    }
+   },
+   {
+    "desc": "DP Cost -1",
+    "mods": {
+     "cost": -1.0
+    }
+   }
+  ],
+  "riic": [
+   {
+    "desc": "When this Operator is assigned to a Dormitory, restores <b>+0.55</b> Morale per hour to another Operator assigned to that Dormitory whose Morale is not full (Only the strongest effect of this type takes place)",
+    "elite": 0,
+    "icon": "bskill_dorm_single1",
+    "level": 1,
+    "name": "Thoughtfulness",
+    "room": "DORMITORY"
+   },
+   {
+    "desc": "When this Operator is assigned to the Workshop to process <b>elite material</b>, the production rate of byproduct increases by <b>70%</b>",
+    "elite": 1,
+    "icon": "bskill_ws_evolve1",
+    "level": 1,
+    "name": "Nutriology",
+    "room": "WORKSHOP"
+   }
+  ],
+  "skillUp": [
+   [
+    [
+     "3301",
+     1
+    ]
+   ],
+   [
+    [
+     "3301",
+     2
+    ],
+    [
+     "30031",
+     1
+    ]
+   ],
+   [
+    [
+     "3302",
+     1
+    ],
+    [
+     "30042",
+     1
+    ]
+   ],
+   [
+    [
+     "3302",
+     1
+    ],
+    [
+     "30052",
+     2
+    ]
+   ],
+   [
+    [
+     "3302",
+     1
+    ],
+    [
+     "30023",
+     2
+    ]
+   ],
+   [
+    [
+     "3303",
+     2
+    ],
+    [
+     "30033",
+     2
+    ]
+   ]
+  ],
+  "skills": [
+   {
+    "ammo": false,
+    "icon": "skcom_heal_up[1]",
+    "id": "skcom_heal_up[1]",
+    "levels": [
+     {
+      "desc": "ATK <b>+10%</b>",
+      "dur": 20.0,
+      "init": 0,
+      "sp": 40
+     },
+     {
+      "desc": "ATK <b>+15%</b>",
+      "dur": 20.0,
+      "init": 0,
+      "sp": 40
+     },
+     {
+      "desc": "ATK <b>+20%</b>",
+      "dur": 20.0,
+      "init": 0,
+      "sp": 40
+     },
+     {
+      "desc": "ATK <b>+30%</b>",
+      "dur": 20.0,
+      "init": 0,
+      "sp": 35
+     },
+     {
+      "desc": "ATK <b>+35%</b>",
+      "dur": 20.0,
+      "init": 0,
+      "sp": 35
+     },
+     {
+      "desc": "ATK <b>+40%</b>",
+      "dur": 20.0,
+      "init": 0,
+      "sp": 35
+     },
+     {
+      "desc": "ATK <b>+50%</b>",
+      "dur": 20.0,
+      "init": 0,
+      "sp": 30
+     }
+    ],
+    "mastery": [],
+    "name": "Healing Up α",
+    "sp": "auto",
+    "type": "manual"
+   }
+  ],
+  "src": "en",
+  "talents": [
+   [
+    {
+     "desc": "ATK +4%",
+     "elite": 1,
+     "level": 1,
+     "name": "Healing Up",
+     "pot": 0
+    },
+    {
+     "desc": "ATK +8%",
+     "elite": 1,
+     "level": 55,
+     "name": "Healing Up",
+     "pot": 0
+    }
+   ]
+  ],
+  "trait": null,
+  "trust": {
+   "atk": 45
+  }
+ },
+ "char_151_myrtle": {
+  "desc": "Cannot block enemies during the skill duration",
+  "id": "char_151_myrtle",
+  "modules": [
+   {
+    "cost": [
+     [
+      [
+       "mod_unlock_token",
+       1
+      ],
+      [
+       "30103",
+       4
+      ],
+      [
+       "4001",
+       20000
+      ]
+     ],
+     [
+      [
+       "mod_unlock_token",
+       1
+      ],
+      [
+       "mod_update_token_1",
+       15
+      ],
+      [
+       "30033",
+       5
+      ],
+      [
+       "4001",
+       25000
+      ]
+     ],
+     [
+      [
+       "mod_unlock_token",
+       1
+      ],
+      [
+       "mod_update_token_2",
+       5
+      ],
+      [
+       "31053",
+       6
+      ],
+      [
+       "4001",
+       30000
+      ]
+     ]
+    ],
+    "icon": "BEA-X",
+    "id": "uniequip_002_myrtle",
+    "letter": "X",
+    "name": "Private Collections",
+    "stages": [
+     {
+      "attrs": {
+       "def": 23.0,
+       "hp": 100.0
+      },
+      "talents": [],
+      "trait": [
+       "Cannot block enemies during the skill duration, but grants <b>+1</b> Block to an Operator in front of this unit"
+      ]
+     },
+     {
+      "attrs": {
+       "def": 30.0,
+       "hp": 130.0
+      },
+      "talents": [
+       {
+        "desc": "All Vanguard Operators recover 28 HP per second while this unit is deployed",
+        "name": "Glistening"
+       }
+      ],
+      "trait": [
+       "Cannot block enemies during the skill duration, but grants <b>+1</b> Block to an Operator in front of this unit"
+      ]
+     },
+     {
+      "attrs": {
+       "def": 35.0,
+       "hp": 150.0
+      },
+      "talents": [
+       {
+        "desc": "All Vanguard Operators recover 30 HP per second while this unit is deployed",
+        "name": "Glistening"
+       }
+      ],
+      "trait": [
+       "Cannot block enemies during the skill duration, but grants <b>+1</b> Block to an Operator in front of this unit"
+      ]
+     }
+    ],
+    "unlock": {
+     "elite": 2,
+     "level": 40
+    }
+   }
+  ],
+  "phases": [
+   {
+    "cost": [],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 331,
+     "block": 1,
+     "cost": 8,
+     "def": 193,
+     "hp": 902,
+     "interval": 1.3,
+     "res": 0.0,
+     "respawn": 70
+    },
+    "lmd": 0,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 231,
+     "block": 1,
+     "cost": 8,
+     "def": 138,
+     "hp": 658,
+     "interval": 1.3,
+     "res": 0.0,
+     "respawn": 70
+    },
+    "max": 45,
+    "range": "1-1"
+   },
+   {
+    "cost": [
+     [
+      "3211",
+      3
+     ],
+     [
+      "30052",
+      1
+     ],
+     [
+      "30042",
+      1
+     ]
+    ],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 436,
+     "block": 1,
+     "cost": 10,
+     "def": 255,
+     "hp": 1142,
+     "interval": 1.3,
+     "res": 0.0,
+     "respawn": 70
+    },
+    "lmd": 15000,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 331,
+     "block": 1,
+     "cost": 10,
+     "def": 193,
+     "hp": 902,
+     "interval": 1.3,
+     "res": 0.0,
+     "respawn": 70
+    },
+    "max": 60,
+    "range": "1-1"
+   },
+   {
+    "cost": [
+     [
+      "3212",
+      5
+     ],
+     [
+      "30093",
+      12
+     ],
+     [
+      "30063",
+      8
+     ]
+    ],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 520,
+     "block": 1,
+     "cost": 10,
+     "def": 300,
+     "hp": 1565,
+     "interval": 1.3,
+     "res": 0.0,
+     "respawn": 70
+    },
+    "lmd": 60000,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 436,
+     "block": 1,
+     "cost": 10,
+     "def": 255,
+     "hp": 1142,
+     "interval": 1.3,
+     "res": 0.0,
+     "respawn": 70
+    },
+    "max": 70,
+    "range": "1-1"
+   }
+  ],
+  "pots": [
+   {
+    "desc": "DP Cost -1",
+    "mods": {
+     "cost": -1.0
+    }
+   },
+   {
+    "desc": "Redeployment Time -4 sec",
+    "mods": {
+     "respawn": -4.0
+    }
+   },
+   {
+    "desc": "DEF +22",
+    "mods": {
+     "def": 22.0
+    }
+   },
+   {
+    "desc": "Improves Talent",
+    "mods": {}
+   },
+   {
+    "desc": "DP Cost -1",
+    "mods": {
+     "cost": -1.0
+    }
+   }
+  ],
+  "riic": [
+   {
+    "desc": "When this Operator is assigned to a Trading Post, order limit <b>+5</b> and Morale consumed per hour <b>-0.25</b>",
+    "elite": 0,
+    "icon": "bskill_tra_limit&cost",
+    "level": 1,
+    "name": "Negotiation",
+    "room": "TRADING"
+   },
+   {
+    "desc": "When this Operator is assigned to a Dormitory, restores <b>+0.15</b> Morale per hour to all Operators assigned to that Dormitory (Only the strongest effect of this type takes place)",
+    "elite": 1,
+    "icon": "bskill_dorm_all2",
+    "level": 1,
+    "name": "Leader",
+    "room": "DORMITORY"
+   }
+  ],
+  "skillUp": [
+   [
+    [
+     "3301",
+     2
+    ]
+   ],
+   [
+    [
+     "3301",
+     2
+    ],
+    [
+     "30051",
+     3
+    ]
+   ],
+   [
+    [
+     "3302",
+     3
+    ],
+    [
+     "30062",
+     1
+    ]
+   ],
+   [
+    [
+     "3302",
+     3
+    ],
+    [
+     "30012",
+     4
+    ]
+   ],
+   [
+    [
+     "3302",
+     3
+    ],
+    [
+     "30023",
+     3
+    ]
+   ],
+   [
+    [
+     "3303",
+     4
+    ],
+    [
+     "30033",
+     3
+    ]
+   ]
+  ],
+  "skills": [
+   {
+    "ammo": false,
+    "icon": "skcom_assist_cost[2]",
+    "id": "skcom_assist_cost[2]",
+    "levels": [
+     {
+      "desc": "Stops attacking and recovers <b>14</b> DP over the skill duration",
+      "dur": 8.0,
+      "init": 8,
+      "sp": 31
+     },
+     {
+      "desc": "Stops attacking and recovers <b>14</b> DP over the skill duration",
+      "dur": 8.0,
+      "init": 8,
+      "sp": 30
+     },
+     {
+      "desc": "Stops attacking and recovers <b>14</b> DP over the skill duration",
+      "dur": 8.0,
+      "init": 8,
+      "sp": 29
+     },
+     {
+      "desc": "Stops attacking and recovers <b>14</b> DP over the skill duration",
+      "dur": 8.0,
+      "init": 9,
+      "sp": 28
+     },
+     {
+      "desc": "Stops attacking and recovers <b>14</b> DP over the skill duration",
+      "dur": 8.0,
+      "init": 9,
+      "sp": 27
+     },
+     {
+      "desc": "Stops attacking and recovers <b>14</b> DP over the skill duration",
+      "dur": 8.0,
+      "init": 9,
+      "sp": 26
+     },
+     {
+      "desc": "Stops attacking and recovers <b>14</b> DP over the skill duration",
+      "dur": 8.0,
+      "init": 10,
+      "sp": 25
+     },
+     {
+      "desc": "Stops attacking and recovers <b>14</b> DP over the skill duration",
+      "dur": 8.0,
+      "init": 11,
+      "sp": 24
+     },
+     {
+      "desc": "Stops attacking and recovers <b>14</b> DP over the skill duration",
+      "dur": 8.0,
+      "init": 12,
+      "sp": 23
+     },
+     {
+      "desc": "Stops attacking and recovers <b>14</b> DP over the skill duration",
+      "dur": 8.0,
+      "init": 13,
+      "sp": 22
+     }
+    ],
+    "mastery": [
+     {
+      "cost": [
+       [
+        "3303",
+        2
+       ],
+       [
+        "30044",
+        1
+       ],
+       [
+        "30023",
+        4
+       ]
+      ],
+      "hours": 8
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        4
+       ],
+       [
+        "30064",
+        1
+       ],
+       [
+        "30044",
+        2
+       ]
+      ],
+      "hours": 16
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        6
+       ],
+       [
+        "30115",
+        2
+       ],
+       [
+        "30094",
+        2
+       ]
+      ],
+      "hours": 24
+     }
+    ],
+    "name": "Support β",
+    "sp": "auto",
+    "type": "manual"
+   },
+   {
+    "ammo": false,
+    "icon": "skchr_myrtle_2",
+    "id": "skchr_myrtle_2",
+    "levels": [
+     {
+      "desc": "Stops attacking and recovers <b>16</b> DP over the skill duration, healing a nearby friendly unit's HP equal to <b>25% of Myrtle's ATK</b>",
+      "dur": 16.0,
+      "init": 5,
+      "range": "x-4",
+      "sp": 35
+     },
+     {
+      "desc": "Stops attacking and recovers <b>16</b> DP over the skill duration, healing a nearby friendly unit's HP equal to <b>25% of Myrtle's ATK</b>",
+      "dur": 16.0,
+      "init": 5,
+      "range": "x-4",
+      "sp": 34
+     },
+     {
+      "desc": "Stops attacking and recovers <b>16</b> DP over the skill duration, healing a nearby friendly unit's HP equal to <b>25% of Myrtle's ATK</b>",
+      "dur": 16.0,
+      "init": 5,
+      "range": "x-4",
+      "sp": 33
+     },
+     {
+      "desc": "Stops attacking and recovers <b>16</b> DP over the skill duration, healing a nearby friendly unit's HP equal to <b>30% of Myrtle's ATK</b>",
+      "dur": 16.0,
+      "init": 6,
+      "range": "x-4",
+      "sp": 31
+     },
+     {
+      "desc": "Stops attacking and recovers <b>16</b> DP over the skill duration, healing a nearby friendly unit's HP equal to <b>30% of Myrtle's ATK</b>",
+      "dur": 16.0,
+      "init": 6,
+      "range": "x-4",
+      "sp": 30
+     },
+     {
+      "desc": "Stops attacking and recovers <b>16</b> DP over the skill duration, healing a nearby friendly unit's HP equal to <b>30% of Myrtle's ATK</b>",
+      "dur": 16.0,
+      "init": 6,
+      "range": "x-4",
+      "sp": 29
+     },
+     {
+      "desc": "Stops attacking and recovers <b>16</b> DP over the skill duration, healing a nearby friendly unit's HP equal to <b>35% of Myrtle's ATK</b>",
+      "dur": 16.0,
+      "init": 7,
+      "range": "x-4",
+      "sp": 27
+     },
+     {
+      "desc": "Stops attacking and recovers <b>16</b> DP over the skill duration, healing a nearby friendly unit's HP equal to <b>40% of Myrtle's ATK</b>",
+      "dur": 16.0,
+      "init": 8,
+      "range": "x-4",
+      "sp": 26
+     },
+     {
+      "desc": "Stops attacking and recovers <b>16</b> DP over the skill duration, healing a nearby friendly unit's HP equal to <b>45% of Myrtle's ATK</b>",
+      "dur": 16.0,
+      "init": 9,
+      "range": "x-4",
+      "sp": 25
+     },
+     {
+      "desc": "Stops attacking and recovers <b>16</b> DP over the skill duration, healing a nearby friendly unit's HP equal to <b>50% of Myrtle's ATK</b>",
+      "dur": 16.0,
+      "init": 10,
+      "range": "x-4",
+      "sp": 24
+     }
+    ],
+    "mastery": [
+     {
+      "cost": [
+       [
+        "3303",
+        2
+       ],
+       [
+        "30054",
+        1
+       ],
+       [
+        "30033",
+        4
+       ]
+      ],
+      "hours": 8
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        4
+       ],
+       [
+        "30074",
+        2
+       ],
+       [
+        "30054",
+        2
+       ]
+      ],
+      "hours": 16
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        6
+       ],
+       [
+        "30125",
+        2
+       ],
+       [
+        "30084",
+        2
+       ]
+      ],
+      "hours": 24
+     }
+    ],
+    "name": "Healing Wings",
+    "sp": "auto",
+    "type": "manual"
+   }
+  ],
+  "src": "en",
+  "talents": [
+   [
+    {
+     "desc": "All [Vanguard] Operators recover 25 HP per second while Myrtle is deployed",
+     "elite": 2,
+     "level": 1,
+     "name": "Glistening",
+     "pot": 0
+    },
+    {
+     "desc": "All [Vanguard] Operators recover 28<b> (+3)</b> HP per second while Myrtle is deployed",
+     "elite": 2,
+     "level": 1,
+     "name": "Glistening",
+     "pot": 4
+    }
+   ]
+  ],
+  "trait": null,
+  "trust": {
+   "def": 50
+  }
+ },
+ "char_202_demkni": {
+  "desc": "Can heal allies by using skill(s)",
+  "id": "char_202_demkni",
+  "modules": [
+   {
+    "cost": [
+     [
+      [
+       "mod_unlock_token",
+       4
+      ],
+      [
+       "30115",
+       2
+      ],
+      [
+       "4001",
+       80000
+      ]
+     ],
+     [
+      [
+       "mod_unlock_token",
+       4
+      ],
+      [
+       "mod_update_token_1",
+       60
+      ],
+      [
+       "30125",
+       3
+      ],
+      [
+       "4001",
+       100000
+      ]
+     ],
+     [
+      [
+       "mod_unlock_token",
+       4
+      ],
+      [
+       "mod_update_token_2",
+       20
+      ],
+      [
+       "30135",
+       4
+      ],
+      [
+       "4001",
+       120000
+      ]
+     ]
+    ],
+    "icon": "GUA-X",
+    "id": "uniequip_002_demkni",
+    "letter": "X",
+    "name": "Unused Boxing Gloves",
+    "stages": [
+     {
+      "attrs": {
+       "atk": 50.0,
+       "hp": 150.0
+      },
+      "talents": [],
+      "trait": [
+       "When healing allied units with less than 50% HP, increases heal amount by <b>15%</b>"
+      ]
+     },
+     {
+      "attrs": {
+       "atk": 60.0,
+       "hp": 250.0
+      },
+      "talents": [
+       {
+        "desc": "When Saria restores an ally's HP, she also restores 2 extra SP to them",
+        "name": "Refreshment"
+       }
+      ],
+      "trait": [
+       "When healing allied units with less than 50% HP, increases heal amount by <b>15%</b>"
+      ]
+     },
+     {
+      "attrs": {
+       "atk": 70.0,
+       "hp": 350.0
+      },
+      "talents": [
+       {
+        "desc": "When Saria restores an ally's HP, she also restores 2 extra SP to them; [Rhine Lab] Operators gain 3 SP instead",
+        "name": "Refreshment"
+       }
+      ],
+      "trait": [
+       "When healing allied units with less than 50% HP, increases heal amount by <b>15%</b>"
+      ]
+     }
+    ],
+    "unlock": {
+     "elite": 2,
+     "level": 60
+    }
+   },
+   {
+    "cost": [
+     [
+      [
+       "mod_unlock_token",
+       4
+      ],
+      [
+       "30135",
+       2
+      ],
+      [
+       "4001",
+       80000
+      ]
+     ],
+     [
+      [
+       "mod_unlock_token",
+       4
+      ],
+      [
+       "mod_update_token_1",
+       60
+      ],
+      [
+       "30115",
+       3
+      ],
+      [
+       "4001",
+       100000
+      ]
+     ],
+     [
+      [
+       "mod_unlock_token",
+       4
+      ],
+      [
+       "mod_update_token_2",
+       20
+      ],
+      [
+       "30125",
+       4
+      ],
+      [
+       "4001",
+       120000
+      ]
+     ]
+    ],
+    "icon": "GUA-Y",
+    "id": "uniequip_003_demkni",
+    "letter": "Y",
+    "name": "Technology Rising Star Award",
+    "stages": [
+     {
+      "attrs": {
+       "atk": 35.0,
+       "def": 35.0,
+       "hp": 160.0
+      },
+      "talents": [],
+      "trait": [
+       "Reduces damage taken by <b>15%</b>"
+      ]
+     },
+     {
+      "attrs": {
+       "atk": 43.0,
+       "def": 43.0,
+       "hp": 210.0
+      },
+      "talents": [
+       {
+        "desc": "For every 18 seconds Saria is deployed, ATK +6% and DEF +5%, stacking up to 5 times",
+        "name": "Rhine Charged Suit"
+       }
+      ],
+      "trait": [
+       "Reduces damage taken by <b>15%</b>"
+      ]
+     },
+     {
+      "attrs": {
+       "atk": 50.0,
+       "def": 50.0,
+       "hp": 270.0
+      },
+      "talents": [
+       {
+        "desc": "For every 18 seconds Saria is deployed, ATK +7% and DEF +6%, stacking up to 5 times",
+        "name": "Rhine Charged Suit"
+       }
+      ],
+      "trait": [
+       "Reduces damage taken by <b>15%</b>"
+      ]
+     }
+    ],
+    "unlock": {
+     "elite": 2,
+     "level": 60
+    }
+   }
+  ],
+  "phases": [
+   {
+    "cost": [],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 287,
+     "block": 2,
+     "cost": 18,
+     "def": 365,
+     "hp": 1769,
+     "interval": 1.2,
+     "res": 10.0,
+     "respawn": 70
+    },
+    "lmd": 0,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 200,
+     "block": 2,
+     "cost": 18,
+     "def": 248,
+     "hp": 1309,
+     "interval": 1.2,
+     "res": 10.0,
+     "respawn": 70
+    },
+    "max": 50,
+    "range": "0-1"
+   },
+   {
+    "cost": [
+     [
+      "3231",
+      5
+     ],
+     [
+      "30022",
+      8
+     ],
+     [
+      "30052",
+      5
+     ]
+    ],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 388,
+     "block": 3,
+     "cost": 20,
+     "def": 487,
+     "hp": 2268,
+     "interval": 1.2,
+     "res": 10.0,
+     "respawn": 70
+    },
+    "lmd": 30000,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 287,
+     "block": 3,
+     "cost": 20,
+     "def": 365,
+     "hp": 1769,
+     "interval": 1.2,
+     "res": 10.0,
+     "respawn": 70
+    },
+    "max": 80,
+    "range": "0-1"
+   },
+   {
+    "cost": [
+     [
+      "3233",
+      4
+     ],
+     [
+      "30125",
+      4
+     ],
+     [
+      "30084",
+      5
+     ]
+    ],
+    "hi": {
+     "aspd": 100.0,
+     "atk": 485,
+     "block": 3,
+     "cost": 22,
+     "def": 595,
+     "hp": 3150,
+     "interval": 1.2,
+     "res": 10.0,
+     "respawn": 70
+    },
+    "lmd": 180000,
+    "lo": {
+     "aspd": 100.0,
+     "atk": 388,
+     "block": 3,
+     "cost": 22,
+     "def": 487,
+     "hp": 2268,
+     "interval": 1.2,
+     "res": 10.0,
+     "respawn": 70
+    },
+    "max": 90,
+    "range": "0-1"
+   }
+  ],
+  "pots": [
+   {
+    "desc": "DP Cost -1",
+    "mods": {
+     "cost": -1.0
+    }
+   },
+   {
+    "desc": "Redeployment Time -4 sec",
+    "mods": {
+     "respawn": -4.0
+    }
+   },
+   {
+    "desc": "DEF +27",
+    "mods": {
+     "def": 27.0
+    }
+   },
+   {
+    "desc": "Improves First Talent",
+    "mods": {}
+   },
+   {
+    "desc": "DP Cost -1",
+    "mods": {
+     "cost": -1.0
+    }
+   }
+  ],
+  "riic": [
+   {
+    "desc": "When this Operator is assigned to the Reception Room, Clue search speed increases by <b>10%</b>",
+    "elite": 0,
+    "icon": "bskill_meet_spd1",
+    "level": 1,
+    "name": "Clue Search α",
+    "room": "MEETING"
+   },
+   {
+    "desc": "When this Operator is assigned to the Reception Room, Clue search speed increases by <b>10%</b> and it's easier to obtain the clues of <b>Rhine Lab</b>(rate is influenced by length of worktime)",
+    "elite": 2,
+    "icon": "bskill_meet_rhine2",
+    "level": 1,
+    "name": "Watchman",
+    "room": "MEETING"
+   }
+  ],
+  "skillUp": [
+   [
+    [
+     "3301",
+     5
+    ]
+   ],
+   [
+    [
+     "3301",
+     5
+    ],
+    [
+     "30041",
+     5
+    ],
+    [
+     "30021",
+     4
+    ]
+   ],
+   [
+    [
+     "3302",
+     8
+    ],
+    [
+     "30032",
+     5
+    ]
+   ],
+   [
+    [
+     "3302",
+     8
+    ],
+    [
+     "30042",
+     4
+    ],
+    [
+     "30022",
+     3
+    ]
+   ],
+   [
+    [
+     "3302",
+     8
+    ],
+    [
+     "30013",
+     8
+    ]
+   ],
+   [
+    [
+     "3303",
+     8
+    ],
+    [
+     "30023",
+     4
+    ],
+    [
+     "30043",
+     5
+    ]
+   ]
+  ],
+  "skills": [
+   {
+    "ammo": false,
+    "icon": "skchr_demkni_1",
+    "id": "skchr_demkni_1",
+    "levels": [
+     {
+      "desc": "The next attack restores HP equal to <b>110%</b> ATK to a nearby friendly unit with less than 50% HP\n<b>Can store 1 charge(s)</b>",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 6
+     },
+     {
+      "desc": "The next attack restores HP equal to <b>115%</b> ATK to a nearby friendly unit with less than 50% HP\n<b>Can store 1 charge(s)</b>",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 6
+     },
+     {
+      "desc": "The next attack restores HP equal to <b>120%</b> ATK to a nearby friendly unit with less than 50% HP\n<b>Can store 1 charge(s)</b>",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 6
+     },
+     {
+      "desc": "The next attack restores HP equal to <b>130%</b> ATK to a nearby friendly unit with less than 50% HP\n<b>Can store 1 charge(s)</b>",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 5
+     },
+     {
+      "desc": "The next attack restores HP equal to <b>135%</b> ATK to a nearby friendly unit with less than 50% HP\n<b>Can store 1 charge(s)</b>",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 5
+     },
+     {
+      "desc": "The next attack restores HP equal to <b>140%</b> ATK to a nearby friendly unit with less than 50% HP\n<b>Can store 1 charge(s)</b>",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 5
+     },
+     {
+      "desc": "The next attack restores HP equal to <b>150%</b> ATK to a nearby friendly unit with less than 50% HP\n<b>Can store 2 charge(s)</b>",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 5
+     },
+     {
+      "desc": "The next attack restores HP equal to <b>160%</b> ATK to a nearby friendly unit with less than 50% HP\n<b>Can store 2 charge(s)</b>",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 4
+     },
+     {
+      "desc": "The next attack restores HP equal to <b>170%</b> ATK to a nearby friendly unit with less than 50% HP\n<b>Can store 2 charge(s)</b>",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 4
+     },
+     {
+      "desc": "The next attack restores HP equal to <b>180%</b> ATK to a nearby friendly unit with less than 50% HP\n<b>Can store 3 charge(s)</b>",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-4",
+      "sp": 4
+     }
+    ],
+    "mastery": [
+     {
+      "cost": [
+       [
+        "3303",
+        6
+       ],
+       [
+        "30034",
+        4
+       ],
+       [
+        "30013",
+        8
+       ]
+      ],
+      "hours": 8
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        12
+       ],
+       [
+        "30064",
+        3
+       ],
+       [
+        "30044",
+        6
+       ]
+      ],
+      "hours": 16
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        15
+       ],
+       [
+        "30125",
+        6
+       ],
+       [
+        "30084",
+        5
+       ]
+      ],
+      "hours": 24
+     }
+    ],
+    "name": "First Aid",
+    "sp": "auto",
+    "type": "auto"
+   },
+   {
+    "ammo": false,
+    "icon": "skchr_demkni_2",
+    "id": "skchr_demkni_2",
+    "levels": [
+     {
+      "desc": "Restores the HP of all allies within a certain range by <b>80%</b> of Saria's ATK",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-2",
+      "sp": 10
+     },
+     {
+      "desc": "Restores the HP of all allies within a certain range by <b>85%</b> of Saria's ATK",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-2",
+      "sp": 10
+     },
+     {
+      "desc": "Restores the HP of all allies within a certain range by <b>90%</b> of Saria's ATK",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-2",
+      "sp": 10
+     },
+     {
+      "desc": "Restores the HP of all allies within a certain range by <b>95%</b> of Saria's ATK",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-2",
+      "sp": 9
+     },
+     {
+      "desc": "Restores the HP of all allies within a certain range by <b>100%</b> of Saria's ATK",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-2",
+      "sp": 9
+     },
+     {
+      "desc": "Restores the HP of all allies within a certain range by <b>105%</b> of Saria's ATK",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-2",
+      "sp": 9
+     },
+     {
+      "desc": "Restores the HP of all allies within a certain range by <b>110%</b> of Saria's ATK",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-2",
+      "sp": 8
+     },
+     {
+      "desc": "Restores the HP of all allies within a certain range by <b>120%</b> of Saria's ATK",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-2",
+      "sp": 8
+     },
+     {
+      "desc": "Restores the HP of all allies within a certain range by <b>130%</b> of Saria's ATK",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-2",
+      "sp": 8
+     },
+     {
+      "desc": "Restores the HP of all allies within a certain range by <b>140%</b> of Saria's ATK",
+      "dur": 0.0,
+      "init": 0,
+      "range": "x-2",
+      "sp": 7
+     }
+    ],
+    "mastery": [
+     {
+      "cost": [
+       [
+        "3303",
+        6
+       ],
+       [
+        "30044",
+        4
+       ],
+       [
+        "30023",
+        4
+       ]
+      ],
+      "hours": 8
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        12
+       ],
+       [
+        "30074",
+        4
+       ],
+       [
+        "30054",
+        8
+       ]
+      ],
+      "hours": 16
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        15
+       ],
+       [
+        "30125",
+        6
+       ],
+       [
+        "30054",
+        5
+       ]
+      ],
+      "hours": 24
+     }
+    ],
+    "name": "Medicine Dispensing",
+    "sp": "auto",
+    "type": "auto"
+   },
+   {
+    "ammo": false,
+    "icon": "skchr_demkni_3",
+    "id": "skchr_demkni_3",
+    "levels": [
+     {
+      "desc": "Restores the HP of all nearby allies per second by <b>10%</b> of Saria's ATK\nThe Arts damage taken by nearby enemies <b>+20%</b> and their Movement Speed <b>-60%</b>",
+      "dur": 10.0,
+      "init": 45,
+      "range": "x-3",
+      "sp": 80
+     },
+     {
+      "desc": "Restores the HP of all nearby allies per second by <b>10%</b> of Saria's ATK\nThe Arts damage taken by nearby enemies <b>+20%</b> and their Movement Speed <b>-60%</b>",
+      "dur": 12.0,
+      "init": 45,
+      "range": "x-3",
+      "sp": 80
+     },
+     {
+      "desc": "Restores the HP of all nearby allies per second by <b>10%</b> of Saria's ATK\nThe Arts damage taken by nearby enemies <b>+20%</b> and their Movement Speed <b>-60%</b>",
+      "dur": 14.0,
+      "init": 45,
+      "range": "x-3",
+      "sp": 80
+     },
+     {
+      "desc": "Restores the HP of all nearby allies per second by <b>15%</b> of Saria's ATK\nThe Arts damage taken by nearby enemies <b>+30%</b> and their Movement Speed <b>-60%</b>",
+      "dur": 16.0,
+      "init": 50,
+      "range": "x-3",
+      "sp": 80
+     },
+     {
+      "desc": "Restores the HP of all nearby allies per second by <b>15%</b> of Saria's ATK\nThe Arts damage taken by nearby enemies <b>+30%</b> and their Movement Speed <b>-60%</b>",
+      "dur": 18.0,
+      "init": 50,
+      "range": "x-3",
+      "sp": 80
+     },
+     {
+      "desc": "Restores the HP of all nearby allies per second by <b>15%</b> of Saria's ATK\nThe Arts damage taken by nearby enemies <b>+30%</b> and their Movement Speed <b>-60%</b>",
+      "dur": 20.0,
+      "init": 50,
+      "range": "x-3",
+      "sp": 80
+     },
+     {
+      "desc": "Restores the HP of all nearby allies per second by <b>20%</b> of Saria's ATK\nThe Arts damage taken by nearby enemies <b>+40%</b> and their Movement Speed <b>-60%</b>",
+      "dur": 22.0,
+      "init": 55,
+      "range": "x-3",
+      "sp": 80
+     },
+     {
+      "desc": "Restores the HP of all nearby allies per second by <b>25%</b> of Saria's ATK\nThe Arts damage taken by nearby enemies <b>+45%</b> and their Movement Speed <b>-60%</b>",
+      "dur": 24.0,
+      "init": 60,
+      "range": "x-3",
+      "sp": 80
+     },
+     {
+      "desc": "Restores the HP of all nearby allies per second by <b>30%</b> of Saria's ATK\nThe Arts damage taken by nearby enemies <b>+50%</b> and their Movement Speed <b>-60%</b>",
+      "dur": 27.0,
+      "init": 65,
+      "range": "x-3",
+      "sp": 80
+     },
+     {
+      "desc": "Restores the HP of all nearby allies per second by <b>35%</b> of Saria's ATK\nThe Arts damage taken by nearby enemies <b>+55%</b> and their Movement Speed <b>-60%</b>",
+      "dur": 30.0,
+      "init": 70,
+      "range": "x-3",
+      "sp": 80
+     }
+    ],
+    "mastery": [
+     {
+      "cost": [
+       [
+        "3303",
+        6
+       ],
+       [
+        "30054",
+        4
+       ],
+       [
+        "30033",
+        6
+       ]
+      ],
+      "hours": 8
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        12
+       ],
+       [
+        "30084",
+        4
+       ],
+       [
+        "30064",
+        5
+       ]
+      ],
+      "hours": 16
+     },
+     {
+      "cost": [
+       [
+        "3303",
+        15
+       ],
+       [
+        "30115",
+        6
+       ],
+       [
+        "30104",
+        6
+       ]
+      ],
+      "hours": 24
+     }
+    ],
+    "name": "Calcification",
+    "sp": "auto",
+    "type": "manual"
+   }
+  ],
+  "src": "en",
+  "talents": [
+   [
+    {
+     "desc": "For every 20 seconds Saria is deployed, ATK +2% and DEF +2%, stacking up to 5 times",
+     "elite": 1,
+     "level": 1,
+     "name": "Rhine Charged Suit",
+     "pot": 0
+    },
+    {
+     "desc": "For every 20 seconds Saria is deployed, ATK +3% <b>(+1%)</b> and DEF +3% <b>(+1%)</b>, stacking up to 5 times",
+     "elite": 1,
+     "level": 1,
+     "name": "Rhine Charged Suit",
+     "pot": 4
+    },
+    {
+     "desc": "For every 20 seconds Saria is deployed, ATK +5% and DEF +4%, stacking up to 5 times",
+     "elite": 2,
+     "level": 1,
+     "name": "Rhine Charged Suit",
+     "pot": 0
+    },
+    {
+     "desc": "For every 20 seconds Saria is deployed, ATK +6% <b>(+1%)</b> and DEF +5% <b>(+1%)</b>, stacking up to 5 times",
+     "elite": 2,
+     "level": 1,
+     "name": "Rhine Charged Suit",
+     "pot": 4
+    }
+   ],
+   [
+    {
+     "desc": "When Saria restores an ally's HP, she also restores 1 extra Skill Point to them",
+     "elite": 2,
+     "level": 1,
+     "name": "Refreshment",
+     "pot": 0
+    }
+   ]
+  ],
+  "trait": null,
+  "trust": {
+   "atk": 50,
+   "def": 60
+  }
+ }
+}

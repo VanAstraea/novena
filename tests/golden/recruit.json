@@ -1,0 +1,1398 @@
+[
+ {
+  "combos": [
+   {
+    "candidates": [
+     "char_248_mgllan",
+     "char_358_lisa"
+    ],
+    "rarity": 6,
+    "tags": [
+     11,
+     23
+    ]
+   },
+   {
+    "candidates": [
+     "char_202_demkni",
+     "char_423_blemsh"
+    ],
+    "rarity": 6,
+    "tags": [
+     3,
+     11,
+     15
+    ]
+   },
+   {
+    "candidates": [
+     "char_248_mgllan",
+     "char_358_lisa"
+    ],
+    "rarity": 6,
+    "tags": [
+     10,
+     11,
+     23
+    ]
+   },
+   {
+    "candidates": [
+     "char_003_kalts",
+     "char_147_shining",
+     "char_179_cgbird"
+    ],
+    "rarity": 6,
+    "tags": [
+     10,
+     11,
+     15
+    ]
+   },
+   {
+    "candidates": [
+     "char_136_hsguma",
+     "char_202_demkni",
+     "char_311_mudrok",
+     "char_416_zumama",
+     "char_423_blemsh"
+    ],
+    "rarity": 6,
+    "tags": [
+     3,
+     11
+    ]
+   },
+   {
+    "candidates": [
+     "char_003_kalts",
+     "char_147_shining",
+     "char_179_cgbird",
+     "char_202_demkni",
+     "char_423_blemsh"
+    ],
+    "rarity": 6,
+    "tags": [
+     11,
+     15
+    ]
+   },
+   {
+    "candidates": [
+     "char_003_kalts",
+     "char_103_angel",
+     "char_134_ifrit",
+     "char_147_shining",
+     "char_179_cgbird",
+     "char_197_poca",
+     "char_2013_cerber",
+     "char_213_mostma",
+     "char_225_haak",
+     "char_248_mgllan",
+     "char_332_archet",
+     "char_340_shwaz",
+     "char_358_lisa",
+     "char_426_billro",
+     "char_472_pasngr"
+    ],
+    "rarity": 6,
+    "tags": [
+     10,
+     11
+    ]
+   },
+   {
+    "candidates": [
+     "char_003_kalts",
+     "char_010_chen",
+     "char_017_huang",
+     "char_103_angel",
+     "char_112_siege",
+     "char_134_ifrit",
+     "char_136_hsguma",
+     "char_147_shining",
+     "char_172_svrash",
+     "char_179_cgbird",
+     "char_188_helage",
+     "char_197_poca",
+     "char_2013_cerber",
+     "char_202_demkni",
+     "char_213_mostma",
+     "char_222_bpipe",
+     "char_225_haak",
+     "char_248_mgllan",
+     "char_250_phatom",
+     "char_263_skadi",
+     "char_264_f12yin",
+     "char_293_thorns",
+     "char_311_mudrok",
+     "char_332_archet",
+     "char_340_shwaz",
+     "char_350_surtr",
+     "char_358_lisa",
+     "char_362_saga",
+     "char_400_weedy",
+     "char_416_zumama",
+     "char_423_blemsh",
+     "char_426_billro",
+     "char_472_pasngr"
+    ],
+    "rarity": 6,
+    "tags": [
+     11
+    ]
+   },
+   {
+    "candidates": [
+     "char_164_nightm",
+     "char_258_podego"
+    ],
+    "rarity": 4,
+    "tags": [
+     15,
+     23
+    ]
+   },
+   {
+    "candidates": [
+     "char_164_nightm",
+     "char_258_podego"
+    ],
+    "rarity": 4,
+    "tags": [
+     10,
+     15,
+     23
+    ]
+   },
+   {
+    "candidates": [
+     "char_148_nearl",
+     "char_196_sunbr",
+     "char_226_hmau",
+     "char_284_spot"
+    ],
+    "rarity": 3,
+    "tags": [
+     3,
+     15
+    ]
+   },
+   {
+    "candidates": [
+     "char_118_yuki",
+     "char_133_mm",
+     "char_164_nightm",
+     "char_183_skgoat",
+     "char_195_glassb",
+     "char_218_cuttle",
+     "char_253_greyy",
+     "char_258_podego",
+     "char_278_orchid",
+     "char_302_glaze",
+     "char_326_glacus"
+    ],
+    "rarity": 3,
+    "tags": [
+     10,
+     23
+    ]
+   },
+   {
+    "candidates": [
+     "char_107_liskam",
+     "char_122_beagle",
+     "char_148_nearl",
+     "char_150_snakek",
+     "char_163_hpsts",
+     "char_196_sunbr",
+     "char_199_yak",
+     "char_201_moeshd",
+     "char_226_hmau",
+     "char_284_spot",
+     "char_378_asbest",
+     "char_381_bubble"
+    ],
+    "rarity": 3,
+    "tags": [
+     3
+    ]
+   },
+   {
+    "candidates": [
+     "char_108_silent",
+     "char_117_myrrh",
+     "char_120_hibisc",
+     "char_128_plosis",
+     "char_164_nightm",
+     "char_171_bldsk",
+     "char_181_flower",
+     "char_212_ansel",
+     "char_258_podego",
+     "char_298_susuro",
+     "char_385_finlpp",
+     "char_436_whispr"
+    ],
+    "rarity": 3,
+    "tags": [
+     10,
+     15
+    ]
+   },
+   {
+    "candidates": [
+     "char_118_yuki",
+     "char_133_mm",
+     "char_164_nightm",
+     "char_183_skgoat",
+     "char_193_frostl",
+     "char_195_glassb",
+     "char_218_cuttle",
+     "char_241_panda",
+     "char_253_greyy",
+     "char_258_podego",
+     "char_278_orchid",
+     "char_302_glaze",
+     "char_326_glacus"
+    ],
+    "rarity": 3,
+    "tags": [
+     23
+    ]
+   },
+   {
+    "candidates": [
+     "char_108_silent",
+     "char_117_myrrh",
+     "char_120_hibisc",
+     "char_128_plosis",
+     "char_148_nearl",
+     "char_151_myrtle",
+     "char_164_nightm",
+     "char_171_bldsk",
+     "char_181_flower",
+     "char_196_sunbr",
+     "char_212_ansel",
+     "char_226_hmau",
+     "char_258_podego",
+     "char_284_spot",
+     "char_298_susuro",
+     "char_385_finlpp",
+     "char_436_whispr"
+    ],
+    "rarity": 3,
+    "tags": [
+     15
+    ]
+   },
+   {
+    "candidates": [
+     "char_108_silent",
+     "char_109_fmout",
+     "char_117_myrrh",
+     "char_118_yuki",
+     "char_120_hibisc",
+     "char_121_lava",
+     "char_124_kroos",
+     "char_126_shotst",
+     "char_128_plosis",
+     "char_129_bluep",
+     "char_133_mm",
+     "char_141_nights",
+     "char_145_prove",
+     "char_158_milu",
+     "char_164_nightm",
+     "char_171_bldsk",
+     "char_174_slbell",
+     "char_181_flower",
+     "char_183_skgoat",
+     "char_190_clour",
+     "char_195_glassb",
+     "char_204_platnm",
+     "char_210_stward",
+     "char_211_adnach",
+     "char_212_ansel",
+     "char_218_cuttle",
+     "char_219_meteo",
+     "char_235_jesica",
+     "char_242_otter",
+     "char_253_greyy",
+     "char_254_vodfox",
+     "char_258_podego",
+     "char_278_orchid",
+     "char_279_excu",
+     "char_282_catap",
+     "char_298_susuro",
+     "char_302_glaze",
+     "char_306_leizi",
+     "char_326_glacus",
+     "char_328_cammou",
+     "char_338_iris",
+     "char_343_tknogi",
+     "char_344_beewax",
+     "char_346_aosta",
+     "char_363_toddi",
+     "char_365_aprl",
+     "char_366_acdrop",
+     "char_367_swllow",
+     "char_373_lionhd",
+     "char_379_sesa",
+     "char_385_finlpp",
+     "char_436_whispr",
+     "char_440_pinecn",
+     "char_452_bstalk",
+     "char_469_indigo"
+    ],
+    "rarity": 3,
+    "tags": [
+     10
+    ]
+   }
+  ],
+  "tags": [
+   11,
+   3,
+   15,
+   10,
+   23
+  ],
+  "worth": [
+   [
+    11,
+    23
+   ],
+   [
+    3,
+    11,
+    15
+   ],
+   [
+    10,
+    11,
+    15
+   ],
+   [
+    3,
+    11
+   ],
+   [
+    11,
+    15
+   ],
+   [
+    10,
+    11
+   ],
+   [
+    11
+   ],
+   [
+    15,
+    23
+   ]
+  ]
+ },
+ {
+  "combos": [
+   {
+    "candidates": [
+     "char_195_glassb"
+    ],
+    "rarity": 5,
+    "tags": [
+     5,
+     19
+    ]
+   },
+   {
+    "candidates": [
+     "char_195_glassb"
+    ],
+    "rarity": 5,
+    "tags": [
+     5,
+     14,
+     19
+    ]
+   },
+   {
+    "candidates": [
+     "char_242_otter",
+     "char_326_glacus"
+    ],
+    "rarity": 5,
+    "tags": [
+     5,
+     12
+    ]
+   },
+   {
+    "candidates": [
+     "char_242_otter",
+     "char_326_glacus"
+    ],
+    "rarity": 5,
+    "tags": [
+     5,
+     12,
+     14
+    ]
+   },
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_144_red",
+     "char_214_kafka"
+    ],
+    "rarity": 5,
+    "tags": [
+     9,
+     12
+    ]
+   },
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_144_red",
+     "char_214_kafka"
+    ],
+    "rarity": 5,
+    "tags": [
+     9,
+     12,
+     14
+    ]
+   },
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_144_red",
+     "char_214_kafka",
+     "char_242_otter",
+     "char_326_glacus"
+    ],
+    "rarity": 5,
+    "tags": [
+     12,
+     14
+    ]
+   },
+   {
+    "candidates": [
+     "char_174_slbell",
+     "char_195_glassb",
+     "char_242_otter",
+     "char_254_vodfox",
+     "char_326_glacus",
+     "char_343_tknogi"
+    ],
+    "rarity": 5,
+    "tags": [
+     5,
+     14
+    ]
+   },
+   {
+    "candidates": [
+     "char_107_liskam",
+     "char_155_tiger",
+     "char_163_hpsts",
+     "char_173_slchan",
+     "char_215_mantic",
+     "char_261_sddrag",
+     "char_274_astesi",
+     "char_294_ayer",
+     "char_308_swire",
+     "char_349_chiave",
+     "char_378_asbest",
+     "char_415_flint",
+     "char_455_nothin",
+     "char_475_akafyu",
+     "char_478_kirara"
+    ],
+    "rarity": 5,
+    "tags": [
+     9,
+     14,
+     19
+    ]
+   },
+   {
+    "candidates": [
+     "char_107_liskam",
+     "char_129_bluep",
+     "char_145_prove",
+     "char_155_tiger",
+     "char_158_milu",
+     "char_163_hpsts",
+     "char_164_nightm",
+     "char_173_slchan",
+     "char_195_glassb",
+     "char_204_platnm",
+     "char_215_mantic",
+     "char_218_cuttle",
+     "char_261_sddrag",
+     "char_274_astesi",
+     "char_294_ayer",
+     "char_306_leizi",
+     "char_308_swire",
+     "char_338_iris",
+     "char_349_chiave",
+     "char_363_toddi",
+     "char_365_aprl",
+     "char_367_swllow",
+     "char_378_asbest",
+     "char_415_flint",
+     "char_455_nothin",
+     "char_475_akafyu",
+     "char_478_kirara"
+    ],
+    "rarity": 5,
+    "tags": [
+     14,
+     19
+    ]
+   },
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_107_liskam",
+     "char_115_headbr",
+     "char_143_ghost",
+     "char_144_red",
+     "char_148_nearl",
+     "char_155_tiger",
+     "char_163_hpsts",
+     "char_173_slchan",
+     "char_201_moeshd",
+     "char_214_kafka",
+     "char_215_mantic",
+     "char_226_hmau",
+     "char_241_panda",
+     "char_243_waaifu",
+     "char_261_sddrag",
+     "char_274_astesi",
+     "char_294_ayer",
+     "char_308_swire",
+     "char_349_chiave",
+     "char_356_broca",
+     "char_378_asbest",
+     "char_401_elysm",
+     "char_415_flint",
+     "char_455_nothin",
+     "char_475_akafyu",
+     "char_478_kirara"
+    ],
+    "rarity": 5,
+    "tags": [
+     9,
+     14
+    ]
+   },
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_107_liskam",
+     "char_108_silent",
+     "char_115_headbr",
+     "char_128_plosis",
+     "char_129_bluep",
+     "char_143_ghost",
+     "char_144_red",
+     "char_145_prove",
+     "char_148_nearl",
+     "char_155_tiger",
+     "char_158_milu",
+     "char_163_hpsts",
+     "char_164_nightm",
+     "char_171_bldsk",
+     "char_173_slchan",
+     "char_174_slbell",
+     "char_195_glassb",
+     "char_201_moeshd",
+     "char_204_platnm",
+     "char_214_kafka",
+     "char_215_mantic",
+     "char_218_cuttle",
+     "char_219_meteo",
+     "char_226_hmau",
+     "char_241_panda",
+     "char_242_otter",
+     "char_243_waaifu",
+     "char_254_vodfox",
+     "char_261_sddrag",
+     "char_274_astesi",
+     "char_279_excu",
+     "char_294_ayer",
+     "char_306_leizi",
+     "char_308_swire",
+     "char_326_glacus",
+     "char_338_iris",
+     "char_343_tknogi",
+     "char_344_beewax",
+     "char_346_aosta",
+     "char_349_chiave",
+     "char_356_broca",
+     "char_363_toddi",
+     "char_365_aprl",
+     "char_367_swllow",
+     "char_373_lionhd",
+     "char_378_asbest",
+     "char_379_sesa",
+     "char_401_elysm",
+     "char_415_flint",
+     "char_436_whispr",
+     "char_455_nothin",
+     "char_475_akafyu",
+     "char_478_kirara"
+    ],
+    "rarity": 5,
+    "tags": [
+     14
+    ]
+   },
+   {
+    "candidates": [
+     "char_328_cammou",
+     "char_469_indigo"
+    ],
+    "rarity": 4,
+    "tags": [
+     12,
+     19
+    ]
+   },
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_144_red",
+     "char_214_kafka",
+     "char_242_otter",
+     "char_326_glacus",
+     "char_328_cammou",
+     "char_469_indigo"
+    ],
+    "rarity": 4,
+    "tags": [
+     12
+    ]
+   },
+   {
+    "candidates": [
+     "char_174_slbell",
+     "char_183_skgoat",
+     "char_195_glassb",
+     "char_242_otter",
+     "char_254_vodfox",
+     "char_258_podego",
+     "char_278_orchid",
+     "char_326_glacus",
+     "char_343_tknogi"
+    ],
+    "rarity": 3,
+    "tags": [
+     5
+    ]
+   },
+   {
+    "candidates": [
+     "char_107_liskam",
+     "char_130_doberm",
+     "char_137_brownb",
+     "char_149_scave",
+     "char_155_tiger",
+     "char_163_hpsts",
+     "char_173_slchan",
+     "char_185_frncat",
+     "char_192_falco",
+     "char_193_frostl",
+     "char_208_melan",
+     "char_215_mantic",
+     "char_261_sddrag",
+     "char_271_spikes",
+     "char_272_strong",
+     "char_274_astesi",
+     "char_283_midn",
+     "char_289_gyuki",
+     "char_290_vigna",
+     "char_294_ayer",
+     "char_301_cutter",
+     "char_308_swire",
+     "char_337_utage",
+     "char_347_jaksel",
+     "char_349_chiave",
+     "char_378_asbest",
+     "char_415_flint",
+     "char_455_nothin",
+     "char_475_akafyu",
+     "char_478_kirara"
+    ],
+    "rarity": 3,
+    "tags": [
+     9,
+     19
+    ]
+   },
+   {
+    "candidates": [
+     "char_107_liskam",
+     "char_124_kroos",
+     "char_126_shotst",
+     "char_129_bluep",
+     "char_130_doberm",
+     "char_133_mm",
+     "char_137_brownb",
+     "char_141_nights",
+     "char_145_prove",
+     "char_149_scave",
+     "char_155_tiger",
+     "char_158_milu",
+     "char_163_hpsts",
+     "char_164_nightm",
+     "char_173_slchan",
+     "char_185_frncat",
+     "char_190_clour",
+     "char_192_falco",
+     "char_193_frostl",
+     "char_195_glassb",
+     "char_204_platnm",
+     "char_208_melan",
+     "char_210_stward",
+     "char_211_adnach",
+     "char_215_mantic",
+     "char_218_cuttle",
+     "char_235_jesica",
+     "char_261_sddrag",
+     "char_271_spikes",
+     "char_272_strong",
+     "char_274_astesi",
+     "char_283_midn",
+     "char_289_gyuki",
+     "char_290_vigna",
+     "char_294_ayer",
+     "char_301_cutter",
+     "char_302_glaze",
+     "char_306_leizi",
+     "char_308_swire",
+     "char_328_cammou",
+     "char_337_utage",
+     "char_338_iris",
+     "char_347_jaksel",
+     "char_349_chiave",
+     "char_363_toddi",
+     "char_365_aprl",
+     "char_366_acdrop",
+     "char_367_swllow",
+     "char_378_asbest",
+     "char_415_flint",
+     "char_440_pinecn",
+     "char_455_nothin",
+     "char_469_indigo",
+     "char_475_akafyu",
+     "char_478_kirara"
+    ],
+    "rarity": 3,
+    "tags": [
+     19
+    ]
+   },
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_107_liskam",
+     "char_115_headbr",
+     "char_122_beagle",
+     "char_123_fang",
+     "char_127_estell",
+     "char_130_doberm",
+     "char_137_brownb",
+     "char_143_ghost",
+     "char_144_red",
+     "char_148_nearl",
+     "char_149_scave",
+     "char_150_snakek",
+     "char_151_myrtle",
+     "char_155_tiger",
+     "char_163_hpsts",
+     "char_173_slchan",
+     "char_185_frncat",
+     "char_192_falco",
+     "char_193_frostl",
+     "char_196_sunbr",
+     "char_199_yak",
+     "char_201_moeshd",
+     "char_208_melan",
+     "char_214_kafka",
+     "char_215_mantic",
+     "char_226_hmau",
+     "char_236_rope",
+     "char_237_gravel",
+     "char_240_wyvern",
+     "char_241_panda",
+     "char_243_waaifu",
+     "char_261_sddrag",
+     "char_271_spikes",
+     "char_272_strong",
+     "char_274_astesi",
+     "char_277_sqrrel",
+     "char_281_popka",
+     "char_283_midn",
+     "char_284_spot",
+     "char_289_gyuki",
+     "char_290_vigna",
+     "char_294_ayer",
+     "char_301_cutter",
+     "char_308_swire",
+     "char_337_utage",
+     "char_347_jaksel",
+     "char_349_chiave",
+     "char_356_broca",
+     "char_378_asbest",
+     "char_381_bubble",
+     "char_401_elysm",
+     "char_415_flint",
+     "char_455_nothin",
+     "char_475_akafyu",
+     "char_478_kirara"
+    ],
+    "rarity": 3,
+    "tags": [
+     9
+    ]
+   }
+  ],
+  "tags": [
+   14,
+   5,
+   12,
+   19,
+   9
+  ],
+  "worth": [
+   [
+    5,
+    19
+   ],
+   [
+    5,
+    12
+   ],
+   [
+    9,
+    12
+   ],
+   [
+    12,
+    14
+   ],
+   [
+    5,
+    14
+   ],
+   [
+    9,
+    14,
+    19
+   ],
+   [
+    14,
+    19
+   ],
+   [
+    9,
+    14
+   ],
+   [
+    14
+   ],
+   [
+    12,
+    19
+   ],
+   [
+    12
+   ]
+  ]
+ },
+ {
+  "combos": [
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_115_headbr",
+     "char_123_fang",
+     "char_149_scave",
+     "char_151_myrtle",
+     "char_192_falco",
+     "char_240_wyvern",
+     "char_261_sddrag",
+     "char_290_vigna",
+     "char_349_chiave",
+     "char_401_elysm",
+     "char_452_bstalk"
+    ],
+    "rarity": 3,
+    "tags": [
+     18
+    ]
+   },
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_115_headbr",
+     "char_123_fang",
+     "char_149_scave",
+     "char_151_myrtle",
+     "char_192_falco",
+     "char_240_wyvern",
+     "char_261_sddrag",
+     "char_290_vigna",
+     "char_349_chiave",
+     "char_401_elysm",
+     "char_452_bstalk"
+    ],
+    "rarity": 3,
+    "tags": [
+     8
+    ]
+   },
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_115_headbr",
+     "char_123_fang",
+     "char_149_scave",
+     "char_151_myrtle",
+     "char_192_falco",
+     "char_240_wyvern",
+     "char_261_sddrag",
+     "char_290_vigna",
+     "char_349_chiave",
+     "char_401_elysm",
+     "char_452_bstalk"
+    ],
+    "rarity": 3,
+    "tags": [
+     8,
+     18
+    ]
+   },
+   {
+    "candidates": [
+     "char_127_estell",
+     "char_130_doberm",
+     "char_137_brownb",
+     "char_143_ghost",
+     "char_155_tiger",
+     "char_185_frncat",
+     "char_193_frostl",
+     "char_208_melan",
+     "char_271_spikes",
+     "char_274_astesi",
+     "char_281_popka",
+     "char_283_midn",
+     "char_289_gyuki",
+     "char_294_ayer",
+     "char_301_cutter",
+     "char_308_swire",
+     "char_337_utage",
+     "char_347_jaksel",
+     "char_356_broca",
+     "char_415_flint",
+     "char_475_akafyu"
+    ],
+    "rarity": 3,
+    "tags": [
+     1
+    ]
+   },
+   {
+    "candidates": [
+     "char_502_nblade"
+    ],
+    "rarity": 2,
+    "tags": [
+     8,
+     17
+    ]
+   },
+   {
+    "candidates": [
+     "char_009_12fce",
+     "char_500_noirc",
+     "char_501_durin",
+     "char_502_nblade",
+     "char_503_rang"
+    ],
+    "rarity": 2,
+    "tags": [
+     17
+    ]
+   },
+   {
+    "candidates": [
+     "char_286_cast3"
+    ],
+    "rarity": 1,
+    "tags": [
+     1,
+     28
+    ]
+   },
+   {
+    "candidates": [
+     "char_4188_confes"
+    ],
+    "rarity": 1,
+    "tags": [
+     8,
+     28
+    ]
+   },
+   {
+    "candidates": [
+     "char_285_medic2",
+     "char_286_cast3",
+     "char_376_therex",
+     "char_4000_jnight",
+     "char_4093_frston",
+     "char_4136_phonor",
+     "char_4188_confes"
+    ],
+    "rarity": 1,
+    "tags": [
+     28
+    ]
+   }
+  ],
+  "tags": [
+   28,
+   17,
+   8,
+   18,
+   1
+  ],
+  "worth": [
+   [
+    28
+   ]
+  ]
+ },
+ {
+  "combos": [
+   {
+    "candidates": [
+     "char_201_moeshd"
+    ],
+    "rarity": 5,
+    "tags": [
+     22,
+     26
+    ]
+   },
+   {
+    "candidates": [
+     "char_144_red",
+     "char_214_kafka"
+    ],
+    "rarity": 5,
+    "tags": [
+     7,
+     12
+    ]
+   },
+   {
+    "candidates": [
+     "char_237_gravel"
+    ],
+    "rarity": 4,
+    "tags": [
+     7,
+     22
+    ]
+   },
+   {
+    "candidates": [
+     "char_158_milu",
+     "char_301_cutter",
+     "char_373_lionhd"
+    ],
+    "rarity": 4,
+    "tags": [
+     13
+    ]
+   },
+   {
+    "candidates": [
+     "char_173_slchan",
+     "char_236_rope",
+     "char_241_panda",
+     "char_277_sqrrel"
+    ],
+    "rarity": 4,
+    "tags": [
+     7,
+     26
+    ]
+   },
+   {
+    "candidates": [
+     "char_173_slchan",
+     "char_201_moeshd",
+     "char_236_rope",
+     "char_241_panda",
+     "char_277_sqrrel"
+    ],
+    "rarity": 4,
+    "tags": [
+     26
+    ]
+   },
+   {
+    "candidates": [
+     "char_102_texas",
+     "char_144_red",
+     "char_214_kafka",
+     "char_242_otter",
+     "char_326_glacus",
+     "char_328_cammou",
+     "char_469_indigo"
+    ],
+    "rarity": 4,
+    "tags": [
+     12
+    ]
+   },
+   {
+    "candidates": [
+     "char_144_red",
+     "char_173_slchan",
+     "char_214_kafka",
+     "char_215_mantic",
+     "char_236_rope",
+     "char_237_gravel",
+     "char_241_panda",
+     "char_243_waaifu",
+     "char_272_strong",
+     "char_277_sqrrel",
+     "char_455_nothin",
+     "char_478_kirara"
+    ],
+    "rarity": 4,
+    "tags": [
+     7
+    ]
+   },
+   {
+    "candidates": [
+     "char_107_liskam",
+     "char_122_beagle",
+     "char_148_nearl",
+     "char_150_snakek",
+     "char_163_hpsts",
+     "char_196_sunbr",
+     "char_199_yak",
+     "char_201_moeshd",
+     "char_226_hmau",
+     "char_237_gravel",
+     "char_274_astesi",
+     "char_284_spot",
+     "char_344_beewax",
+     "char_378_asbest",
+     "char_381_bubble"
+    ],
+    "rarity": 3,
+    "tags": [
+     22
+    ]
+   }
+  ],
+  "tags": [
+   26,
+   12,
+   22,
+   7,
+   13
+  ],
+  "worth": [
+   [
+    22,
+    26
+   ],
+   [
+    7,
+    12
+   ],
+   [
+    7,
+    22
+   ],
+   [
+    13
+   ],
+   [
+    7,
+    26
+   ],
+   [
+    26
+   ],
+   [
+    12
+   ],
+   [
+    7
+   ]
+  ]
+ },
+ {
+  "combos": [
+   {
+    "candidates": [
+     "char_243_waaifu"
+    ],
+    "rarity": 5,
+    "tags": [
+     24,
+     25
+    ]
+   },
+   {
+    "candidates": [
+     "char_219_meteo",
+     "char_379_sesa"
+    ],
+    "rarity": 5,
+    "tags": [
+     21,
+     24
+    ]
+   },
+   {
+    "candidates": [
+     "char_242_otter",
+     "char_452_bstalk"
+    ],
+    "rarity": 4,
+    "tags": [
+     27
+    ]
+   },
+   {
+    "candidates": [
+     "char_144_red",
+     "char_214_kafka",
+     "char_237_gravel",
+     "char_243_waaifu",
+     "char_272_strong",
+     "char_455_nothin"
+    ],
+    "rarity": 4,
+    "tags": [
+     25
+    ]
+   },
+   {
+    "candidates": [
+     "char_126_shotst",
+     "char_141_nights",
+     "char_174_slbell",
+     "char_219_meteo",
+     "char_243_waaifu",
+     "char_254_vodfox",
+     "char_379_sesa"
+    ],
+    "rarity": 4,
+    "tags": [
+     24
+    ]
+   },
+   {
+    "candidates": [
+     "char_127_estell",
+     "char_143_ghost",
+     "char_281_popka",
+     "char_356_broca"
+    ],
+    "rarity": 3,
+    "tags": [
+     20,
+     21
+    ]
+   },
+   {
+    "candidates": [
+     "char_127_estell",
+     "char_143_ghost",
+     "char_155_tiger",
+     "char_163_hpsts",
+     "char_208_melan",
+     "char_215_mantic",
+     "char_235_jesica",
+     "char_281_popka",
+     "char_289_gyuki",
+     "char_337_utage",
+     "char_343_tknogi",
+     "char_356_broca",
+     "char_475_akafyu",
+     "char_478_kirara"
+    ],
+    "rarity": 3,
+    "tags": [
+     20
+    ]
+   },
+   {
+    "candidates": [
+     "char_109_fmout",
+     "char_118_yuki",
+     "char_121_lava",
+     "char_127_estell",
+     "char_143_ghost",
+     "char_219_meteo",
+     "char_253_greyy",
+     "char_279_excu",
+     "char_281_popka",
+     "char_282_catap",
+     "char_294_ayer",
+     "char_344_beewax",
+     "char_346_aosta",
+     "char_356_broca",
+     "char_373_lionhd",
+     "char_379_sesa",
+     "char_440_pinecn"
+    ],
+    "rarity": 3,
+    "tags": [
+     21
+    ]
+   }
+  ],
+  "tags": [
+   24,
+   25,
+   27,
+   21,
+   20
+  ],
+  "worth": [
+   [
+    24,
+    25
+   ],
+   [
+    21,
+    24
+   ],
+   [
+    27
+   ],
+   [
+    25
+   ],
+   [
+    24
+   ]
+  ]
+ }
+]
