@@ -254,7 +254,7 @@ class Builder:
             cost = m.get("itemCost") or {}
             out.append({
                 "id": mid, "name": m.get("uniEquipName", mid), "letter": m["typeIcon"].rsplit("-", 1)[-1].upper(),
-                "icon": m["typeIcon"].upper(), "unlock": {"elite": gd.phase(m.get("unlockEvolvePhase", 2)),
+                "icon": m["typeIcon"].upper(), "type": m["typeIcon"].lower(), "img": m.get("uniEquipIcon") or mid, "unlock": {"elite": gd.phase(m.get("unlockEvolvePhase", 2)),
                                                           "level": m.get("unlockLevel", 1)},
                 "stages": stages, "cost": [items(cost.get(str(i))) for i in (1, 2, 3)],
             })

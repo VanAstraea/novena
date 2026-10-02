@@ -1,6 +1,6 @@
 // The operator database: every operator, searchable and filterable; filters live in the URL.
 import { useMemo } from "preact/hooks";
-import { Avatar, Await, metaSig, Stars, useAsync } from "../components/ui";
+import { Await, metaSig, PortraitCard, useAsync } from "../components/ui";
 import { operators, usage as loadUsage } from "../lib/data";
 import { CLASS_NAMES, CLASS_ORDER, OBTAIN_NAMES, pct } from "../lib/format";
 import { href, route, setQuery } from "../lib/router";
@@ -38,7 +38,12 @@ function Filters({ ops }: { ops: OpIndex[] }) {
         {sel("faction", "Faction", factionOpts.map((f) => [f, factions[f] || f]))}
         {sel("obtain", "How to get", Object.entries(OBTAIN_NAMES))}
         {sel("on", "Available on", [["here", "This server"], ["cnonly", "CN only (not here yet)"], ...SERVERS.map((s) => [s.id, s.long] as [string, string])])}
-        {sel("sort", "Sort", [["rarity", "Rarity"], ["name", "Name"], ["usage", "Community usage"], ["new", "Newest"]])}
+        <label class="field">
+          <span>Sort</span>
+          <select value={q.get("sort") || "rarity"} onChange={(e) => setQuery({ sort: (e.target as HTMLSelectElement).value === "rarity" ? "" : (e.target as HTMLSelectElement).value })}>
+            <option value="rarity">Rarity</option><option value="name">Name</option><option value="usage">Community usage</option><option value="new">Newest</option>
+          </select>
+        </label>
       </div>
       <div class="row" style={{ marginTop: "10px" }} role="group" aria-label="Rarity">
         {[6, 5, 4, 3, 2, 1].map((r) => {
@@ -109,18 +114,12 @@ function List({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
       <Filters ops={ops} />
       <p class="muted" role="status">{list.length} of {ops.length} operators{q.get("sort") === "usage" ? " · usage = share of community clear guides that use them, weighted across content" : ""}</p>
       <div class="op-grid">
-        {list.map((o) => (
-          <a key={o.id} class="op-card" href={href(`/operator/${o.id}`)}>
-            <Avatar op={o} />
-            <span style={{ minWidth: 0 }}>
-              <span class="op-name">{o.name}</span><br />
-              <Stars n={o.rarity} /> <span class="meta">{branches[o.branch] || CLASS_NAMES[o.cls]}</span>
-              {o.src && <><br /><span class="badge cn">CN only</span></>}
-              {q.get("sort") === "usage" && usage.ops[o.id]?.score !== undefined && <><br /><span class="meta">usage {pct(usage.ops[o.id].score)}</span></>}
-              {account.value.ops[o.id] && <><br /><span class="meta good-text">owned · E{account.value.ops[o.id].elite}</span></>}
-            </span>
-          </a>
-        ))}
+        {list.map((o) => {
+          const mine = account.value.ops[o.id];
+          const sub = q.get("sort") === "usage" && usage.ops[o.id]?.score !== undefined ? `Usage ${pct(usage.ops[o.id].score)}`
+            : mine ? `Yours · E${mine.elite} Lv ${mine.level}` : branches[o.branch] || CLASS_NAMES[o.cls];
+          return <PortraitCard key={o.id} op={o} href={href(`/operator/${o.id}`)} sub={sub} elite={mine?.elite ?? 0} />;
+        })}
       </div>
     </>
   );

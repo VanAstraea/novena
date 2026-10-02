@@ -74,7 +74,9 @@ export interface Module {
   id: string;
   name: string;
   letter: string;
-  icon: string;
+  icon: string; // "GUA-X"
+  type: string; // "gua-x", the type icon's file name
+  img: string; // the module's picture
   unlock: { elite: number; level: number };
   stages: ModuleStage[];
   cost: ItemList[];

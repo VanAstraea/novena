@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { BuildControls, CommunityView, CostsView, ModulesView, RiicView, SkillView, specFromQuery, specToQuery, StatsView, TalentsView } from "../components/OpParts";
-import { Avatar, Await, metaSig, Rich, Stars, Tabs, useAsync } from "../components/ui";
-import { integrated, operator, operators, recruit as loadRecruit, usage as loadUsage } from "../lib/data";
+import { Art, Await, GIcon, metaSig, Rich, Stars, Tabs, useAsync } from "../components/ui";
+import { art, integrated, operator, operators, recruit as loadRecruit, usage as loadUsage } from "../lib/data";
 import { CLASS_NAMES, OBTAIN_NAMES } from "../lib/format";
 import { href, route, setQuery } from "../lib/router";
 import { account, SERVERS, server } from "../state";
@@ -41,39 +41,56 @@ function View({ d, op, ops, usageRow, is, tags }: {
     { key: "base", label: "Base skills" }, { key: "costs", label: "Upgrade costs" }, { key: "community", label: "Community" },
   ];
   const skillLevel = spec.skillLevel || 7;
+  const [artChoice, setArtChoice] = useState<number | null>(null);
   useEffect(() => { // after the shell sets its generic title
     const t = setTimeout(() => (document.title = `${op.name} · Novena`), 0);
     return () => clearTimeout(t);
   }, [op.id]);
+  const artElite = artChoice ?? (spec.elite >= 2 && d.phases.length > 2 ? 2 : 0);
   return (
-    <div class="stack fade-in">
-      <div class="row" style={{ gap: "14px" }}>
-        <Avatar op={op} size="lg" />
-        <div class="grow">
-          <h1 style={{ marginBottom: "4px" }}>{op.name} {op.src && <span class="badge cn" title="CN has this operator; this server doesn't yet. Text is CN's.">CN only</span>}</h1>
-          <p style={{ margin: 0 }}>
-            <Stars n={op.rarity} /> {CLASS_NAMES[op.cls]} · {meta?.branches[op.branch] || op.branch} · {op.pos === "MELEE" ? "Melee" : "Ranged"}
-            {op.cn && op.cn !== op.name && <span class="muted"> · {op.cn}</span>}
-          </p>
-          <p class="muted" style={{ margin: 0 }}>
-            {op.factions.map((f) => meta?.factions[f] || f).join(" · ")}{op.factions.length ? " · " : ""}{OBTAIN_NAMES[op.obtain] || op.obtain}
-            {" · on "}{op.on.map((sv) => SERVERS.find((x) => x.id === sv)!.label).join(", ")}
-          </p>
+    <div class="fade-in">
+      <section class="ophero" aria-label={`${op.name}`}>
+        <Art srcs={art.splashes(op.id, artElite)} class="splash" alt="" eager />
+        <div class="halo" aria-hidden="true" />
+        <div class="left">
+          <div class="ident">
+            <span class="clsbox"><img src={art.classIcon(op.cls)} alt="" /></span>
+            <GIcon src={art.branchIcon(op.branch)} alt={meta?.branches[op.branch] || op.branch} size={30} />
+            <span style={{ fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", fontSize: "0.82rem" }}>
+              {CLASS_NAMES[op.cls]} · {meta?.branches[op.branch] || op.branch} · {op.pos === "MELEE" ? "Melee" : "Ranged"}
+            </span>
+          </div>
+          <div>
+            <h1>{op.name}</h1>
+            <div class="row" style={{ marginTop: "8px" }}>
+              <Stars n={op.rarity} img />
+              {op.cn && op.cn !== op.name && <span class="muted">{op.cn}</span>}
+              {op.src && <span class="badge cn" title="CN has this operator; this server doesn't yet. Text is CN's.">CN only</span>}
+            </div>
+          </div>
+          <div class="badges">
+            {op.factions.map((f) => <span key={f} class="badge">{meta?.factions[f] || f}</span>)}
+            <span class="badge">{OBTAIN_NAMES[op.obtain] || op.obtain}</span>
+            <span class="badge">On {op.on.map((sv) => SERVERS.find((x) => x.id === sv)!.label).join(" · ")}</span>
+          </div>
+          <BuildControls d={d} spec={spec} compact onChange={(n) => setQuery(specToQuery(n))} />
+          <StatsView d={d} spec={spec} />
+          <div class="row" style={{ marginTop: "auto" }}>
+            <a class="btn primary" href={href("/planner", { add: op.id })}>Plan upgrades</a>
+            <a class="btn" href={href("/compare", { ops: op.id })}>Compare</a>
+          </div>
         </div>
-        <div class="row">
-          <a class="btn" href={href("/compare", { ops: op.id })}>Compare</a>
-          <a class="btn" href={href("/planner", { add: op.id })}>Plan upgrades</a>
-        </div>
-      </div>
+        {d.phases.length > 2 && (
+          <div class="artsw seg" role="group" aria-label="Art">
+            <button type="button" aria-pressed={artElite === 0} onClick={() => setArtChoice(0)}>Base art</button>
+            <button type="button" aria-pressed={artElite === 2} onClick={() => setArtChoice(2)}>Elite 2 art</button>
+          </div>
+        )}
+      </section>
       {owned && <p class="note">In your roster: E{owned.elite} Lv {owned.level}, SL{owned.skillLevel}{owned.masteries.some((m) => m) ? `, ${owned.masteries.map((m, i) => m ? `S${i + 1}M${m}` : "").filter(Boolean).join(" ")}` : ""}{Object.entries(owned.modules).filter(([, v]) => v).map(([k, v]) => `, Mod ${k}${v}`).join("")}.</p>}
       <Tabs label="Operator sections" tabs={tabs} value={tab} onChange={(t) => setQuery({ tab: t === "overview" ? "" : t })} />
       {tab === "overview" && (
         <div class="stack">
-          <section class="card">
-            <h2>Stats</h2>
-            <BuildControls d={d} spec={spec} compact onChange={(n) => setQuery(specToQuery(n))} />
-            <div style={{ marginTop: "12px" }}><StatsView d={d} spec={spec} /></div>
-          </section>
           <div class="grid two">
             <section class="card">
               <h2>Trait</h2>
@@ -101,7 +118,7 @@ function View({ d, op, ops, usageRow, is, tags }: {
         </div>
       )}
       {tab === "skills" && (
-        <div class="stack">
+        <div class="grid three">
           {d.skills.length === 0 && <p class="muted">No skills.</p>}
           {d.skills.map((sk, i) => (
             <SkillView key={sk.id} skill={sk} index={i} level={Math.min(skillLevel, sk.levels.length)}

@@ -5,10 +5,10 @@ import { Fragment, type ComponentChildren } from "preact";
 import { useMemo } from "preact/hooks";
 import { BuildControls, specFromQuery, specToQuery } from "../components/OpParts";
 import { OpPicker } from "../components/OpPicker";
-import { Avatar, Await, Explain, Items, itemsSig, metaSig, Range, Rich, Stars, useAsync } from "../components/ui";
+import { Art, Avatar, Await, Explain, GIcon, Items, itemsSig, metaSig, Range, Rich, Stars, useAsync } from "../components/ui";
 import { reach, stateLabel } from "../lib/build";
 import { fresh, sanity, stateCost, type OpState } from "../lib/costs";
-import { integrated, operator, operators, usage as loadUsage } from "../lib/data";
+import { art, integrated, operator, operators, usage as loadUsage } from "../lib/data";
 import { CATEGORY_NAMES, CLASS_NAMES, fmt, pct } from "../lib/format";
 import { href, route, setQuery } from "../lib/router";
 import { statsAt, type BuildSpec } from "../lib/stats";
@@ -154,15 +154,20 @@ function Table({ cols, usage, is, ids }: { cols: Col[]; usage: UsageFile; is: IS
             <tr>
               <th scope="col"><span class="sr-only">Attribute</span></th>
               {cols.map((c, i) => (
-                <th key={c.op.id} scope="col" style={{ whiteSpace: "normal" }}>
-                  <div class="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
-                    <a class="op-cell" href={href(`/operator/${c.op.id}`)}>
-                      <Avatar op={c.op} />
-                      <span><span class="op-name">{c.op.name}</span><br /><Stars n={c.op.rarity} /> <small>{meta?.branches[c.op.branch] || CLASS_NAMES[c.op.cls]}</small></span>
+                <th key={c.op.id} scope="col" style={{ whiteSpace: "normal", textTransform: "none", letterSpacing: "normal", color: "var(--text)", fontSize: "0.92rem", padding: "10px" }}>
+                  <div class="cmp-head">
+                    <a class="art" href={href(`/operator/${c.op.id}`)} aria-label={c.op.name}>
+                      <Art srcs={art.portraits(c.op.id, c.spec.elite)} alt="" fallback={<Avatar op={c.op} size="lg" />} />
                     </a>
-                    <button class="small ghost" onClick={() => remove(i)} aria-label={`Remove ${c.op.name}`}>✕</button>
+                    <div class="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
+                      <span>
+                        <a href={href(`/operator/${c.op.id}`)} class="op-name" style={{ color: "var(--text)", fontSize: "1.05rem" }}>{c.op.name}</a><br />
+                        <span class="row tight"><Stars n={c.op.rarity} img /> <GIcon src={art.classIcon(c.op.cls)} alt={CLASS_NAMES[c.op.cls]} size={18} /> <small>{meta?.branches[c.op.branch] || CLASS_NAMES[c.op.cls]}</small></span>
+                      </span>
+                      <button class="small ghost" onClick={() => remove(i)} aria-label={`Remove ${c.op.name}`}>✕</button>
+                    </div>
+                    {c.op.src && <span class="badge cn">CN only</span>}
                   </div>
-                  {c.op.src && <span class="badge cn">CN only</span>}
                 </th>
               ))}
             </tr>
@@ -192,6 +197,7 @@ function Table({ cols, usage, is, ids }: { cols: Col[]; usage: UsageFile; is: IS
               if (!sk || !lv) return <span class="muted">None</span>;
               return (
                 <div>
+                  <img src={art.skill(sk.icon)} alt="" width={40} height={40} loading="lazy" style={{ float: "left", marginRight: "8px", border: "1px solid var(--line)" }} onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />
                   <strong>S{(c.spec.skill ?? 0) + 1} {sk.name}</strong> <span class="muted">({(c.spec.skillLevel || 7) > 7 ? `M${(c.spec.skillLevel || 7) - 7}` : `Lv ${c.spec.skillLevel}`})</span>
                   <p class="muted" style={{ margin: "2px 0" }}>{sk.sp === "passive" ? (sk.type === "passive" ? "Passive" : "No SP") : `${lv.sp} SP (${lv.init} initial)${lv.dur > 0 ? ` · ${lv.dur} s` : ""}`}</p>
                   <Rich html={lv.desc} />

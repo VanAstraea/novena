@@ -82,8 +82,44 @@ export function Avatar({ op, size = "" }: { op: Pick<OpIndex, "id" | "name" | "r
   return <img class={cls} src={art.avatar(op.id)} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
 }
 
-export function Stars({ n }: { n: number }) {
+export function Stars({ n, img = false }: { n: number; img?: boolean }) {
+  const [failed, setFailed] = useState(false);
+  if (img && !failed) return <img class="stars-img" src={art.rarity(n)} alt={`${n} star`} title={`${n}★`} loading="lazy" onError={() => setFailed(true)} />;
   return <span class={`stars r${n}`} aria-label={`${n} star`} title={`${n}★`}>{"★".repeat(n)}</span>;
+}
+
+/** An image tried from several sources in turn (E2 art, then base art); `fallback` shows when none loads. */
+export function Art({ srcs, alt = "", class: cls = "", fallback = null, eager = false, onLoad }: {
+  srcs: string[]; alt?: string; class?: string; fallback?: ComponentChildren; eager?: boolean; onLoad?: () => void;
+}) {
+  const [i, setI] = useState(0);
+  const key = srcs.join("|");
+  useEffect(() => setI(0), [key]);
+  if (i >= srcs.length) return <>{fallback}</>;
+  return <img class={cls} src={srcs[i]} alt={alt} loading={eager ? "eager" : "lazy"} decoding="async" onLoad={onLoad} onError={() => setI(i + 1)} />;
+}
+
+/** One of the game's white UI icons (class, branch, elite, potential, mastery, module type). */
+export function GIcon({ src, alt, size = 22, title }: { src: string; alt: string; size?: number; title?: string }) {
+  const [tries, setTries] = useState(0); // one retry: the mirror occasionally drops a request
+  if (tries > 1) return <span class="badge" title={title}>{alt}</span>;
+  return <img class="gicon" src={tries ? `${src}?retry=1` : src} alt={alt} title={title || alt} width={size} height={size} loading="lazy" onError={() => setTries(tries + 1)} />;
+}
+
+/** The game's operator-list card: half-body portrait, class icon, rarity bar, name. */
+export function PortraitCard({ op, sub, href, elite = 0 }: { op: OpIndex; sub?: ComponentChildren; href: string; elite?: number }) {
+  return (
+    <a class={`pcard r${op.rarity}`} href={href} title={op.name}>
+      <Art srcs={art.portraits(op.id, elite)} class="portrait" fallback={<span class="ph" aria-hidden="true">{initials(op.name)}</span>} />
+      <span class="cls"><img src={art.classIcon(op.cls)} alt="" loading="lazy" /></span>
+      {op.src && <span class="flag badge cn" title="Not on this server yet">CN</span>}
+      <span class="foot">
+        <Stars n={op.rarity} img />
+        <span class="nm">{op.name}</span>
+        {sub && <span class="sub">{sub}</span>}
+      </span>
+    </a>
+  );
 }
 
 export function OpLink({ op, sub, size = "sm" }: { op: OpIndex; sub?: ComponentChildren; size?: "" | "sm" | "lg" }) {

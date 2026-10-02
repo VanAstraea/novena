@@ -6,7 +6,7 @@ import { art } from "../lib/data";
 import { CATEGORY_NAMES, fmt, pct, ROOM_NAMES } from "../lib/format";
 import { clampSpec, statsAt, type BuildSpec } from "../lib/stats";
 import type { Category, ISFile, OpDetail, Skill, UsageRow } from "../types";
-import { Explain, Items, itemsSig, metaSig, Range, Rich } from "./ui";
+import { Explain, GIcon, Items, itemsSig, metaSig, Range, Rich } from "./ui";
 
 export const STAT_LABELS: [keyof ReturnType<typeof statsAt>["total"], string, string][] = [
   ["hp", "HP", ""], ["atk", "ATK", ""], ["def", "DEF", ""], ["res", "RES", ""], ["cost", "DP cost", ""],
@@ -55,32 +55,53 @@ export function BuildControls({ d, spec, onChange, compact = false }: {
   const maxSl = d.skills[spec.skill ?? 0]?.levels.length || 7;
   return (
     <div class="row" style={{ alignItems: "flex-end" }}>
-      <label class="field"><span>Elite</span>
-        <select value={spec.elite} onChange={(e) => set({ elite: +(e.target as HTMLSelectElement).value })}>
-          {d.phases.map((_, i) => <option key={i} value={i}>E{i}</option>)}
-        </select>
-      </label>
+      <div class="field"><span>Elite</span>
+        <div class="seg" role="group" aria-label="Elite">
+          {d.phases.map((_, i) => (
+            <button key={i} type="button" class="icobtn" aria-pressed={spec.elite === i} aria-label={`Elite ${i}`} title={`Elite ${i}`} onClick={() => set({ elite: i })}>
+              <GIcon src={art.elite(i)} alt={`E${i}`} size={26} />
+            </button>
+          ))}
+        </div>
+      </div>
       <label class="field"><span>Level (max {d.phases[spec.elite].max})</span>
         <input type="number" min={1} max={d.phases[spec.elite].max} value={spec.level}
           onChange={(e) => set({ level: +(e.target as HTMLInputElement).value || 1 })} />
       </label>
-      <label class="field"><span>Potential</span>
-        <select value={spec.pot} onChange={(e) => set({ pot: +(e.target as HTMLSelectElement).value })}>
-          {[1, 2, 3, 4, 5, 6].map((p) => <option key={p} value={p}>P{p}</option>)}
-        </select>
-      </label>
+      <div class="field"><span>Potential</span>
+        <div class="seg" role="group" aria-label="Potential">
+          {[1, 2, 3, 4, 5, 6].map((p) => (
+            <button key={p} type="button" class="icobtn" style={{ width: "38px" }} aria-pressed={spec.pot === p} aria-label={`Potential ${p}`} title={`Potential ${p}`} onClick={() => set({ pot: p })}>
+              <GIcon src={art.potential(p)} alt={`P${p}`} size={24} />
+            </button>
+          ))}
+        </div>
+      </div>
       <label class="field"><span>Trust %</span>
         <input type="number" min={0} max={200} step={10} value={spec.trust} onChange={(e) => set({ trust: +(e.target as HTMLInputElement).value || 0 })} />
       </label>
       {d.modules.length > 0 && (
-        <label class="field"><span>Module</span>
-          <select value={spec.module ? `${spec.module.letter}${spec.module.stage}` : ""} disabled={spec.elite < 2}
-            title={spec.elite < 2 ? "Modules need E2" : ""}
-            onChange={(e) => { const v = (e.target as HTMLSelectElement).value; set({ module: v ? { letter: v[0], stage: +v[1] } : null }); }}>
-            <option value="">None</option>
-            {d.modules.flatMap((m) => [1, 2, 3].filter((s) => m.stages[s - 1]).map((s) => <option key={`${m.letter}${s}`} value={`${m.letter}${s}`}>{m.icon} stage {s}</option>))}
-          </select>
-        </label>
+        <div class="field"><span>Module{spec.elite < 2 ? " (needs E2)" : ""}</span>
+          <div class="row tight">
+            <div class="seg" role="group" aria-label="Module">
+              <button type="button" aria-pressed={!spec.module} disabled={spec.elite < 2} onClick={() => set({ module: null })}>None</button>
+              {d.modules.map((m) => (
+                <button key={m.id} type="button" class="icobtn" aria-pressed={spec.module?.letter === m.letter} disabled={spec.elite < 2}
+                  aria-label={`Module ${m.icon}`} title={`${m.icon} · ${m.name}`}
+                  onClick={() => set({ module: { letter: m.letter, stage: spec.module?.letter === m.letter ? spec.module.stage : 3 } })}>
+                  <GIcon src={art.moduleType(m.type || m.icon.toLowerCase())} alt={m.icon} size={26} />
+                </button>
+              ))}
+            </div>
+            {spec.module && (
+              <div class="seg" role="group" aria-label="Module stage">
+                {[1, 2, 3].filter((s) => d.modules.find((m) => m.letter === spec.module!.letter)?.stages[s - 1]).map((s) => (
+                  <button key={s} type="button" aria-pressed={spec.module!.stage === s} onClick={() => set({ module: { letter: spec.module!.letter, stage: s } })}>Stage {s}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
       {!compact && d.skills.length > 0 && (
         <>
@@ -144,9 +165,11 @@ export function SkillView({ skill, index, level, onLevel }: { skill: Skill; inde
         </div>
       </div>
       {onLevel && (
-        <div class="seg" role="group" aria-label={`S${index + 1} level`} style={{ marginBottom: "8px", flexWrap: "wrap" }}>
+        <div class="lvl" role="group" aria-label={`S${index + 1} level`}>
           {skill.levels.map((_, i) => (
-            <button key={i} aria-pressed={i + 1 === level} class="small" onClick={() => onLevel(i + 1)}>{levelLabel(i + 1)}</button>
+            <button key={i} type="button" aria-pressed={i + 1 === level} aria-label={levelLabel(i + 1)} title={levelLabel(i + 1)} onClick={() => onLevel(i + 1)}>
+              {i < 7 ? i + 1 : <GIcon src={art.mastery(i - 6)} alt={`M${i - 6}`} size={22} />}
+            </button>
           ))}
         </div>
       )}
@@ -192,8 +215,10 @@ export function ModulesView({ d }: { d: OpDetail }) {
   return (
     <div class="stack">
       {d.modules.map((m) => (
-        <div key={m.id} class="card">
-          <h3>{m.icon} · {m.name}</h3>
+        <div key={m.id} class="card module">
+          <div class="pic"><img src={art.moduleImg(m.img || m.id)} alt={m.name} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.visibility = "hidden")} /></div>
+          <div style={{ minWidth: 0 }}>
+          <div class="row" style={{ marginBottom: "4px" }}><GIcon src={art.moduleType(m.type || m.icon.toLowerCase())} alt={m.icon} size={30} /><h3 style={{ margin: 0 }}>{m.icon} · {m.name}</h3></div>
           <p class="muted">Unlocks at E{m.unlock.elite} Lv {m.unlock.level}</p>
           <div class="table-wrap">
             <table class="cards">
@@ -212,6 +237,7 @@ export function ModulesView({ d }: { d: OpDetail }) {
                 ))}
               </tbody>
             </table>
+          </div>
           </div>
         </div>
       ))}

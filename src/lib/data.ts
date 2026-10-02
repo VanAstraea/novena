@@ -38,12 +38,27 @@ export async function opMap(s: Server): Promise<Map<string, OpIndex>> {
   return new Map((await operators(s)).map((o) => [o.id, o]));
 }
 
-// Images come from a community mirror of the game's art (they belong to Hypergryph/Yostar and aren't bundled here).
+// Images come from community mirrors of the game's art (they belong to Hypergryph/Yostar and aren't bundled here):
+// operator art and item, skill and base-skill icons from ArknightsGameResource; game UI icons (classes, branches,
+// modules, elite, potential, mastery, rarity) from the ArknightsAssets dump.
 const ART = "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main";
+const UI = "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/cn/assets/dyn/arts";
+const e = encodeURIComponent;
 export const art = {
-  avatar: (id: string) => `${ART}/avatar/${encodeURIComponent(id)}.png`,
-  portrait: (id: string) => `${ART}/portrait/${encodeURIComponent(id)}_1.png`,
-  item: (icon: string) => `${ART}/item/${encodeURIComponent(icon)}.png`,
-  skill: (icon: string) => `${ART}/skill/skill_icon_${encodeURIComponent(icon)}.png`,
-  riic: (icon: string) => `${ART}/building_skill/${encodeURIComponent(icon)}.png`,
+  avatar: (id: string) => `${ART}/avatar/${e(id)}.png`,
+  /** Half-body portrait, as in the game's operator list. E2 art first when asked for, base art as the fallback. */
+  portraits: (id: string, elite = 0) => [...(elite >= 2 ? [`${ART}/portrait/${e(id)}_2.png`] : []), `${ART}/portrait/${e(id)}_1.png`],
+  /** Full splash art (about 1 MB each: load only where it's the point). */
+  splashes: (id: string, elite = 0) => [...(elite >= 2 ? [`${ART}/skin/${e(id)}_2b.png`] : []), `${ART}/skin/${e(id)}_1b.png`],
+  item: (icon: string) => `${ART}/item/${e(icon)}.png`,
+  skill: (icon: string) => `${ART}/skill/skill_icon_${e(icon)}.png`,
+  riic: (icon: string) => `${ART}/building_skill/${e(icon)}.png`,
+  classIcon: (cls: string) => `${UI}/profession_large_hub/icon_profession_${e(cls.toLowerCase())}_large_white.png`,
+  branchIcon: (branch: string) => `${UI}/ui/subprofessionicon/sub_${e(branch)}_icon.png`,
+  elite: (n: number) => `${UI}/elite_hub/elite_${n}.png`,
+  potential: (p: number) => `${UI}/potential_hub/potential_${Math.max(0, p - 1)}_small.png`,
+  mastery: (m: number) => `${UI}/specialized_hub/specialized_${m}_small.png`,
+  rarity: (stars: number) => `${UI}/rarity_hub/rarity_yellow_${Math.max(0, stars - 1)}.png`,
+  moduleType: (type: string) => `${UI}/ui/uniequiptype/${e(type)}.png`,
+  moduleImg: (img: string) => `${UI}/ui/uniequipimg/${e(img)}.png`,
 };

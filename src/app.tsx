@@ -18,11 +18,13 @@ effect(() => {
 
 const STALE_DAYS = 3;
 
-function Logo() {
+/** The Novena mark: a halo over a feather. */
+export function Logo({ size = 30 }: { size?: number }) {
   return (
-    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M16 2 30 16 16 30 2 16z" fill="var(--accent)" />
-      <path d="M16 9 23 16 16 23 9 16z" fill="var(--bg)" />
+    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
+      <ellipse cx="16" cy="6.5" rx="11" ry="3.6" fill="none" stroke="var(--accent)" stroke-width="2.2" />
+      <path d="M21 11 C 13 15.5, 9.5 22, 10.5 30 C 15.5 26.5, 20.5 20, 21 11 Z" fill="var(--text)" />
+      <path d="M21 11 C 17 17, 14 23, 10.5 30" fill="none" stroke="var(--bar)" stroke-width="1.1" />
     </svg>
   );
 }
@@ -39,9 +41,18 @@ function Header() {
     <header class="top">
       <div class="top-row">
         <a class="brand" href={href("/")} aria-label="Novena home"><Logo /><span class="brand-name">Novena</span></a>
+        <nav class="nav" aria-label="Main">
+          {PAGES.filter((p) => p.nav === "main").map((p) => (
+            <a key={p.path} href={href(p.path)} aria-current={path === p.path || (p.path === "/operators" && path.startsWith("/operator/")) ? "page" : undefined}>
+              {p.short || p.title}
+            </a>
+          ))}
+          <a href={href("/roster")} aria-current={inAccount ? "page" : undefined}>My account</a>
+        </nav>
         <div class="top-actions">
-          <button class="ghost" onClick={() => (searchOpen.value = true)} aria-label="Search (Ctrl+K)" title="Search (Ctrl+K)">
-            <span aria-hidden="true">⌕</span><span class="sr-only">Search</span>
+          <button class="searchpill" onClick={() => (searchOpen.value = true)} aria-label="Search (Ctrl+K)" title="Search (Ctrl+K)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 L 16 16" /></svg>
+            <span>Search</span><kbd>Ctrl K</kbd>
           </button>
           <label class="sr-only" for="server-select">Server</label>
           <select id="server-select" value={server.value} onChange={(e) => (server.value = (e.target as HTMLSelectElement).value as Server)}
@@ -54,14 +65,6 @@ function Header() {
           <a class="btn ghost" href={href("/settings")} aria-label="Settings and backup" title="Settings and backup"><span aria-hidden="true">⚙</span></a>
         </div>
       </div>
-      <nav class="nav" aria-label="Main">
-        {PAGES.filter((p) => p.nav === "main").map((p) => (
-          <a key={p.path} href={href(p.path)} aria-current={path === p.path || (p.path === "/operators" && path.startsWith("/operator/")) ? "page" : undefined}>
-            {p.short || p.title}
-          </a>
-        ))}
-        <a href={href("/roster")} aria-current={inAccount ? "page" : undefined}>My account</a>
-      </nav>
     </header>
   );
 }
@@ -71,12 +74,9 @@ function AccountStrip() {
   const pages = PAGES.filter((p) => p.nav === "account");
   if (!pages.some((p) => p.path === path)) return null;
   return (
-    <nav class="tabs" aria-label="My account pages" style={{ maxWidth: "1280px", margin: "8px auto 0", padding: "0 16px" }}>
+    <nav class="tabs" aria-label="My account pages" style={{ maxWidth: "1560px", margin: "10px auto 0", padding: "0 28px" }}>
       {pages.map((p) => (
-        <a key={p.path} class="btn ghost" href={href(p.path)} aria-current={p.path === path ? "page" : undefined}
-          style={{ borderBottom: p.path === path ? "2px solid var(--accent)" : "2px solid transparent", borderRadius: 0 }}>
-          {p.short || p.title}
-        </a>
+        <a key={p.path} href={href(p.path)} aria-current={p.path === path ? "page" : undefined}>{p.short || p.title}</a>
       ))}
     </nav>
   );
