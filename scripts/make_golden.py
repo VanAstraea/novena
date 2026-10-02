@@ -110,5 +110,77 @@ def main() -> None:
     print("golden files written to", OUT)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--planner" not in sys.argv:
     main()
+
+
+def planner_case() -> None:
+    """ako's make_plan on a made-up mid-game roster and a slice of the guides, plus the same inputs in the site's
+    formats, for tests/unit/planner.test.ts."""
+    from ako import efficiency, gamedata, planner
+    from ako.roster import Module, Operator, Skill, Snapshot
+    from ako.sources import copilot as ako_copilot, values as ako_values, yituliu as ako_yituliu
+
+    jobs = ako_copilot.load()
+    investment, _ = ako_yituliu.load()
+    results = efficiency.build(jobs, investment)
+    book = planner.Guidebook(jobs, results, "en")
+    book.guides = [g for g in book.guides if g.stage.startswith(("main_0", "main_1"))][:2500]
+    values = ako_values.load()
+
+    chars = gamedata.table("character_table", "en")
+    uniequip = gamedata.table("uniequip_table", "en")
+    picks = ["char_202_demkni", "char_151_myrtle", "char_120_hibisc", "char_128_plosis", "char_103_angel", "char_148_nearl",
+             "char_010_chen", "char_017_huang", "char_180_amgoat", "char_263_skadi", "char_112_siege", "char_136_hsguma",
+             "char_118_yuki", "char_183_skgoat", "char_101_sora", "char_102_texas", "char_109_fmout", "char_107_liskam",
+             "char_134_ifrit", "char_197_poca", "char_215_mantic", "char_158_milu", "char_155_tiger", "char_145_prove"]
+    ops = {}
+    roster_out = {}
+    for i, cid in enumerate(picks):
+        e = chars[cid]
+        rarity = int(e["rarity"].removeprefix("TIER_"))
+        elite = min(len(e["phases"]) - 1, 2 if i % 3 == 0 else 1)
+        level = e["phases"][elite]["maxLevel"] - (10 if i % 2 else 0)
+        sl = 7 if elite >= 1 and rarity >= 3 else 4 if rarity >= 3 else 1
+        masteries = [(1 if (elite == 2 and j == 0 and i % 4 == 0) else 0) for j, _ in enumerate(e["skills"])]
+        mods = [m for m in uniequip["charEquip"].get(cid, []) if uniequip["equipDict"][m].get("type") != "INITIAL"]
+        ops[cid] = Operator(cid, elite, level, 1, sl, 0, [Skill(s["skillId"], m) for s, m in zip(e["skills"], masteries)],
+                            [Module(m, 0) for m in mods])
+        roster_out[cid] = {"elite": elite, "level": level, "skillLevel": sl, "masteries": masteries, "modules": {}}
+    snap = Snapshot("en", "0", "golden#0", 100, 0, ops, {})
+    plan = planner.make_plan(snap, jobs, results, values, book=book, top=8)
+
+    kind = {"elite": 0, "level": 1, "mastery": 2, "module": 3}
+    char_list, char_idx, req_list, req_idx, stage_list, stage_idx, guide_rows = [], {}, [], {}, [], {}, []
+    for g in book.guides:
+        slots = []
+        for slot in g.slots:
+            opts = []
+            for cid, r in slot:
+                if cid not in char_idx:
+                    char_idx[cid] = len(char_list)
+                    char_list.append(cid)
+                if r not in req_idx:
+                    req_idx[r] = len(req_list)
+                    req_list.append([r.elite, r.level, r.skill, r.skill_level, r.module or "", r.module_stage,
+                                     [[kind[s.kind], s.value, s.miss] for s in r.soft]])
+                opts.append([char_idx[cid], req_idx[r]])
+            slots.append(opts)
+        if g.stage not in stage_idx:
+            stage_idx[g.stage] = len(stage_list)
+            stage_list.append([g.stage, book.stages.category(g.stage)])
+        guide_rows.append([stage_idx[g.stage], g.weight, slots, g.job_id])
+    costs_all = json.loads((DATA / "costs.json").read_text(encoding="utf-8"))
+    dump("planner.json", {
+        "book": {"chars": char_list, "stages": stage_list, "reqs": req_list, "guides": guide_rows},
+        "costs": {cid: costs_all[cid] for cid in picks}, "values": values, "roster": roster_out,
+        "available": sorted(book.available), "weights": efficiency.DEFAULT_WEIGHTS,
+        "expected": {"start": plan.start_value, "end": plan.end_value,
+                     "steps": [{"id": s.char_id, "after": {"elite": s.after.elite, "level": s.after.level, "skillLevel": s.after.skill_level,
+                                                           "masteries": s.after.masteries, "modules": s.after.modules},
+                                "sanity": s.sanity, "gain": s.gain} for s in plan.steps]},
+    })
+
+
+if __name__ == "__main__" and "--planner" in sys.argv:
+    planner_case()

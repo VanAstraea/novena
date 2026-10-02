@@ -1,0 +1,14 @@
+[project]
+name = "dtk-pipeline"
+version = "0.1.0"
+description = "Doctor's Toolkit data pipeline: game tables and community data to static JSON"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

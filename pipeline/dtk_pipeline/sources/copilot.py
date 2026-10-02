@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from dtk_pipeline import CACHE_DIR
-from dtk_pipeline.net import get_json
+from dtk_pipeline.net import get_json_within
 
 API = "https://prts.maa.plus/copilot/query?page={page}&limit={limit}&order_by=id"
 CACHE = CACHE_DIR / "sources" / "copilot_jobs.json.gz"
@@ -74,13 +74,17 @@ def _load_cache() -> list[dict[str, Any]]:
     return data["jobs"]
 
 
-def refresh(max_pages: int = 200, log=print) -> tuple[int, int]:
-    """Fetch guides newer than the cache. Returns (new, total)."""
+def refresh(max_pages: int = 200, log=print, budget: float = 900) -> tuple[int, int]:
+    """Fetch guides newer than the cache, within `budget` seconds. Returns (new, total)."""
     cached = _load_cache()
     known = max((j["id"] for j in cached), default=0)
     fresh: list[dict[str, Any]] = []
+    start = time.time()
     for page in range(1, max_pages + 1):
-        data = get_json(API.format(page=page, limit=PAGE_SIZE))["data"]
+        left = budget - (time.time() - start)
+        if left <= 0:
+            raise TimeoutError(f"MAA Copilot took longer than {budget:.0f} s")
+        data = get_json_within(API.format(page=page, limit=PAGE_SIZE), min(left, 400))["data"]
         batch = data["data"]
         fresh += [c for j in batch if j["id"] > known and j.get("available", True) and (c := _compact(j))]
         log(f"  copilot page {page}: {len(fresh)} new guides")

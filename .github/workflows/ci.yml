@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: npm ci
+      - name: Pipeline unit tests
+        run: pip install pytest && cd pipeline && python -m pytest -q
+      - name: Type check
+        run: npm run typecheck
+      - name: Unit and golden tests
+        run: npm test
+      # The smoke test needs real data. Reuse the cached source downloads so a push doesn't hit community services.
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: sources-${{ github.run_id }}
+          restore-keys: sources-
+      - name: Build data (EN only, cached sources)
+        run: npm run data -- --servers en --no-copilot
+      - name: Build site
+        run: npm run build
+      - name: Smoke test (Playwright)
+        run: npx playwright install --with-deps chromium && npm run smoke
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7

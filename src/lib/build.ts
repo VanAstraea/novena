@@ -1,7 +1,6 @@
 // Target builds as text ("Saria E2 L90, S2 M3, Mod X2"), ported from ako's goals.py, plus the game's prerequisite
 // rules that turn a target into a reachable state.
-import type { OpDetail } from "../types";
-import type { OpState } from "./costs";
+import type { CostData, OpState } from "./costs";
 
 export interface Target {
   elite: number;
@@ -64,7 +63,7 @@ export const maxSkillLevel = (elite: number) => (elite >= 1 ? 7 : 4);
 
 /** The state once `target` is reached from `from`, with the game's prerequisites pulled in (a mastery needs E2
  * and SL7, a module E2 and its unlock level), never below `from`. Throws when the operator can't get there. */
-export function reach(d: OpDetail, rarity: number, name: string, from: OpState, t: Target): OpState {
+export function reach(d: CostData, rarity: number, name: string, from: OpState, t: Target): OpState {
   const maxElite = d.phases.length - 1;
   const s: OpState = { ...from, masteries: [...from.masteries], modules: { ...from.modules } };
   const need = (cond: boolean, what: string) => {

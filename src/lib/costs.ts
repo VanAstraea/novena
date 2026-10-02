@@ -1,11 +1,19 @@
 // Upgrade cost model (ported from ako's costs.py): what it costs to move an operator between two states.
 // A cost maps item id -> count. LMD is item "4001" as in the game tables; operator EXP is the pseudo-item "EXP".
-import type { ItemList, Meta, OpDetail } from "../types";
+import type { ItemList, Meta } from "../types";
 
 export const LMD = "4001";
 export const EXP = "EXP";
 export type Cost = Record<string, number>;
 export type Const = Meta["const"];
+
+/** The parts of an operator its costs come from: an OpDetail, or an entry of the per-server costs.json. */
+export interface CostData {
+  phases: { max: number; cost: ItemList; lmd: number }[];
+  skillUp: ItemList[];
+  skills: { mastery: { cost: ItemList; hours: number }[] }[];
+  modules: { letter: string; unlock: { elite: number; level: number }; cost: ItemList[] }[];
+}
 
 export interface OpState {
   elite: number;
@@ -15,7 +23,7 @@ export interface OpState {
   modules: Record<string, number>; // letter -> stage
 }
 
-export const fresh = (d: OpDetail): OpState => ({
+export const fresh = (d: CostData): OpState => ({
   elite: 0, level: 1, skillLevel: 1, masteries: d.skills.map(() => 0), modules: {},
 });
 
@@ -44,13 +52,13 @@ export function levelCost(c: Const, elite: number, from: number, to: number): Co
   return out;
 }
 
-export function promotionCost(d: OpDetail, toElite: number): Cost {
+export function promotionCost(d: CostData, toElite: number): Cost {
   const p = d.phases[toElite];
   return add(sum(p.cost), { [LMD]: Math.max(p.lmd, 0) });
 }
 
 /** Levels and promotions from (E, L) to (E', L'), levelling to the cap before each promotion. */
-export function growthCost(d: OpDetail, c: Const, fromE: number, fromL: number, toE: number, toL: number): Cost {
+export function growthCost(d: CostData, c: Const, fromE: number, fromL: number, toE: number, toL: number): Cost {
   if (toE < fromE || (toE === fromE && toL <= fromL)) return {};
   const caps = d.phases.map((p) => p.max);
   if (fromE === toE) return levelCost(c, fromE, fromL, toL);
@@ -63,20 +71,20 @@ export function growthCost(d: OpDetail, c: Const, fromE: number, fromL: number, 
 }
 
 /** Shared skill level 1-7. skillUp[i] upgrades level i+1 -> i+2. */
-export function skillLevelCost(d: OpDetail, from: number, to: number): Cost {
+export function skillLevelCost(d: CostData, from: number, to: number): Cost {
   const out: Cost = {};
   for (let i = from - 1; i < Math.min(to - 1, d.skillUp.length); i++) add(out, d.skillUp[i]);
   return out;
 }
 
-export function masteryCost(d: OpDetail, skill: number, from: number, to: number): Cost {
+export function masteryCost(d: CostData, skill: number, from: number, to: number): Cost {
   const steps = d.skills[skill]?.mastery || [];
   const out: Cost = {};
   for (let m = from; m < Math.min(to, steps.length); m++) add(out, steps[m].cost);
   return out;
 }
 
-export function moduleCost(d: OpDetail, letter: string, from: number, to: number): Cost {
+export function moduleCost(d: CostData, letter: string, from: number, to: number): Cost {
   const m = d.modules.find((x) => x.letter === letter);
   const out: Cost = {};
   if (!m) return out;
@@ -85,7 +93,7 @@ export function moduleCost(d: OpDetail, letter: string, from: number, to: number
 }
 
 /** Everything between two states of one operator. Parts already reached cost nothing. */
-export function stateCost(d: OpDetail, c: Const, from: OpState, to: OpState, sharedGrowth = false): Cost {
+export function stateCost(d: CostData, c: Const, from: OpState, to: OpState, sharedGrowth = false): Cost {
   const out: Cost = {};
   if (!sharedGrowth) {
     add(out, growthCost(d, c, from.elite, from.level, to.elite, to.level));

@@ -1,0 +1,61 @@
+name: Build data and deploy
+
+# Once a day the pipeline downloads game tables and community data (each source once), builds the static JSON
+# and deploys the site to GitHub Pages. Also runs on pushes to main and by hand.
+on:
+  schedule:
+    - cron: "17 12 * * *" # 12:17 UTC daily, after Global's 11:00 UTC reset
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      # The MAA Copilot download is incremental: keep the cache between runs so each day only asks for new guides.
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: sources-${{ github.run_id }}
+          restore-keys: sources-
+      - run: npm ci
+      - name: Build data (all servers)
+        run: npm run data
+      - name: Pipeline output checks
+        run: pip install pytest && cd pipeline && python -m pytest -q
+      - name: Build site
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
+        run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

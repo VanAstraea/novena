@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "smoke": "playwright test"
+    "smoke": "playwright test",
+    "data": "node scripts/data.mjs",
+    "data:offline": "node scripts/data-offline.mjs"
   },
   "dependencies": {
     "@preact/signals": "^2.11.3",

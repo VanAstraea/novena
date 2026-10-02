@@ -18,6 +18,7 @@ export interface OpIndex {
   recruit: boolean;
   on: Server[];
   mods: string[];
+  modIds: string[];
   src?: Server;
   cn?: string;
   alt?: string;

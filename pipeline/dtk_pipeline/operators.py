@@ -131,6 +131,7 @@ class Builder:
             "obtain": "limited" if limited(cid) else OBTAIN.get((cn_entry or e).get("itemObtainApproach") or "", "other"),
             "recruit": cid in self.recruitable, "on": [s for s in SERVERS if cid in self.on[s]],
             "mods": [gd.table("uniequip_table", src)["equipDict"][m]["typeIcon"].rsplit("-", 1)[-1].upper() for m in modules],
+            "modIds": modules,
         }
         if src != self.server:
             row["src"] = src

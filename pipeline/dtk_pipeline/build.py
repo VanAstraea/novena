@@ -28,7 +28,7 @@ from pathlib import Path
 from dtk_pipeline import OUT_DIR, SERVERS
 from dtk_pipeline import gamedata as gd
 from dtk_pipeline import items as items_mod
-from dtk_pipeline import operators, recruit, roguelike, upcoming, usage
+from dtk_pipeline import base, guidebook, operators, recruit, roguelike, upcoming, usage
 from dtk_pipeline.sources import copilot, penguin, yituliu
 
 DATA_VERSION = 1
@@ -50,7 +50,7 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
     rec = recruit.build(server)
     builder = operators.Builder(server, {p["id"] for p in rec["pool"]}, set())
     ids = builder.ids()
-    index, wanted = [], set()
+    index, wanted, cost_table = [], set(), {}
     shutil.rmtree(out / server / "ops", ignore_errors=True)
     for cid in ids:
         index.append(builder.index_row(cid))
@@ -66,7 +66,14 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
             for lst in m["cost"]:
                 wanted |= {i for i, _ in lst}
         write(out / server / "ops" / f"{cid}.json", detail)
+        cost_table[cid] = {
+            "phases": [{"max": p["max"], "cost": p["cost"], "lmd": p["lmd"]} for p in detail["phases"]],
+            "skillUp": detail["skillUp"],
+            "skills": [{"mastery": [{"cost": m["cost"], "hours": m["hours"]} for m in sk["mastery"]]} for sk in detail["skills"]],
+            "modules": [{"letter": m["letter"], "unlock": m["unlock"], "cost": m["cost"]} for m in detail["modules"]],
+        }
     write(out / server / "operators.json", {"ops": index})
+    write(out / server / "costs.json", cost_table)
     write(out / server / "ranges.json", operators.ranges(server, builder.ranges - {""}))
     write(out / server / "meta.json", {"const": operators.const(server), "branches": operators.branch_names(server),
                                        "factions": operators.faction_names(server), "terms": operators.terms(server)})
@@ -78,6 +85,7 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
     for st in stages:  # furniture and other non-items drop out of the published rates
         st.drops = {i: r for i, r in st.drops.items() if i in gd.table("item_table", server)["items"] or i in gd.table("item_table", "cn")["items"]}
         wanted |= set(st.drops)
+    stages = [st for st in stages if st.drops]
     for item, f in recs.items():
         wanted |= {item, *(i for i, _ in f["costs"])}
     wanted |= {"4001", *items_mod.EXP_CARDS}
@@ -91,6 +99,7 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
 
     write(out / server / "upcoming.json", upcoming.build(server, jobs, usage_data["ops"]))
     write(out / server / "is.json", roguelike.build(server))
+    write(out / server / "base.json", base.build(server))
     log(f"  [{server}] done in {time.time() - t0:.1f}s")
     return {"penguin": int(fetched * 1000), "operators": len(index)}
 
@@ -106,13 +115,21 @@ def main(argv: list[str] | None = None) -> None:
 
     log("Community data")
     if not args.no_copilot:
-        new, total = copilot.refresh(log=log)
-        log(f"  MAA Copilot: {new} new guides, {total} total")
+        try:
+            new, total = copilot.refresh(log=log)
+            log(f"  MAA Copilot: {new} new guides, {total} total")
+        except Exception as e:  # keep building on yesterday's guides rather than publish nothing
+            if not copilot.CACHE.exists():
+                raise
+            log(f"  MAA Copilot refresh failed ({type(e).__name__}: {e}); using the cached guides")
     jobs = copilot.load()
     investment, survey_time = yituliu.investment()
     yituliu_values = yituliu.values()
     usage_data = usage.build(jobs, investment)
     write(out / "common" / "usage.json", usage_data)
+    book = guidebook.build(jobs, usage_data["ops"])
+    size = write(out / "common" / "guidebook.json", book)
+    log(f"  guidebook: {len(book['guides'])} guides, {len(book['reqs'])} requirement profiles, {size / 1e6:.1f} MB")
     log(f"  usage for {len(usage_data['ops'])} operators from {len(jobs)} guides")
 
     manifest = {"version": DATA_VERSION, "built": int(time.time() * 1000), "servers": {},
