@@ -1,5 +1,6 @@
 // My roster: quick bulk entry, depot, import/export and progress over time. Saved in this browser only.
 import { useMemo, useState } from "preact/hooks";
+import { DepotImport } from "../components/DepotImport";
 import { OpPicker } from "../components/OpPicker";
 import { Avatar, Await, Explain, ItemIcon, itemsSig, Stars, Tabs, useAsync } from "../components/ui";
 import { operators } from "../lib/data";
@@ -139,6 +140,8 @@ function Depot() {
     .sort((x, y) => (x[0] === "4001" ? -1 : y[0] === "4001" ? 1 : y[1].rarity - x[1].rarity || x[1].sort - y[1].sort));
   const set = (id: string, n: number) => update((acc) => { const d = { ...acc.depot }; if (n > 0) d[id] = n; else delete d[id]; return { ...acc, depot: d }; });
   return (
+    <>
+    <DepotImport />
     <section class="card">
       <div class="row" style={{ justifyContent: "space-between" }}>
         <h2 style={{ margin: 0 }}>Depot</h2>
@@ -155,6 +158,7 @@ function Depot() {
       </div>
       <Explain>Enter what you hold. The planners subtract it and craft from it where they can. Battle Records count as EXP.</Explain>
     </section>
+    </>
   );
 }
 
@@ -187,6 +191,7 @@ function Import({ ops }: { ops: OpIndex[] }) {
       <section class="card">
         <h2>Import</h2>
         <p>Accepted: a Doctor's Toolkit roster file, game sync data (syncData JSON), or a Krooster operator export.</p>
+        <p class="muted">For your depot, the easiest way is screenshots: <a href={href("/roster", { tab: "depot" })}>Depot → Import from screenshots</a>.</p>
         <div class="row">
           <div class="seg" role="group" aria-label="Import mode">
             <button aria-pressed={mode === "replace"} onClick={() => setMode("replace")}>Replace roster</button>

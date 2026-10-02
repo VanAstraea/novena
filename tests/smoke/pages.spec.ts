@@ -61,8 +61,21 @@ test("farming plan solves in the browser", async ({ page }) => {
 test("roster survives a reload", async ({ page }) => {
   await page.goto("/roster");
   await page.getByRole("combobox", { name: /Add an operator/ }).fill("Myrtle");
+  await expect(page.getByRole("option", { name: /Myrtle/ }).first()).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("cell", { name: /Myrtle/ }).first()).toBeVisible();
   await page.reload();
   await expect(page.getByRole("cell", { name: /Myrtle/ }).first()).toBeVisible();
+});
+
+const DEPOT_SHOT = ".cache/dr/cases/us_simulator_0/image.png";
+
+test("depot screenshot import reads every item", async ({ page }) => {
+  const { existsSync, readFileSync } = await import("node:fs");
+  test.skip(!existsSync(DEPOT_SHOT), "run scripts/depot_fixtures.py for the test screenshot");
+  await page.goto("/roster?tab=depot");
+  await page.locator('input[type=file][accept="image/*"]').setInputFiles({ name: "depot.png", mimeType: "image/png", buffer: readFileSync(DEPOT_SHOT) });
+  await expect(page.getByText(/Found 24 items/)).toBeVisible({ timeout: 60_000 });
+  await page.getByRole("button", { name: /Update 24 items in my depot/ }).click();
+  await expect(page.getByLabel("Orirock Cube held")).toHaveValue("17");
 });

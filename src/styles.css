@@ -253,6 +253,9 @@ th button.sort:focus-visible { outline: 2px solid var(--accent); }
 .tabs [role="tab"][aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
 .tabs [role="tab"]:hover { background: var(--surface-2); }
 
+.dropzone { display: grid; place-items: center; min-height: 96px; padding: 16px; border: 2px dashed var(--border); border-radius: var(--radius); background: var(--surface-2); text-align: center; cursor: pointer; color: var(--muted); }
+.dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+
 /* --- home ----------------------------------------------------------------------------------------------------- */
 .hero { padding: 20px 0 8px; display: grid; gap: 14px; }
 .hero h1 { font-size: clamp(1.6rem, 5vw, 2.4rem); font-stretch: 120%; }

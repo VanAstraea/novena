@@ -15,6 +15,8 @@ const SOURCES = [
     what: "Community clear guides, read for usage statistics only (no guide is republished).", license: "Community-submitted; used for aggregates" },
   { name: "MAA (MaaAssistantArknights)", url: "https://github.com/MaaAssistantArknights/MaaAssistantArknights", key: "maa",
     what: "Integrated Strategies priorities and base skill values, used as data only.", license: "AGPL-3.0 (data files)" },
+  { name: "Arknights Toolbox depot recognition", url: "https://github.com/arkntools/depot-recognition", key: "dr",
+    what: "Reads depot screenshots on your device (item matching and digit reading).", license: "MIT (bundled; see notices)" },
   { name: "ArknightsGameResource", url: "https://github.com/yuanyan3060/ArknightsGameResource", key: "art",
     what: "Operator avatars, skill and item icons, loaded from this mirror (not bundled).", license: "Art © Hypergryph / Yostar" },
 ];
@@ -34,6 +36,7 @@ export default function About() {
         <ul>
           <li>Everything you enter (roster, depot, plans, settings) is saved in your browser only. Nothing is sent to any server.</li>
           <li>No accounts, no analytics, no tracking, no cookies. The site never asks for a Yostar or game login.</li>
+          <li>Depot screenshots you import are read on your device and never uploaded. Taking them is up to you: nothing here touches the game.</li>
           <li>The site loads its own data files and images from the art mirror on GitHub; those requests carry nothing about you beyond what any web request does.</li>
           <li>The optional command-line exporter runs on your own computer and writes a file you import here. It uses an unofficial login, which carries some account risk; manual entry is the recommended path.</li>
         </ul>
@@ -55,7 +58,7 @@ export default function About() {
                         <td data-label="Source"><a href={s.url} rel="noopener">{s.name}</a></td>
                         <td data-label="Used for">{s.what}</td>
                         <td data-label="License">{s.license}</td>
-                        <td data-label="Last updated">{t ? date(t) : s.key === "art" || s.key === "maa" ? "Live mirror" : "–"}</td>
+                        <td data-label="Last updated">{t ? date(t) : s.key === "art" || s.key === "maa" ? "Live mirror" : s.key === "dr" ? "Library" : "–"}</td>
                       </tr>
                     );
                   })}
@@ -69,6 +72,7 @@ export default function About() {
       </section>
       <section class="card" id="support">
         <h2>Feedback and support</h2>
+        <p>Open-source libraries the site bundles, with their licenses: <a href={`${import.meta.env.BASE_URL}THIRD_PARTY_NOTICES.txt`}>third-party notices</a>.</p>
         <p>Found a wrong number or have an idea? <a href={`${REPO_URL}/issues`} rel="noopener">Open an issue on GitHub</a>.</p>
         {SUPPORT.length > 0 && (
           <p>If the tool helps you, you can support its development: {SUPPORT.map((s, i) => <span key={s.url}>{i ? " · " : ""}<a href={s.url} rel="noopener">{s.label}</a></span>)}. Donations are optional and unlock nothing; hosting is free, so they go to development time.</p>

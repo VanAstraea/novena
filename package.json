@@ -15,8 +15,10 @@
     "data:offline": "node scripts/data-offline.mjs"
   },
   "dependencies": {
+    "@arkntools/depot-recognition": "^1.8.1",
     "@preact/signals": "^2.11.3",
     "highs": "^1.15.3",
+    "jszip": "^3.10.2",
     "preact": "^11.0.0"
   },
   "devDependencies": {

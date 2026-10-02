@@ -64,6 +64,16 @@ for four servers that computes in the browser.
 - Account-only views that need live sync state: timers, today checklist, consumables, run sheet, base map from
   `roomSlots`.
 
+## Depot from screenshots (new, not in ako)
+
+ako read the depot from the game's sync data. DTK can't log in on anyone's behalf, so the depot can also come from
+screenshots the user takes: `src/lib/depot/` runs `@arkntools/depot-recognition` (MIT, Arknights Toolbox) in a Web
+Worker. Templates are built at runtime from the art mirror (item art on its rarity background, 183 px), so no game
+art is hosted. One change to the library's flow: it narrows candidates by the depot's sort order, which breaks when
+the order differs from the game version's; unsure slots are compared against every item again. `tests/unit/depot.test.ts`
+runs the library's own real screenshots (kept out of the repo) and checks every expected item and count. Jimp's
+browser build sets a global, so the browser build aliases `jimp` to `src/lib/depot/jimp-browser.ts`.
+
 ## Multi-server changes
 
 - Every published file is per server: `/data/v1/{en,jp,kr,cn}/…`. Server-independent community data (usage, Yituliu)

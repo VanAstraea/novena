@@ -50,7 +50,7 @@ export default function Settings() {
       <h1>Settings & backup</h1>
       <section class="card">
         <h2>Your data stays in this browser</h2>
-        <p>Your roster, depot, plans and settings are saved in this browser's storage (IndexedDB) and nowhere else. There are no accounts, no analytics, no tracking and no cookies. Clearing your browser's site data deletes them, so keep a backup.</p>
+        <p>Your roster, depot, plans and settings are saved in this browser's storage (local storage and IndexedDB) and nowhere else. There are no accounts, no analytics, no tracking and no cookies. Clearing your browser's site data deletes them, so keep a backup.</p>
         <div class="row">
           <button class="primary" onClick={exportAll}>Export backup</button>
           <label class="btn">Import backup<input type="file" accept="application/json,.json" class="sr-only"

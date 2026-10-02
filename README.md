@@ -36,6 +36,8 @@ With your roster (typed in, or imported):
 
 - **Roster tracker** with a quick bulk editor, depot, import/export (this site's files, raw syncData, Krooster
   exports) and progress over time.
+- **Depot from screenshots:** take screenshots of your in-game Depot, drop or paste them in, check what was read,
+  apply. They're read on your device and never uploaded, and nothing touches the game.
 - **Plan:** the upgrades that unlock the most community clears per sanity, your planner targets first, with a
   "doable now" check against your depot counted all together.
 - **Sanity Dump:** what today's sanity should go into, aimed at the materials you hold least against what your plan
@@ -45,12 +47,13 @@ With your roster (typed in, or imported):
 
 ## Privacy
 
-- Everything you enter is saved in your browser (IndexedDB) and nowhere else. Export and import a single JSON backup
+- Everything you enter is saved in your browser (local storage and IndexedDB) and nowhere else. Export and import a single JSON backup
   from Settings.
 - No accounts, no analytics, no tracking, no cookies. The site never asks for a Yostar or game login.
 - The site reads only its own static data files (built once a day) and images from a community art mirror.
 - An **optional** command-line exporter ([`cli/`](cli/README.md)) logs in on *your own computer* and writes a roster
   file you import. It uses an unofficial login, which carries some account risk; manual entry is recommended.
+- Depot screenshots are read in your browser and never uploaded.
 - No automation of any kind: nothing here drives the game client.
 
 ## Data sources and credits
@@ -66,6 +69,9 @@ these services. Thank you to everyone who runs and contributes to them.
 | [MAA Copilot](https://prts.plus/) | Clear guides, read for aggregate usage only (no guide is republished) | Community-submitted |
 | [MAA](https://github.com/MaaAssistantArknights/MaaAssistantArknights) | IS priorities and base skill values, as data | AGPL-3.0 (data files) |
 | [ArknightsGameResource](https://github.com/yuanyan3060/ArknightsGameResource) | Operator, skill and item images (loaded, not bundled) | Art © Hypergryph / Yostar |
+| [Arknights Toolbox depot recognition](https://github.com/arkntools/depot-recognition) | Reading depot screenshots in the browser (bundled library) | MIT |
+
+Bundled open-source libraries and their licenses: [`public/THIRD_PARTY_NOTICES.txt`](public/THIRD_PARTY_NOTICES.txt).
 
 Both usage sources are CN, which runs months ahead: rankings hold, but percentages read lower than they will once
 your server catches up. Derived numbers are labelled as estimates where they appear.

@@ -1,4 +1,4 @@
-// Everything the user enters stays in this browser: IndexedDB when it's available, localStorage otherwise, and
+// Everything the user enters stays in this browser: localStorage and IndexedDB, and
 // memory if both are blocked (private windows). Nothing here is ever sent anywhere.
 
 const DB = "doctors-toolkit";
@@ -23,26 +23,37 @@ function open(): Promise<IDBDatabase | null> {
   return dbp;
 }
 
+// Writes go to localStorage first, synchronously, so a change survives a reload or a closed tab straight after it
+// (an IndexedDB write is asynchronous and can still be pending). IndexedDB keeps a copy too, and is what's read when
+// localStorage is blocked or too full for the value.
+
 export async function getItem<T>(key: string): Promise<T | undefined> {
-  const db = await open();
-  if (db) {
-    try {
-      return await new Promise<T | undefined>((resolve, reject) => {
-        const req = db.transaction(STORE).objectStore(STORE).get(key);
-        req.onsuccess = () => resolve(req.result as T | undefined);
-        req.onerror = () => reject(req.error);
-      });
-    } catch { /* fall through */ }
-  }
   try {
     const raw = localStorage.getItem(`dtk.${key}`);
     if (raw !== null) return JSON.parse(raw) as T;
   } catch { /* blocked */ }
+  const db = await open();
+  if (db) {
+    try {
+      const v = await new Promise<T | undefined>((resolve, reject) => {
+        const req = db.transaction(STORE).objectStore(STORE).get(key);
+        req.onsuccess = () => resolve(req.result as T | undefined);
+        req.onerror = () => reject(req.error);
+      });
+      if (v !== undefined) return v;
+    } catch { /* fall through */ }
+  }
   return memory.get(key) as T | undefined;
 }
 
 export async function setItem(key: string, value: unknown): Promise<void> {
   memory.set(key, value);
+  try {
+    localStorage.setItem(`dtk.${key}`, JSON.stringify(value));
+  } catch {
+    // too big or blocked: drop any older copy so it can't shadow the IndexedDB one on the next read
+    try { localStorage.removeItem(`dtk.${key}`); } catch { /* blocked */ }
+  }
   const db = await open();
   if (db) {
     try {
@@ -52,12 +63,8 @@ export async function setItem(key: string, value: unknown): Promise<void> {
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
       });
-      return;
-    } catch { /* fall through */ }
+    } catch { /* localStorage or memory has it */ }
   }
-  try {
-    localStorage.setItem(`dtk.${key}`, JSON.stringify(value));
-  } catch { /* blocked or full: memory only */ }
 }
 
 export async function keys(): Promise<string[]> {
