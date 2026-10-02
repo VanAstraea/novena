@@ -8,7 +8,7 @@ for four servers that computes in the browser.
 
 | Part | ako | DTK |
 |---|---|---|
-| Account data | ArkPRTS login + `account/syncData` snapshots on disk | Manual entry in the browser, or a JSON file from the optional local `dtk-export` CLI. Stored in IndexedDB (localStorage fallback). Never sent anywhere. |
+| Account data | ArkPRTS login + `account/syncData` snapshots on disk | Manual entry in the browser, roster files (this site's export, raw syncData, Krooster) and depot screenshots read in the browser. Stored in localStorage and IndexedDB. Never sent anywhere. |
 | Community + game data | Downloaded on demand by each user's tool | Downloaded **once a day by GitHub Actions** (`pipeline/`), processed into compact static JSON under `/data/v1/`, and served from GitHub Pages. Browsers never call Penguin, Yituliu, MAA Copilot or the game-data mirrors. |
 | Compute | Python (scipy HiGHS LP, plain Python) | TypeScript in the browser. The farming LP runs in `highs` (HiGHS compiled to WASM), loaded only by the Farming page. |
 | UI | FastAPI + vanilla JS dashboard | Static SPA: Preact + TypeScript + Vite. Path URLs (`/compare?ops=...`) with a `404.html` copy of the shell so deep links work on Pages. |
@@ -51,14 +51,15 @@ for four servers that computes in the browser.
 | `dump.py`, `planner.py` | `lib/planner.ts`, `lib/dump.ts` | v2. The guide-coverage planner needs the guides themselves, so the pipeline publishes a compact guidebook (char ids + requirements per slot, no text), loaded only by the Plan page. |
 | `base.py`, `training.py` | `lib/base.ts` | v2. MAA `infrast.json` values as data, credited. Output is a readable list only. |
 | `pulls.py` (savings, income) | `lib/pulls.ts` | v2. Savings typed in by hand (or from the export). |
-| `roster.py` (`parse_sync_data`) | `cli/dtk_export.py` | Runs on the user's machine only; writes DTK's roster JSON. |
-| `fetcher.py` | `cli/dtk_export.py` | ArkPRTS email-code login, on the user's own machine, with a clear account-risk warning. Token kept in `~/.dtk/` only if the user asks for it. |
+| `roster.py` (`parse_sync_data`) | `lib/importers.ts` | Reads a raw syncData file the user already has; nothing logs in. |
 
 ### Dropped (never ported)
 
 - **All automation and MAA execution:** `automation.py`, `maa_remote.py`, `maa_log.py`, `routines.py`, `todaylog.py`
   job tracking, `web/automation_api.py`, `static/routines.js`, and every MAA export (`views.base_maa`, `farm_maa`,
   `roguelike_maa`). Nothing drives the game client.
+- **Any game login:** `fetcher.py` (ArkPRTS). Logging in through a reverse-engineered client likely breaches Yostar's
+  Terms of Service, so DTK has no login at all, not even a local one. A local exporter was built and then removed.
 - `store.py`, `plancache.py`, `progress.py`'s snapshot diffing (snapshots live in the browser now), `web/app.py`
   (no server), packaging (no exe), `art.py`'s caching proxy (the browser loads images from the mirror directly).
 - Account-only views that need live sync state: timers, today checklist, consumables, run sheet, base map from

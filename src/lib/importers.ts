@@ -1,6 +1,6 @@
 // Roster imports. Accepted, detected by shape:
-//   - Doctor's Toolkit roster files (from the dtk-export command-line tool, or this site's own export)
-//   - a raw `account/syncData` JSON (what ArkPRTS-based tools save)
+//   - Doctor's Toolkit roster files (this site's own export)
+//   - a raw `account/syncData` JSON (what other community tools save)
 //   - Krooster's operator export (an object keyed by char id with owned / promotion / potential / mastery / module)
 import type { OpIndex } from "../types";
 import type { Account, RosterOp } from "../state";

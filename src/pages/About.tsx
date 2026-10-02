@@ -38,7 +38,6 @@ export default function About() {
           <li>No accounts, no analytics, no tracking, no cookies. The site never asks for a Yostar or game login.</li>
           <li>Depot screenshots you import are read on your device and never uploaded. Taking them is up to you: nothing here touches the game.</li>
           <li>The site loads its own data files and images from the art mirror on GitHub; those requests carry nothing about you beyond what any web request does.</li>
-          <li>The optional command-line exporter runs on your own computer and writes a file you import here. It uses an unofficial login, which carries some account risk; manual entry is the recommended path.</li>
         </ul>
         <p><a href={href("/settings")}>Back up or delete your data</a></p>
       </section>

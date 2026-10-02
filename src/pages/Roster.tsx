@@ -208,12 +208,6 @@ function Import({ ops }: { ops: OpIndex[] }) {
         <p>Download this server's roster and depot as a file you can import elsewhere or keep.</p>
         <button onClick={exportIt} disabled={!Object.keys(account.value.ops).length}>Export roster</button>
       </section>
-      <section class="card" style={{ gridColumn: "1 / -1" }}>
-        <h2>Optional: export from the game with the command-line tool</h2>
-        <p>The repository includes <code>dtk-export</code>, a small Python script that logs in to your game account <strong>on your own computer</strong> and writes a roster file you import here. This website never sees your login.</p>
-        <p class="warn-text"><strong>Account risk:</strong> it uses an unofficial login (the same approach as other community tools). It only reads your data, but it isn't sanctioned by Yostar or Hypergryph. Manual entry above is the recommended, risk-free path.</p>
-        <p>See <code>cli/README.md</code> in the repository for how to run it.</p>
-      </section>
     </div>
   );
 }

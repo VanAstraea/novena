@@ -51,8 +51,8 @@ With your roster (typed in, or imported):
   from Settings.
 - No accounts, no analytics, no tracking, no cookies. The site never asks for a Yostar or game login.
 - The site reads only its own static data files (built once a day) and images from a community art mirror.
-- An **optional** command-line exporter ([`cli/`](cli/README.md)) logs in on *your own computer* and writes a roster
-  file you import. It uses an unofficial login, which carries some account risk; manual entry is recommended.
+- It never logs in to your game account, not even from your own computer: the roster is typed in or imported from a
+  file, and the depot can come from screenshots you take.
 - Depot screenshots are read in your browser and never uploaded.
 - No automation of any kind: nothing here drives the game client.
 
