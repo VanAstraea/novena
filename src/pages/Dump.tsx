@@ -133,7 +133,7 @@ function DumpView({ ops, usage, costs, stg, items }: { ops: OpIndex[]; usage: Us
       farmed = [...want, ...extra];
       if (runs.reduce((a, r) => a + r.sanity, 0) >= today * 0.85) break;
     }
-    // stages left out (not three-starred yet) that would make the shortfall cheaper to farm
+    // stages the player left out that would make the shortfall cheaper to farm
     const unlocks: { code: string; saves: number }[] = [];
     const goal = Object.fromEntries(Object.entries(short).filter(([id]) => farmable(id)));
     if (Object.keys(goal).length && prefs.value.excluded.length) {
@@ -206,9 +206,9 @@ function DumpView({ ops, usage, costs, stg, items }: { ops: OpIndex[]; usage: Us
           </section>
           {result.unlocks.length > 0 && (
             <section class="card">
-              <h2>Stages worth three-starring</h2>
+              <h2>Left-out stages worth clearing</h2>
               <ul>{result.unlocks.map((u) => <li key={u.code}><strong>{u.code}</strong> would save about {fmt(u.saves)} sanity on what you're short of</li>)}</ul>
-              <Explain>Stages you marked as not auto-deployable (Farming page) that the farming plan would use if you could.</Explain>
+              <Explain>Stages you left out on the Farming page that the farming plan would use if they were back in.</Explain>
             </section>
           )}
         </>

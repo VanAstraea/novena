@@ -24,7 +24,7 @@ Useful without any account data:
   LMD and EXP, what to craft from lower tiers, and what your depot already covers.
 - **Farming planner.** The cheapest stage runs for what you're missing (a linear program over Penguin Statistics
   drop rates, solved in your browser), stages open today and this week, reset times in your local time, a
-  day-by-day schedule, and a list of stages you can't auto-deploy yet to leave out.
+  day-by-day schedule, and a list of stages to leave out (ones you haven't cleared yet).
 - **Recruitment calculator.** Pick your five tags; see every combination with its guaranteed rarity and the
   operators it can give.
 - **Rankings.** Usage in community clears per content type and archetype; your archetype gaps once you add a roster.

@@ -193,7 +193,7 @@ function PlanView({ r, stg, items, today, setToday, cap, setCap }: {
                   <td data-label="Sanity" class="num">{fmt(Math.ceil(x.runs - 1e-6) * x.stage.ap)}</td>
                   <td data-label="Main drops"><span class="items">{Object.entries(x.stage.drops).sort((a, b) => (items.values[b[0]] || 0) * b[1] - (items.values[a[0]] || 0) * a[1]).slice(0, 3).map(([id]) => <ItemIcon key={id} id={id} />)}</span></td>
                   <td data-label="Open">{x.stage.days ? x.stage.days.map((d) => WEEKDAYS[d - 1]).join(" ") : "Always"}</td>
-                  <td data-label=""><button class="small ghost" title="I can't auto-deploy this stage yet" onClick={() => savePrefs({ ...p, excluded: [...p.excluded, x.stage.id] })}>Can't auto</button></td>
+                  <td data-label=""><button class="small ghost" title="Leave this stage out of every plan" onClick={() => savePrefs({ ...p, excluded: [...p.excluded, x.stage.id] })}>Leave out</button></td>
                 </tr>
               ))}
             </tbody>
@@ -210,7 +210,7 @@ function PlanView({ r, stg, items, today, setToday, cap, setCap }: {
             </ul>
           </>
         )}
-        <Explain>Runs are rounded up per stage. Drops are averages: expect some variance. "Can't auto" leaves a stage out (for ones you haven't three-starred yet).</Explain>
+        <Explain>Runs are rounded up per stage. Drops are averages: expect some variance. "Leave out" drops a stage from every plan, for example one you haven't cleared yet.</Explain>
       </section>
       <section class="card">
         <h2>Day by day</h2>
@@ -247,8 +247,8 @@ function ExcludedCard({ stg }: { stg: StagesFile }) {
   const [add, setAdd] = useState("");
   return (
     <section class="card">
-      <h2>Stages you can't auto-deploy yet</h2>
-      <p class="muted">Stages listed here are left out of every plan. A stage can be auto-deployed once it's three-starred.</p>
+      <h2>Stages left out</h2>
+      <p class="muted">Stages listed here are left out of every plan: ones you haven't cleared yet, or would rather not farm.</p>
       <div class="chips">
         {p.excluded.map((id) => {
           const st = stg.stages.find((s) => s.id === id);

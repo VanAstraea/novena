@@ -60,7 +60,7 @@ export default function IS() {
                 </table>
               </div>
               {picks.length > limit && <button onClick={() => setLimit(limit + 100)}>Show more</button>}
-              <Explain>From MAA's public auto-IS data for this theme (data only, credited on the About page): the priority its maintainers give each operator when recruiting, the skill it uses, and whether it's a key operator or a good opener. Community clear guides don't cover IS runs.</Explain>
+              <Explain>From MAA's public IS recruitment data for this theme (data only, credited on the About page): the priority its maintainers give each operator when recruiting, the skill it uses, and whether it's a key operator or a good opener. Community clear guides don't cover IS runs.</Explain>
             </>
           );
         }}

@@ -7,8 +7,7 @@ the level most guides state, M3 on the skill used, the main module), each with t
 without it: 1 - how common the community has it. Only 29% of guides state any requirement, so this is what lets
 a plan say "E2 now, M3 later".
 
-Nothing identifying is published: no titles, text, authors or guide ids beyond the numeric job id (which the site
-shows as a maa:// code players can look up themselves).
+Nothing identifying is published: no titles, text, authors or guide ids beyond the numeric job id.
 
     {"chars": [char id], "stages": [[stage id, category]], "reqs": [[elite, level, skill, skill_level, module,
      module_stage, [[kind, value, miss]]]], "guides": [[stage index, weight, [[[char index, req index], ...], ...]]]}

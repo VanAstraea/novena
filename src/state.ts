@@ -67,7 +67,7 @@ export interface PlanTarget {
 
 export interface Prefs {
   daily: number; // sanity a day to plan with
-  excluded: string[]; // stage ids the user can't auto-deploy yet
+  excluded: string[]; // stage ids the user leaves out of every plan
   useDepot: boolean;
 }
 
