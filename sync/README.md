@@ -1,6 +1,6 @@
 # Novena Sync
 
-An optional desktop companion for [Novena](https://novena-arknights.github.io/novena/). It signs in to your Arknights
+An optional desktop companion for [Novena](https://vanastraea.github.io/novena/). It signs in to your Arknights
 account **on your own computer**, reads it, and hands Novena your operators, depot and currencies with one click. The
 website never asks for a login and never sees one.
 
@@ -21,7 +21,7 @@ website never asks for a login and never sees one.
 
 ## Using it
 
-1. Download the zip for your system from the [latest release](https://github.com/novena-arknights/novena/releases/latest),
+1. Download the zip for your system from the [latest release](https://github.com/VanAstraea/novena/releases/latest),
    check it against the `SHA256SUMS` file next to it if you like, unzip it, and open **Novena Sync**.
    Windows may warn that the app is unrecognised (it isn't code-signed yet): choose *More info → Run anyway*.
    macOS: right-click the app, *Open*.

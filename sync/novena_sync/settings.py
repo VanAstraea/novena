@@ -11,7 +11,7 @@ from pathlib import Path
 
 # Where Novena runs. The bridge answers only pages from these origins (the token is the real lock; this is a second).
 NOVENA_ORIGINS = [
-    "https://novena-arknights.github.io",
+    "https://vanastraea.github.io",
     "http://localhost:5174", "http://127.0.0.1:5174",  # local development
     "http://localhost:4173", "http://127.0.0.1:4173",  # local preview build
 ]

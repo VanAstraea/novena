@@ -25,4 +25,4 @@ exe = EXE(
 )
 coll = COLLECT(exe, a.binaries, a.datas, name="Novena Sync")
 if sys.platform == "darwin":
-    app = BUNDLE(coll, name="Novena Sync.app", icon="assets/novena.icns", bundle_identifier="io.github.novena-arknights.sync")
+    app = BUNDLE(coll, name="Novena Sync.app", icon="assets/novena.icns", bundle_identifier="io.github.vanastraea.novena-sync")

@@ -19,7 +19,7 @@ from . import SERVERS, VERSION, account, payload
 from .bridge import COOLDOWN, PORT, Bridge
 from .settings import Settings
 
-NOVENA_URL = "https://novena-arknights.github.io/novena/roster?tab=import"
+NOVENA_URL = "https://vanastraea.github.io/novena/roster?tab=import"
 INK, PANEL, LINE, TEXT, MUTED, GOLD = "#06080f", "#0c1222", "#2f3b5a", "#f5f0e6", "#aab1c0", "#e2bd66"
 NOTICE = (
     "Novena Sync signs in to your game account on this computer and reads it. It never changes anything in the game, "

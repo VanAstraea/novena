@@ -10,5 +10,5 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CACHE_DIR = Path(os.environ.get("NOVENA_CACHE", ROOT / ".cache"))
 OUT_DIR = Path(os.environ.get("NOVENA_OUT", ROOT / "public" / "data" / "v1"))
-USER_AGENT = "novena-pipeline (+https://github.com/novena-arknights/novena)"
+USER_AGENT = "novena-pipeline (+https://github.com/VanAstraea/novena)"
 SERVERS = ("en", "jp", "kr", "cn")

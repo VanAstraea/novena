@@ -20,6 +20,9 @@ concurrency:
 
 jobs:
   build:
+    # GitHub Pages needs a public repo on a free account: while the repo is private (before launch), skip the daily
+    # build and deploy instead of failing every day.
+    if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

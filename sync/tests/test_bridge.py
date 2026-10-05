@@ -9,7 +9,7 @@ from novena_sync.account import SignInNeeded
 from novena_sync.bridge import Bridge
 from novena_sync.settings import Settings
 
-NOVENA = "https://novena-arknights.github.io"
+NOVENA = "https://vanastraea.github.io"
 
 
 class Clock:
