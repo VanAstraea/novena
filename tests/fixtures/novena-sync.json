@@ -1,0 +1,78 @@
+{
+ "app": "novena-sync",
+ "version": 1,
+ "server": "en",
+ "synced": "2026-10-05T00:00:00+00:00",
+ "user": {
+  "troop": {
+   "chars": {
+    "1": {
+     "charId": "char_202_demkni",
+     "evolvePhase": 2,
+     "level": 90,
+     "potentialRank": 2,
+     "mainSkillLvl": 7,
+     "skills": [
+      {
+       "specializeLevel": 0
+      },
+      {
+       "specializeLevel": 3
+      }
+     ],
+     "equip": {
+      "uniequip_002_demkni": {
+       "level": 3,
+       "locked": 0
+      }
+     }
+    },
+    "2": {
+     "charId": "char_002_amiya",
+     "evolvePhase": 2,
+     "level": 70,
+     "potentialRank": 5,
+     "mainSkillLvl": 7,
+     "skills": [],
+     "equip": {},
+     "tmpl": {
+      "char_002_amiya": {
+       "skills": [
+        {
+         "specializeLevel": 2
+        }
+       ],
+       "equip": {}
+      },
+      "char_1001_amiya2": {
+       "skills": [
+        {
+         "specializeLevel": 1
+        }
+       ],
+       "equip": {
+        "uniequip_002_amiya2": {
+         "level": 1,
+         "locked": 1
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "inventory": {
+   "30073": 12,
+   "mod_unlock_token": 3
+  },
+  "status": {
+   "gold": 1200000,
+   "diamondShard": 6300,
+   "freeDiamond": 40,
+   "payDiamond": 2,
+   "gachaTicket": 5,
+   "tenGachaTicket": 1,
+   "monthlySubscriptionEndTime": 1900000000
+  }
+ }
+}

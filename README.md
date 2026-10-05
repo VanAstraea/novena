@@ -34,8 +34,10 @@ Useful without any account data:
 
 With your roster (typed in, or imported):
 
-- **Roster tracker** with a quick bulk editor, depot, import/export (this site's files, raw syncData, Krooster
-  exports) and progress over time.
+- **Roster tracker** with a quick bulk editor, depot, import/export (this site's files, Novena Sync, raw syncData,
+  Krooster exports) and progress over time.
+- **Novena Sync (optional desktop app):** signs in to your account on your own computer and hands the site your
+  operators, depot and currencies with one click. See [`sync/README.md`](sync/README.md).
 - **Depot from screenshots:** take screenshots of your in-game Depot, drop or paste them in, check what was read,
   apply. They're read on your device and never uploaded, and nothing touches the game.
 - **Plan:** the upgrades that unlock the most community clears per sanity, your planner targets first, with a
@@ -51,10 +53,11 @@ With your roster (typed in, or imported):
   from Settings.
 - No accounts, no analytics, no tracking, no cookies. The site never asks for a Yostar or game login.
 - The site reads only its own static data files (built once a day) and images from a community art mirror.
-- It never logs in to your game account, not even from your own computer: the roster is typed in or imported from a
-  file, and the depot can come from screenshots you take.
+- The website never logs in to your game account. The roster is typed in or imported from a file, and the depot can
+  come from screenshots you take. If you choose to, the separate **Novena Sync** app signs in on your own computer
+  (unofficially, at your own risk) and hands the site a cut-down copy: operators, depot and currencies only.
 - Depot screenshots are read in your browser and never uploaded.
-- No automation of any kind: nothing here drives the game client.
+- No automation of any kind: nothing here, Novena Sync included, drives the game client.
 
 ## Data sources and credits
 

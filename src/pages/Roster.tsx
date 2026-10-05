@@ -5,7 +5,10 @@ import { OpPicker } from "../components/OpPicker";
 import { Avatar, Await, Explain, ItemIcon, itemsSig, Stars, Tabs, useAsync } from "../components/ui";
 import { operators } from "../lib/data";
 import { date } from "../lib/format";
-import { exportRoster, parseRoster } from "../lib/importers";
+import { exportRoster, parseRoster, type Imported } from "../lib/importers";
+import { pref, setPref } from "../lib/storage";
+import { BridgeError, forget, hello, isPaired, pair, SYNC_SERVERS, syncNow } from "../lib/syncBridge";
+import { REPO_URL } from "../config";
 import { best } from "../lib/search";
 import { href, route, setQuery } from "../lib/router";
 import { account, loaded, saveAccount, server, snapshotOf, type Account, type RosterOp } from "../state";
@@ -162,19 +165,28 @@ function Depot() {
   );
 }
 
+type Msg = { ok: boolean; text: string } | null;
+
+/** Put an import into the account; returns the sentence that says what happened. */
+function apply(r: Imported, mode: "replace" | "merge"): string {
+  update((acc) => ({
+    ...acc, ops: mode === "replace" ? r.ops : { ...acc.ops, ...r.ops },
+    depot: r.depot ? (mode === "replace" ? r.depot : { ...acc.depot, ...r.depot }) : acc.depot,
+    savings: r.savings || acc.savings, source: r.format === "Novena Sync" ? "novena-sync" : "import",
+  }));
+  return `Imported ${Object.keys(r.ops).length} operators${r.depot ? ` and ${Object.keys(r.depot).length} depot items` : ""} from ${r.format}${r.skipped ? ` (${r.skipped} entries skipped: unknown on this server)` : ""}.`;
+}
+
 function Import({ ops }: { ops: OpIndex[] }) {
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [msg, setMsg] = useState<Msg>(null);
   const [mode, setMode] = useState<"replace" | "merge">("replace");
+  const [over, setOver] = useState(false);
   const s = server.value;
   const onFile = async (f: File) => {
     try {
       const r = parseRoster(JSON.parse(await f.text()), ops);
-      update((acc) => ({
-        ...acc, ops: mode === "replace" ? r.ops : { ...acc.ops, ...r.ops },
-        depot: r.depot ? (mode === "replace" ? r.depot : { ...acc.depot, ...r.depot }) : acc.depot,
-        savings: r.savings || acc.savings, source: "import",
-      }));
-      setMsg({ ok: true, text: `Imported ${Object.keys(r.ops).length} operators${r.depot ? ` and ${Object.keys(r.depot).length} depot items` : ""} from a ${r.format}${r.skipped ? ` (${r.skipped} entries skipped: unknown on this server)` : ""}.` });
+      if (r.server && r.server !== s) throw new Error(`This file is from the ${r.server.toUpperCase()} server; switch to it first (top right).`);
+      setMsg({ ok: true, text: apply(r, mode) });
     } catch (e) {
       setMsg({ ok: false, text: (e as Error).message });
     }
@@ -188,18 +200,24 @@ function Import({ ops }: { ops: OpIndex[] }) {
   };
   return (
     <div class="grid two">
+      <SyncCard ops={ops} />
       <section class="card">
-        <h2>Import</h2>
-        <p>Accepted: a Novena roster file, game sync data (syncData JSON), or a Krooster operator export.</p>
+        <h2>Import a file</h2>
+        <p>Accepted: a Novena roster file, a Novena Sync file, game sync data (syncData JSON), or a Krooster operator export.</p>
         <p class="muted">For your depot, the easiest way is screenshots: <a href={href("/roster", { tab: "depot" })}>Depot → Import from screenshots</a>.</p>
-        <div class="row">
+        <div class="row" style={{ marginBottom: "10px" }}>
           <div class="seg" role="group" aria-label="Import mode">
             <button aria-pressed={mode === "replace"} onClick={() => setMode("replace")}>Replace roster</button>
             <button aria-pressed={mode === "merge"} onClick={() => setMode("merge")}>Merge</button>
           </div>
-          <label class="btn primary">Choose file<input type="file" accept=".json,application/json" class="sr-only"
-            onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void onFile(f); }} /></label>
         </div>
+        <label class={`dropzone${over ? " over" : ""}`}
+          onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
+          onDrop={(e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer?.files?.[0]; if (f) void onFile(f); }}>
+          <span>Drop a file here, or <u>choose one</u></span>
+          <input type="file" accept=".json,application/json" class="sr-only"
+            onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void onFile(f); }} />
+        </label>
         {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
         <Explain>The file is read in your browser; nothing is uploaded.</Explain>
       </section>
@@ -209,6 +227,77 @@ function Import({ ops }: { ops: OpIndex[] }) {
         <button onClick={exportIt} disabled={!Object.keys(account.value.ops).length}>Export roster</button>
       </section>
     </div>
+  );
+}
+
+/** One-click sync from Novena Sync, the optional desktop app. The page only talks to it when you click. */
+function SyncCard({ ops }: { ops: OpIndex[] }) {
+  const s = server.value;
+  const [stage, setStage] = useState<"start" | "pair" | "ready">(isPaired() ? "ready" : "start");
+  const [busy, setBusy] = useState(false);
+  const [code, setCode] = useState("");
+  const [msg, setMsg] = useState<Msg>(null);
+  const supported = SYNC_SERVERS.includes(s);
+  const last = Number(pref(`syncedAt.${s}`, "0"));
+  const run = async (step: () => Promise<void>) => {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await step();
+    } catch (e) {
+      const err = e as BridgeError;
+      if (err.code === "not-paired") setStage("pair");
+      setMsg({ ok: false, text: err.message });
+    } finally {
+      setBusy(false);
+    }
+  };
+  const connect = () => run(async () => {
+    const h = await hello();
+    setStage(h.paired ? "ready" : "pair");
+  });
+  const doPair = () => run(async () => {
+    await pair(code);
+    setCode("");
+    setStage("ready");
+    setMsg({ ok: true, text: "Paired. From now on, one click syncs." });
+  });
+  const sync = () => run(async () => {
+    const res = await syncNow(s);
+    const r = parseRoster(res.payload, ops);
+    const text = apply(r, "replace");
+    setPref(`syncedAt.${s}`, String(Date.now()));
+    setMsg({ ok: true, text: res.fresh ? text : `${text} That's your sync from moments ago: a fresh one is possible in ${Math.ceil(res.retryAfter / 60)} min.` });
+  });
+  return (
+    <section class="card sync-card" style={{ gridColumn: "1 / -1" }}>
+      <div class="row" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <h2>Novena Sync <span class="badge">Optional app</span></h2>
+          <p style={{ maxWidth: "70ch" }}>A small desktop app that signs in to your game account <strong>on your own computer</strong>, reads it, and hands Novena your operators, depot and currencies with one click. This website never sees your login.</p>
+        </div>
+        <a class="btn" href={`${REPO_URL}/releases/latest`} rel="noopener">Download Novena Sync</a>
+      </div>
+      {!supported ? <p class="muted">Novena Sync works with the EN, JP and KR servers.</p>
+        : stage === "start" ? (
+          <div class="row"><button class="primary" onClick={connect} disabled={busy}>{busy ? "Connecting…" : "Connect to Novena Sync"}</button>
+            <span class="muted">Open the app first. Your browser may ask to allow access to devices on your network.</span></div>
+        ) : stage === "pair" ? (
+          <form class="row" onSubmit={(e) => { e.preventDefault(); void doPair(); }}>
+            <label class="field"><span>Code shown in Novena Sync</span>
+              <input type="text" inputMode="numeric" autoComplete="one-time-code" value={code} onInput={(e) => setCode((e.target as HTMLInputElement).value)} placeholder="000 000" style={{ width: "9em" }} /></label>
+            <button class="primary" type="submit" disabled={busy || code.replace(/\D/g, "").length !== 6} style={{ alignSelf: "flex-end" }}>Pair</button>
+          </form>
+        ) : (
+          <div class="row">
+            <button class="primary" onClick={sync} disabled={busy}>{busy ? "Syncing…" : `Sync ${s.toUpperCase()} now`}</button>
+            <span class="muted">{last ? `Last synced ${date(last)}, ${new Date(last).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.` : "Not synced yet."} Replaces this server's roster and depot.</span>
+            <button class="ghost small" onClick={() => { forget(); setStage("start"); setMsg(null); }}>Unpair</button>
+          </div>
+        )}
+      {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
+      <Explain>Unofficial: the app uses the community's unofficial sign-in, at your own risk, and only reads your account. It never plays or changes the game. Syncs are spaced a few minutes apart to be kind to your account and the game's servers.</Explain>
+    </section>
   );
 }
 

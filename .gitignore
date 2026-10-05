@@ -8,3 +8,6 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+sync/build/
+sync/NOTICES.txt
+*.egg-info/

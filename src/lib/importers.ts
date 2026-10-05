@@ -1,6 +1,6 @@
 // Roster imports. Accepted, detected by shape:
 //   - Novena roster files (this site's own export)
-//   - a raw `account/syncData` JSON (what other community tools save)
+//   - a raw `account/syncData` JSON (what other community tools save), or Novena Sync's cut-down copy of one
 //   - Krooster's operator export (an object keyed by char id with owned / promotion / potential / mastery / module)
 import type { OpIndex } from "../types";
 import type { Account, RosterOp } from "../state";
@@ -14,6 +14,7 @@ export interface Imported {
   savings?: Account["savings"];
   format: string;
   skipped: number;
+  server?: string; // the server a file says it's from, when it says
 }
 
 const clamp = (v: unknown, lo: number, hi: number, fallback: number) => {
@@ -53,7 +54,7 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
   if ((data?.app === ROSTER_APP || OLD_ROSTER_APPS.includes(data?.app)) && Array.isArray(data.ops)) {
     data.ops.forEach((r: any) => put(r));
     const depot = Object.fromEntries(Object.entries(data.depot || {}).filter(([, v]) => Number(v) > 0).map(([k, v]) => [k, Number(v)]));
-    return { ops: out, depot, savings: data.savings, format: "Novena roster file", skipped };
+    return { ops: out, depot, savings: data.savings, format: "Novena roster file", skipped, server: data.server };
   }
 
   const troop = data?.user?.troop?.chars ?? data?.troop?.chars;
@@ -77,7 +78,8 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
     const st = user.status || {};
     const savings = { orundum: Number(st.diamondShard) || 0, prime: (Number(st.freeDiamond) || 0) + (Number(st.payDiamond) || 0),
       permits: (Number(st.gachaTicket) || 0) + 10 * (Number(st.tenGachaTicket) || 0), card: (st.monthlySubscriptionEndTime || 0) * 1000 > Date.now() };
-    return { ops: out, depot, savings, format: "Game sync data (syncData)", skipped };
+    const fromApp = data.app === "novena-sync";
+    return { ops: out, depot, savings, format: fromApp ? "Novena Sync" : "Game sync data (syncData)", skipped, server: fromApp ? data.server : undefined };
   }
 
   // Krooster: { char_x: { id, owned, promotion, potential, level, skillLevel, mastery: [..], module: {id|letter: n} } }

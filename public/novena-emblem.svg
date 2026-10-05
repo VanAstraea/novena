@@ -19,7 +19,7 @@
   <path id="arcBottom" d="M20 256 A236 236 0 0 0 492 256" fill="none"/>
   <g font-family="'Cormorant Garamond', Georgia, serif" font-size="19" font-weight="600" letter-spacing="9" fill="#f8e3a3" text-anchor="middle">
     <text><textPath href="#arcTop" startOffset="50%">ORA ✦ ET ✦ LABORA</textPath></text>
-    <text><textPath href="#arcBottom" startOffset="50%">NOVEM ✦ DIES</textPath></text>
+    <text><textPath href="#arcBottom" startOffset="50%">EST ✦ MMXXVI</textPath></text>
   </g>
   <path d="M256 41 L257.5 46.5 L263 48 L257.5 49.5 L256 55 L254.5 49.5 L249 48 L254.5 46.5 Z" fill="url(#gold)"/>
     <path d="M389.7 89.7 L391.2 95.1 L396.7 96.7 L391.2 98.2 L389.7 103.7 L388.2 98.2 L382.7 96.7 L388.2 95.1 Z" fill="url(#gold)"/>

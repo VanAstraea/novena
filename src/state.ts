@@ -49,7 +49,7 @@ export interface Account {
   ops: Record<string, RosterOp>;
   depot: Record<string, number>;
   updated: number;
-  source?: string; // "manual" | "import"
+  source?: string; // "manual" | "import" | "novena-sync"
   snapshots: Snapshot[];
   savings?: { orundum: number; prime: number; permits: number; card: boolean };
 }

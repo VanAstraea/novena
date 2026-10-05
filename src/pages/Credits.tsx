@@ -120,6 +120,11 @@ export default function Credits() {
       </section>
 
       <section class="card">
+        <h2>Novena Sync (optional app)</h2>
+        <p>The desktop companion signs in with <a href="https://github.com/thesadru/arkprts" rel="noopener">ArkPRTS</a> by thesadru (MIT), the community's unofficial Arknights client, and keeps its session with <a href="https://github.com/jaraco/keyring" rel="noopener">keyring</a> (MIT). Every package it bundles is listed with its license in the <code>NOTICES.txt</code> inside each download.</p>
+      </section>
+
+      <section class="card">
         <h2>Novena</h2>
         <p>Code: MIT License, <a href={REPO_URL} rel="noopener">source on GitHub</a>. The Novena emblem and the site's design are original work for this project.</p>
       </section>

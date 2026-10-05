@@ -19,6 +19,8 @@ jobs:
       - run: npm ci
       - name: Pipeline unit tests
         run: pip install pytest && cd pipeline && python -m pytest -q
+      - name: Novena Sync tests
+        run: cd sync && pip install ".[dev]" && python -m pytest -q
       - name: Type check
         run: npm run typecheck
       - name: Unit and golden tests

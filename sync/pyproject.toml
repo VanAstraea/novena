@@ -1,0 +1,25 @@
+[project]
+name = "novena-sync"
+version = "0.1.0"
+description = "Reads your Arknights account on your own computer and hands it to Novena. Read-only."
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = ["arkprts==0.3.22", "keyring>=25"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+build = ["pyinstaller>=6.10"]
+
+[project.scripts]
+novena-sync = "novena_sync.app:main"
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["novena_sync"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -19,9 +19,10 @@
 7. **Items to use.** Training vouchers, potential tokens and expiring items, from the depot screenshot or typed in.
 8. **Operator list from screenshots.** Waiting on sample screenshots.
 
-## Later: Novena Sync (optional companion)
+## Novena Sync (optional companion): built, not yet released
 
-A small, separate, open-source desktop app for players who want their whole account in Novena without typing it in.
+Code in `sync/`, release builds from `.github/workflows/sync-app.yml` on a `sync-v*` tag. First release after the
+website launches.
 
 - **What it does:** signs in to the player's own account on their own computer, reads it (read-only), and saves a sync
   file that Novena imports. The website itself never asks for a login and never sees credentials.
@@ -31,9 +32,9 @@ A small, separate, open-source desktop app for players who want their whole acco
 - **Honest labelling:** unofficial, uses the game's unofficial login, at the player's own risk; Yostar's terms don't
   sanction third-party tools.
 - **Quick, repeatable sync:** see below.
-- Shipped after the website, once we've seen how the community reacts.
+- Released after the website, once we've seen how the community reacts.
 
-### Making syncs quick
+### Making syncs quick (as built)
 
 The goal is one click from "I played" to "Novena is up to date", as often as the player likes, within limits that are
 kind to the player's account and to Yostar's servers.
@@ -46,5 +47,5 @@ kind to the player's account and to Yostar's servers.
   fallback that always works.
 - **Limits.** A short cooldown between syncs (a few minutes) and no background polling: each sync is a deliberate click.
   Every sync is a sign-in to the game's servers, so frequent syncs are both more visible and less polite.
-- **To check before building:** whether a sync signs the player out of the game on their phone or PC (if it does, syncing
+- **Still to check with a real account:** whether a sync signs the player out of the game on their phone or PC (if it does, syncing
   mid-session must warn first), and how long a session token lasts.

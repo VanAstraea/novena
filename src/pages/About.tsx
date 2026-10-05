@@ -20,6 +20,7 @@ export default function About() {
           <li>Everything you enter (roster, depot, plans, settings) is saved in your browser only. Nothing is sent to any server.</li>
           <li>No accounts, no analytics, no tracking, no cookies. The site never asks for a Yostar or game login.</li>
           <li>Depot screenshots you import are read on your device and never uploaded. Taking them is up to you: nothing here touches the game.</li>
+          <li>Optional: <strong>Novena Sync</strong>, a separate desktop app, can sign in to your account on your own computer and hand this site your operators, depot and currencies. Its sign-in is unofficial and at your own risk; the website still never sees a login. <a href={href("/roster", { tab: "import" })}>More on the Import page</a>.</li>
           <li>The site loads its own data files and images from the art mirror on GitHub; those requests carry nothing about you beyond what any web request does.</li>
         </ul>
         <p><a href={href("/settings")}>Back up or delete your data</a></p>

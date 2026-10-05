@@ -1,7 +1,7 @@
 """Generates the Novena emblem SVGs (run: python docs/design/logo/make_logo.py).
 
 The emblem: an elongated four-point star, faceted in two tones, pierced by a halo,
-over nine gold rays (a novena is nine days), with feathered wings and a seal ring.
+over nine gold rays, with feathered wings and a seal ring.
 It is original artwork; it does not reproduce any official game emblem.
 """
 from math import cos, sin, radians, hypot
@@ -110,7 +110,7 @@ def emblem(seal=True):
   <path id="arcBottom" d="M{C - 236} {C} A236 236 0 0 0 {C + 236} {C}" fill="none"/>
   <g font-family="'Cormorant Garamond', Georgia, serif" font-size="19" font-weight="600" letter-spacing="9" fill="{GOLD_HI}" text-anchor="middle">
     <text><textPath href="#arcTop" startOffset="50%">ORA ✦ ET ✦ LABORA</textPath></text>
-    <text><textPath href="#arcBottom" startOffset="50%">NOVEM ✦ DIES</textPath></text>
+    <text><textPath href="#arcBottom" startOffset="50%">EST ✦ MMXXVI</textPath></text>
   </g>
   {studs}"""
     return f"""{ring}
