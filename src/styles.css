@@ -717,6 +717,9 @@ button.linkish:hover { color: var(--text); }
 .filter-row .picker { flex: 1 1 220px; max-width: 260px; }
 .filter-row .picker label > span:first-child:empty { display: none; }
 
+.op-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 12px; }
+.card > .op-filters:first-child { margin-top: 0; }
+
 /* --- compare -------------------------------------------------------------------------------------------------- */
 /* equal columns; the mirror's portraits are 180 × 360, so they're shown near that size, never blown up */
 .cmp-table { table-layout: fixed; min-width: 640px; }

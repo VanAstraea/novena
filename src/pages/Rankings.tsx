@@ -1,6 +1,7 @@
 // Usage rankings from community clears, per content type and archetype; archetype gaps once a roster is in.
 import { useMemo, useState } from "preact/hooks";
 import { CommunityMarks } from "../components/Marks";
+import { OpFilters, useOpFilters } from "../components/OpFilters";
 import { WeightsControl } from "../components/Weights";
 import { contentLevels, customised, weightedScore } from "../lib/weights";
 import { Await, Explain, metaSig, OpLink, SortTh, Stars, Tabs, useAsync } from "../components/ui";
@@ -41,14 +42,15 @@ function Ops({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
   const meta = metaSig.value;
   const s = server.value;
   const here = q.get("here") === "1";
+  const filters = useOpFilters();
   const value = (o: OpIndex) => (cat === "all" ? (customised() ? weightedScore(usage.ops[o.id]?.u) : usage.ops[o.id]?.score) : usage.ops[o.id]?.u?.[cat]) || 0;
-  const rows = useMemo(() => ops.filter((o) => usage.ops[o.id]?.score && (!cls || o.cls === cls) && (!branch || o.branch === branch) && (!here || o.on.includes(s)))
+  const rows = useMemo(() => ops.filter((o) => usage.ops[o.id]?.score && filters.test(o) && (!branch || o.branch === branch) && (!here || o.on.includes(s)))
     .map((o) => ({ o, u: value(o), lift: usage.ops[o.id]?.lift || 0, own: usage.ops[o.id]?.inv?.own || 0 }))
     .sort((a, b) => {
       const k = sort.key as "u" | "lift" | "own";
       const key = sort.key === "usage" ? "u" : k;
       return sort.key === "name" ? a.o.name.localeCompare(b.o.name) * sort.dir : ((a[key] as number) - (b[key] as number)) * sort.dir;
-    }), [ops, usage, cat, cls, branch, sort, here, s, contentLevels.value]);
+    }), [ops, usage, cat, cls, branch, sort, here, s, contentLevels.value, filters.rarity.join(), filters.own, account.value.ops]);
   const branches = [...new Set(ops.filter((o) => !cls || o.cls === cls).map((o) => o.branch))].sort((a, b) => (meta?.branches[a] || a).localeCompare(meta?.branches[b] || b));
   return (
     <>
@@ -71,6 +73,7 @@ function Ops({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
           </label>
           <label class="row tight"><input type="checkbox" checked={here} onChange={(e) => setQuery({ here: (e.target as HTMLInputElement).checked ? "1" : "" })} /> Only on this server</label>
         </div>
+        <OpFilters />
         {cat === "all" && <WeightsControl compact />}
       </div>
       <div class="table-wrap">

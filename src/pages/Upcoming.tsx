@@ -1,4 +1,5 @@
 // Upcoming content, with CN as the preview: events, operators, modules, banners and Contingency Contract.
+import { OpFilters, useOpFilters } from "../components/OpFilters";
 import { Avatar, Await, Explain, ItemIcon, itemName, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
 import { CommunityMarks } from "../components/Marks";
 import { costTable } from "../lib/account";
@@ -161,13 +162,16 @@ function Events({ up, byId }: { up: UpcomingFile; byId: Map<string, OpIndex> }) 
 }
 
 function Operators({ up, byId, usage }: { up: UpcomingFile; byId: Map<string, OpIndex>; usage: UsageFile }) {
+  const filters = useOpFilters();
+  const shown = up.operators.filter((id) => { const op = byId.get(id); return op && filters.test(op); });
   return (
     <>
+      <div class="card"><OpFilters classes owned={false} />{filters.active && <p class="muted" style={{ margin: "8px 0 0" }}>{shown.length} of {up.operators.length} operators</p>}</div>
       <div class="table-wrap">
         <table class="cards">
           <thead><tr><th>Operator</th><th class="num">Usage on CN</th><th>Community build</th><th>Banner</th></tr></thead>
           <tbody>
-            {up.operators.map((id) => {
+            {shown.map((id) => {
               const op = byId.get(id);
               if (!op) return null;
               const u = usage.ops[id];
