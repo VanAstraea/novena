@@ -1,13 +1,35 @@
-// Global search (Ctrl+K, ⌘K or "/"): operators, items, stages and pages.
+// Global search (Ctrl+K, ⌘K or "/"): operators (yours first, recent ones on an empty box), items, stages, pages,
+// the sub-pages people look for, and a few actions.
 import { signal } from "@preact/signals";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { operators, stages as loadStages } from "../lib/data";
 import { href, navigate } from "../lib/router";
 import { matchScore } from "../lib/search";
-import { server } from "../state";
+import { pref } from "../lib/storage";
+import { account, server, theme } from "../state";
+import { rememberOperator } from "./OperatorPanel";
 import type { OpIndex, StageRow } from "../types";
 import { PAGES } from "../pages/registry";
 import { Avatar, ItemIcon, itemsSig } from "./ui";
+
+// Pages people look for by what's on them, opened on the right tab; and things to do.
+const SUBPAGES: [string, string, Record<string, string>, string[]][] = [
+  ["Event shops", "/upcoming", { view: "shops" }, ["shop", "tokens", "event store"]],
+  ["Banners and pulls", "/upcoming", { view: "banners" }, ["banner", "headhunting"]],
+  ["Contingency Contract", "/upcoming", { view: "cc" }, ["cc"]],
+  ["Training Room and Workshop", "/base", {}, ["trainer", "training", "workshop", "byproduct"]],
+  ["Dorms and morale", "/base", {}, ["dorm", "morale"]],
+  ["Vouchers, tokens and expiring items", "/roster", { tab: "use" }, ["voucher", "potential token", "expiring", "potion"]],
+  ["What changed (progress with costs)", "/roster", { tab: "progress" }, ["progress", "history", "spent"]],
+  ["Depot from screenshots", "/roster", { tab: "depot" }, ["depot", "screenshot", "inventory"]],
+  ["Import a roster or sync", "/roster", { tab: "import" }, ["import", "sync", "krooster"]],
+  ["Sanity timer and checklist", "/today", {}, ["timer", "checklist", "daily"]],
+];
+const ACTIONS: { label: string; words: string[]; run: () => void }[] = [
+  { label: "Sync with Novena Sync", words: ["sync", "update roster"], run: () => navigate(href("/roster", { tab: "import" })) },
+  { label: "Switch between dark and light", words: ["theme", "dark", "light"], run: () => { const order = ["system", "dark", "light"] as const; theme.value = order[(order.indexOf(theme.value) + 1) % 3]; } },
+  { label: "Build my plan", words: ["plan", "what to build"], run: () => navigate(href("/plan")) },
+];
 
 export const searchOpen = signal(false);
 
@@ -15,6 +37,7 @@ interface Hit {
   key: string;
   label: string;
   kind: string;
+  run?: () => void;
   to: string;
   score: number;
   op?: OpIndex;
@@ -53,12 +76,17 @@ export function SearchDialog() {
 
   const hits = useMemo<Hit[]>(() => {
     if (!q.trim()) {
-      return PAGES.filter((p) => p.nav).map((p) => ({ key: p.path, label: p.title, kind: "Page", to: href(p.path), score: 1 }));
+      let recent: string[] = [];
+      try { recent = JSON.parse(pref("recentOps", "[]")); } catch { /* none */ }
+      const recentHits = recent.map((id) => ops.find((o) => o.id === id)).filter((o): o is OpIndex => !!o)
+        .map((op) => ({ key: `r${op.id}`, label: op.name, kind: "Recent", to: href(`/operator/${op.id}`), score: 2, op }));
+      return [...recentHits, ...PAGES.filter((p) => p.nav).map((p) => ({ key: p.path, label: p.title, kind: "Page", to: href(p.path), score: 1 }))];
     }
     const out: Hit[] = [];
     for (const op of ops) {
       const s = Math.max(matchScore(q, op.name), op.cn ? matchScore(q, op.cn) : 0, op.alt ? matchScore(q, op.alt) : 0);
-      if (s) out.push({ key: op.id, label: op.name, kind: op.src ? "Operator · CN only" : "Operator", to: href(`/operator/${op.id}`), score: s + 3, op });
+      const owned = !!account.value.ops[op.id];
+      if (s) out.push({ key: op.id, label: op.name, kind: op.src ? "Operator · CN only" : owned ? "Operator · yours" : "Operator", to: href(`/operator/${op.id}`), score: s + 3 + (owned ? 2 : 0), op });
     }
     for (const [id, it] of Object.entries(itemsSig.value?.items || {})) {
       const s = matchScore(q, it.name);
@@ -72,11 +100,21 @@ export function SearchDialog() {
       const s = Math.max(matchScore(q, p.title), ...(p.keywords || []).map((k) => matchScore(q, k)));
       if (s) out.push({ key: p.path, label: p.title, kind: "Page", to: href(p.path), score: s + 1 });
     }
+    for (const [label, path, query, words] of SUBPAGES) {
+      const s = Math.max(matchScore(q, label), ...words.map((w) => matchScore(q, w)));
+      if (s) out.push({ key: `p${label}`, label, kind: "Page", to: href(path, query), score: s + 1 });
+    }
+    for (const a of ACTIONS) {
+      const s = Math.max(matchScore(q, a.label), ...a.words.map((w) => matchScore(q, w)));
+      if (s) out.push({ key: `a${a.label}`, label: a.label, kind: "Action", to: "", run: a.run, score: s });
+    }
     return out.sort((a, b) => b.score - a.score).slice(0, 30);
   }, [q, ops, stageRows]);
 
   const go = (h: Hit) => {
     searchOpen.value = false;
+    if (h.run) return h.run();
+    if (h.op) rememberOperator(h.op.id);
     navigate(h.to);
   };
 

@@ -1,13 +1,16 @@
 import type { ComponentType } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { effect } from "@preact/signals";
+import { OperatorPanel } from "./components/OperatorPanel";
 import { SearchDialog, searchOpen } from "./components/Search";
+import { Toasts } from "./components/Toast";
 import { loadShared, useAsync } from "./components/ui";
 import { BASE, manifest } from "./lib/data";
-import { date } from "./lib/format";
+import { date, relative } from "./lib/format";
+import { pref, setPref } from "./lib/storage";
 import { href, route } from "./lib/router";
 import { match, PAGES } from "./pages/registry";
-import { SERVERS, server, theme, type Theme } from "./state";
+import { account, hasRoster, SERVERS, server, targets, theme, type Theme } from "./state";
 import type { Server } from "./types";
 import { SUPPORT } from "./config";
 
@@ -68,11 +71,51 @@ function AccountStrip() {
   const pages = PAGES.filter((p) => p.nav === "account");
   if (!pages.some((p) => p.path === path)) return null;
   return (
-    <nav class="tabs" aria-label="My account pages" style={{ maxWidth: "1560px", margin: "10px auto 0", padding: "0 28px" }}>
-      {pages.map((p) => (
-        <a key={p.path} href={href(p.path)} aria-current={p.path === path ? "page" : undefined}>{p.short || p.title}</a>
-      ))}
-    </nav>
+    <div class="account-strip">
+      <nav class="tabs" aria-label="My account pages">
+        {pages.map((p) => (
+          <a key={p.path} href={href(p.path)} aria-current={p.path === path ? "page" : undefined}>{p.short || p.title}</a>
+        ))}
+        {hasRoster.value && (
+          <span class={`updated${Date.now() - account.value.updated > 2 * DAY ? " warn-text" : ""}`} title="When your roster last changed here">
+            Roster {account.value.source === "novena-sync" ? "synced" : "updated"} {relative(account.value.updated)}
+          </span>
+        )}
+      </nav>
+      <GetStarted />
+    </div>
+  );
+}
+
+const DAY = 86400_000;
+
+/** First visit to the account pages: three steps to a first plan, ticked off as they're done. */
+function GetStarted() {
+  const [hidden, setHidden] = useState(() => pref("getStartedHidden", "") === "1");
+  const steps: [boolean, string, string, string][] = [
+    [hasRoster.value, "Add your operators", "/roster?tab=import", "Sync, import a file, or add them by hand"],
+    [Object.keys(account.value.depot).length > 0, "Add your depot", "/roster?tab=depot", "From screenshots of your in-game Depot"],
+    [targets.value.length > 0, "Set a goal", "/planner", "Type a build in the planner, or press Make it a goal on any operator"],
+  ];
+  if (hidden || steps.every(([done]) => done)) return null;
+  return (
+    <section class="card get-started">
+      <div class="row" style={{ justifyContent: "space-between" }}>
+        <h2 style={{ margin: 0 }}>Three steps to your first plan</h2>
+        <button class="ghost small" onClick={() => { setPref("getStartedHidden", "1"); setHidden(true); }}>Hide</button>
+      </div>
+      <ol>
+        {steps.map(([done, title, to, note]) => {
+          const [path, query] = to.split("?");
+          return (
+            <li key={title} class={done ? "done" : ""}>
+              <span class="tick" aria-hidden="true">{done ? "✓" : ""}</span>
+              <span><a href={href(path, new URLSearchParams(query || ""))}>{title}</a><br /><small class="muted">{note}</small></span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 
@@ -143,6 +186,8 @@ export function App() {
       </main>
       <Footer />
       <SearchDialog />
+      <OperatorPanel />
+      <Toasts />
     </>
   );
 }

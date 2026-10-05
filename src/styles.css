@@ -462,6 +462,34 @@ dialog.search::backdrop { background: rgba(0, 0, 0, 0.6); }
 .checklist li.done strong { text-decoration: line-through; color: var(--muted); }
 .checklist .check { display: flex; align-items: flex-start; gap: 10px; font-weight: 400; cursor: pointer; }
 .checklist .check input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); }
+/* quick operator panel */
+.drawer-bg { position: fixed; inset: 0; z-index: 40; background: rgba(3, 5, 10, 0.55); }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(560px, 100vw); overflow-y: auto; padding: 18px 22px 30px;
+  background: var(--surface); border-left: 1px solid var(--line); box-shadow: -20px 0 60px rgba(0, 0, 0, 0.5); animation: slide-in 0.22s cubic-bezier(.2, .8, .2, 1); }
+@keyframes slide-in { from { transform: translateX(40px); opacity: 0; } }
+.drawer-head { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 10px; }
+.drawer-head .portrait { width: 120px; height: 194px; object-fit: cover; object-position: 50% 8%; border: 1px solid var(--border); background: var(--surface-3); }
+.drawer-name { font-family: var(--serif); font-size: 2.2rem; margin: 6px 0 4px; }
+.drawer h3 { margin: 18px 0 8px; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+.opt { border: 1px solid var(--border); background: var(--surface-2); margin-bottom: 6px; }
+.opt summary { cursor: pointer; padding: 8px 10px; }
+.opt-body { padding: 0 10px 10px; }
+.elsewhere { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.elsewhere .lbl, .account-strip .updated { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.elsewhere .lbl { display: inline-block; min-width: 88px; }
+/* toasts */
+.toasts { position: fixed; right: 20px; bottom: 20px; z-index: 70; display: grid; gap: 8px; max-width: 420px; }
+.toast { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--good); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); animation: slide-in 0.2s ease-out; }
+.toast.bad { border-left-color: var(--bad); }
+.toast span { flex: 1; }
+/* account strip: tabs, last update, first-run guide */
+.account-strip { max-width: 1560px; margin: 10px auto 0; padding: 0 28px; }
+.account-strip .tabs { align-items: center; }
+.account-strip .updated { margin-left: auto; white-space: nowrap; padding: 0 4px; }
+.get-started ol { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.get-started li { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border: 1px solid var(--border); background: var(--surface-2); }
+.get-started li.done a { color: var(--muted); text-decoration: line-through; }
+.get-started .tick { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border: 1px solid var(--line); color: var(--good); font-weight: 700; }
 .dropzone { display: grid; place-items: center; min-height: 96px; padding: 16px; border: 2px dashed var(--line); background: var(--surface-2); text-align: center; cursor: pointer; color: var(--muted); }
 .dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
 

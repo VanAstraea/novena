@@ -124,7 +124,7 @@ export function PortraitCard({ op, sub, href, elite = 0 }: { op: OpIndex; sub?: 
 
 export function OpLink({ op, sub, size = "sm" }: { op: OpIndex; sub?: ComponentChildren; size?: "" | "sm" | "lg" }) {
   return (
-    <a class="op-cell" href={`${import.meta.env.BASE_URL}operator/${op.id}`}>
+    <a class="op-cell" href={`${import.meta.env.BASE_URL}operator/${op.id}`} data-panel={op.id}>
       <Avatar op={op} size={size} />
       <span>
         <span class="op-name">{op.name}</span> {op.src && <span class="badge cn" title="Not on this server yet">CN only</span>}

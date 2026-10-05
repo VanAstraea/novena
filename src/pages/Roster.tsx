@@ -59,7 +59,16 @@ function Ops({ ops }: { ops: OpIndex[] }) {
   const [filter, setFilter] = useState("");
   const byId = useMemo(() => new Map(ops.map((o) => [o.id, o])), [ops]);
   const rows = Object.values(a.ops).map((r) => ({ r, op: byId.get(r.id) })).filter((x) => x.op) as { r: RosterOp; op: OpIndex }[];
-  const shown = filter.trim() ? best(filter, rows, (x) => [x.op.name], 500) : rows.sort((x, y) => y.op.rarity - x.op.rarity || x.op.name.localeCompare(y.op.name));
+  const [sort, setSort] = useState(() => pref("rosterSort", "rarity"));
+  const by: Record<string, (x: { r: RosterOp; op: OpIndex }, y: { r: RosterOp; op: OpIndex }) => number> = {
+    rarity: (x, y) => y.op.rarity - x.op.rarity || x.op.name.localeCompare(y.op.name),
+    name: (x, y) => x.op.name.localeCompare(y.op.name),
+    level: (x, y) => y.r.elite - x.r.elite || y.r.level - x.r.level || x.op.name.localeCompare(y.op.name),
+    masteries: (x, y) => y.r.masteries.reduce((a, b) => a + b, 0) - x.r.masteries.reduce((a, b) => a + b, 0) || y.op.rarity - x.op.rarity,
+    modules: (x, y) => Object.values(y.r.modules).reduce((a, b) => a + b, 0) - Object.values(x.r.modules).reduce((a, b) => a + b, 0) || y.op.rarity - x.op.rarity,
+    class: (x, y) => x.op.cls.localeCompare(y.op.cls) || y.op.rarity - x.op.rarity,
+  };
+  const shown = filter.trim() ? best(filter, rows, (x) => [x.op.name], 500) : rows.sort(by[sort] || by.rarity);
   const set = (id: string, patch: Partial<RosterOp>) => update((acc) => ({ ...acc, ops: { ...acc.ops, [id]: { ...acc.ops[id], ...patch } } }));
   const addMany = (list: OpIndex[]) => update((acc) => {
     const next = { ...acc.ops };
@@ -74,6 +83,11 @@ function Ops({ ops }: { ops: OpIndex[] }) {
           <OpPicker ops={here} exclude={Object.keys(a.ops)} onPick={(op) => addMany([op])} />
           <button onClick={() => addMany(here.filter((o) => o.rarity <= 3))} title="Most accounts have every 1-3★ operator">Add all 1–3★</button>
           {rows.length > 0 && <label class="field"><span>Find in roster</span><input type="search" value={filter} onInput={(e) => setFilter((e.target as HTMLInputElement).value)} /></label>}
+          {rows.length > 0 && <label class="field"><span>Sort</span>
+            <select value={sort} onChange={(e) => { const v = (e.target as HTMLSelectElement).value; setSort(v); setPref("rosterSort", v); }}>
+              <option value="rarity">Rarity</option><option value="name">Name</option><option value="level">Promotion and level</option>
+              <option value="masteries">Masteries</option><option value="modules">Modules</option><option value="class">Class</option>
+            </select></label>}
         </div>
         <Explain>Change any value and it's saved straight away. Skill level is shared by all skills; masteries and modules are per skill and per module. Or import a file under Import / export.</Explain>
       </section>
@@ -84,7 +98,7 @@ function Ops({ ops }: { ops: OpIndex[] }) {
             <tbody>
               {shown.slice(0, 400).map(({ r, op }) => (
                 <tr key={r.id}>
-                  <td data-label="Operator"><a class="op-cell" href={href(`/operator/${op.id}`)}><Avatar op={op} size="sm" /><span><span class="op-name">{op.name}</span><br /><Stars n={op.rarity} /></span></a></td>
+                  <td data-label="Operator"><a class="op-cell" href={href(`/operator/${op.id}`)} data-panel={op.id}><Avatar op={op} size="sm" /><span><span class="op-name">{op.name}</span><br /><Stars n={op.rarity} /></span></a></td>
                   <td data-label="Elite">
                     <select aria-label={`${op.name} elite`} value={r.elite} onChange={(e) => set(r.id, { elite: +(e.target as HTMLSelectElement).value })}>
                       {Array.from({ length: maxElite(op) + 1 }, (_, i) => <option key={i} value={i}>E{i}</option>)}

@@ -65,6 +65,14 @@ async function settle(waitForArt: boolean): Promise<void> {
   }
 }
 
+/** Open the quick operator panel over the current page, as a history entry of its own. */
+export function openPanel(id: string): void {
+  const q = new URLSearchParams(location.search);
+  q.set("op", id);
+  history.pushState({ panel: true }, "", href(route.value.path, q));
+  route.value = current();
+}
+
 /** Replace the query string of the current page without adding a history entry (filters, pickers). */
 export function setQuery(params: Record<string, string | number | undefined | null>): void {
   const q = new URLSearchParams(location.search);
@@ -84,5 +92,6 @@ document.addEventListener("click", (e) => {
   if (!a || a.target || a.hasAttribute("download") || a.origin !== location.origin) return;
   if (!a.pathname.startsWith(BASE.replace(/\/$/, "")) || /\.\w+$/.test(a.pathname)) return;
   e.preventDefault();
+  if (a.dataset.panel) return openPanel(a.dataset.panel);
   navigate(a.pathname + a.search + a.hash, { morph: a.matches("[data-morph]") ? a : null });
 });
