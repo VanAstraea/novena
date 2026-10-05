@@ -49,5 +49,6 @@ kind to the player's account and to Yostar's servers.
 - **Checked with a real account (2026-10-05):** signing in and every sync sign the player out of the game on their
   other devices ("Verification expired": one session at a time). The app and the website now say so plainly and ask
   before each sync. The saved session works (a second sync needed no new code). Pairing and syncing from the live
-  site (Connect → Pair → Sync now, through Chrome's local-network prompt) works end to end.
+  site (Connect → Pair → Sync now, through Chrome's local-network prompt) works end to end. With the game closed
+  during a sync, reopening it afterwards needed no new email code: nothing to redo.
 - **Still to learn:** how long a session lasts before the app asks for a new code.

@@ -194,7 +194,7 @@ class App:
         self.sync_btn.pack(anchor="w")
         self.sync_msg = ttk.Label(f, text=self._last_text() if signed else "Sign in above first.", style="PanelMuted.TLabel", wraplength=self.wrap, justify="left")
         self.sync_msg.pack(anchor="w", pady=(8, 6))
-        ttk.Label(f, text="Each sync signs you out of the game elsewhere. Play, close the game, then sync: once or twice a day is plenty.",
+        ttk.Label(f, text="Each sync signs you out of the game elsewhere. Play, close the game, then sync: once or twice a day is plenty. Reopening the game needs no new code.",
                   style="PanelMuted.TLabel", wraplength=self.wrap, justify="left").pack(anchor="w", pady=(0, 6))
         opts = ttk.Frame(f, style="Panel.TFrame")
         opts.pack(fill="x")

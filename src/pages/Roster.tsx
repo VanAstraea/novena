@@ -336,7 +336,7 @@ function SyncCard({ ops }: { ops: OpIndex[] }) {
           </div>
         )}
       {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
-      <p class="warn-text" style={{ margin: "10px 0 0" }}>Each sync signs you out of the game on your other devices. Play, close the game, then sync: once or twice a day is plenty.</p>
+      <p class="warn-text" style={{ margin: "10px 0 0" }}>Each sync signs you out of the game on your other devices. Play, close the game, then sync: once or twice a day is plenty. Reopening the game afterwards needs no new code.</p>
       <Explain>Unofficial: the app uses the community's unofficial sign-in, at your own risk, and only reads your account. It never plays or changes the game. Every sync is a sign-in Yostar can see, so sync only as often as you need; syncs are also spaced a few minutes apart.</Explain>
     </section>
   );
