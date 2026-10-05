@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Feathers } from "../components/Feathers";
-import { Wings } from "../components/Wings";
 import { searchOpen } from "../components/Search";
 import { Avatar, Await, Divider, Explain, PortraitCard, useAsync } from "../components/ui";
 import { art, BASE, operators, stages as loadStages, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
@@ -57,7 +56,7 @@ function HeroToday() {
   );
 }
 
-function Hero({ stage, altarRef, settled, wings }: { stage: "idle" | "reveal"; altarRef: { current: HTMLDivElement | null }; settled: boolean; wings: boolean }) {
+function Hero({ stage, altarRef, settled }: { stage: "idle" | "reveal"; altarRef: { current: HTMLDivElement | null }; settled: boolean }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <section class={`hero${stage === "reveal" ? " reveal" : ""}`} aria-labelledby="hero-h">
@@ -66,7 +65,6 @@ function Hero({ stage, altarRef, settled, wings }: { stage: "idle" | "reveal"; a
       <div class="hero-shafts" aria-hidden="true"><i /><i /><i /></div>
       <div class="hero-altar" ref={altarRef}>
         <div class="altar-glow" />
-        <Wings open={wings} />
         <div class="altar-rays"><div class="rays" /></div>
         <svg class="altar-ring" viewBox="-100 -20 200 40" aria-hidden="true">
           <ellipse pathLength="1" cx="0" cy="0" rx="100" ry="16" />
@@ -236,7 +234,7 @@ export default function Home() {
   return (
     <div class="fade-in">
       {stage === "cover" && <div class="iv-cover" aria-hidden="true" />}
-      <Hero stage={stage === "reveal" ? "reveal" : "idle"} altarRef={altar} settled={settled} wings={stage !== "cover"} />
+      <Hero stage={stage === "reveal" ? "reveal" : "idle"} altarRef={altar} settled={settled} />
       <AccountPanel ops={st.data ? st.data[0] : null} />
 
       <Divider />

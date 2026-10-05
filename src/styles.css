@@ -544,25 +544,6 @@ dialog.search::backdrop { background: rgba(0, 0, 0, 0.6); }
 .search-results li a:hover, .search-results li[aria-selected="true"] a { background: var(--accent-soft); text-decoration: none; }
 .search-results .kind { margin-left: auto; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
 
-/* wings behind the hero art (components/Wings.tsx): folded and hidden until the reveal, then they open feather by
-   feather and settle into a faint, breathing backdrop */
-.hero-wings { position: absolute; left: 50%; top: 38%; width: 165%; max-width: none; height: auto; transform: translate(-50%, -42%); overflow: visible; pointer-events: none; opacity: 0; mix-blend-mode: screen; }
-.hero-wings.open { animation: wings-in 1.6s cubic-bezier(.16, 1, .3, 1) forwards, wings-breathe 8s ease-in-out 1.8s infinite alternate; }
-.hero-wings .wing-arm { transform: rotate(-58deg) scale(0.45); }
-.hero-wings.open .wing-arm { animation: wing-arm-open 1.5s cubic-bezier(.16, 1, .3, 1) 0.05s forwards; }
-.hero-wings .wing-feather { transform: rotate(calc(var(--a) * 0.12)); }
-.hero-wings.open .wing-feather { animation: wing-feather-open 1.3s cubic-bezier(.16, 1, .3, 1) calc(0.2s + var(--i) * 45ms) forwards; }
-@keyframes wings-in { 0% { opacity: 0; } 35% { opacity: 0.95; } 100% { opacity: 0.5; } }
-@keyframes wings-breathe { from { opacity: 0.5; } to { opacity: 0.32; } }
-@keyframes wing-arm-open { to { transform: none; } }
-@keyframes wing-feather-open { to { transform: rotate(var(--a)); } }
-@media (prefers-reduced-motion: reduce) {
-  .hero-wings.open { animation: none; opacity: 0.45; }
-  .hero-wings.open .wing-arm, .hero-wings.open .wing-feather { animation: none; }
-  .hero-wings.open .wing-arm { transform: none; }
-  .hero-wings.open .wing-feather { transform: rotate(var(--a)); }
-}
-
 /* while the hero art downloads: a soft halo and a slow ring where it will appear, so the hero never looks empty */
 .hero-wait { position: absolute; inset: 0; pointer-events: none; }
 .hero-wait i { position: absolute; left: 49.1%; top: 22%; border-radius: 50%; transform: translate(-50%, -50%); }
