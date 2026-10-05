@@ -4,7 +4,7 @@ A free, open-source companion for **Arknights**: operator database, side-by-side
 planners, recruitment calculator, community rankings, and a look at what's coming from CN. For every server
 (Global/EN, JP, KR, CN). **No sign-up, no tracking; your data stays in your browser.**
 
-**Site:** https://vanastraea.github.io/novena/ (goes live at launch) · **Feedback:** [open an issue](../../issues)
+**Site:** https://vanastraea.github.io/novena/ · **Feedback:** [open an issue](../../issues)
 
 <!-- Screenshots / GIFs: add docs/screenshots/*.png here before posting (see "Screenshots" below). -->
 
