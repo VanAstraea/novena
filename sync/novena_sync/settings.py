@@ -41,6 +41,7 @@ class Settings:
     save_file: bool = True  # also write the sync to a file for drag-and-drop
     allow_browser: bool = True  # let a paired Novena page ask for a sync while this app is open
     accepted: bool = False  # the player has read the notice about the unofficial sign-in
+    confirm_sync: bool = True  # ask before each sync from the app (it signs the game out elsewhere)
     origins: list[str] = field(default_factory=lambda: list(NOVENA_ORIGINS))
     paired: list[Paired] = field(default_factory=list)
 

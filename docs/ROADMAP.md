@@ -46,5 +46,7 @@ kind to the player's account and to Yostar's servers.
   fallback that always works.
 - **Limits.** A short cooldown between syncs (a few minutes) and no background polling: each sync is a deliberate click.
   Every sync is a sign-in to the game's servers, so frequent syncs are both more visible and less polite.
-- **Still to check with a real account:** whether a sync signs the player out of the game on their phone or PC (if it does, syncing
-  mid-session must warn first), and how long a session token lasts.
+- **Checked with a real account (2026-10-05):** signing in and every sync sign the player out of the game on their
+  other devices ("Verification expired": one session at a time). The app and the website now say so plainly and ask
+  before each sync. The saved session works (a second sync needed no new code).
+- **Still to learn:** how long a session lasts before the app asks for a new code.

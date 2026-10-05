@@ -244,6 +244,8 @@ function SyncCard({ ops }: { ops: OpIndex[] }) {
   const [busy, setBusy] = useState(false);
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<Msg>(null);
+  const [asking, setAsking] = useState(false);
+  const [noAsk, setNoAsk] = useState(false);
   const supported = SYNC_SERVERS.includes(s);
   const last = Number(pref(`syncedAt.${s}`, "0"));
   const run = async (step: () => Promise<void>) => {
@@ -269,6 +271,13 @@ function SyncCard({ ops }: { ops: OpIndex[] }) {
     setStage("ready");
     setMsg({ ok: true, text: "Paired. From now on, one click syncs." });
   });
+  // A sync signs the player out of the game on their other devices, so it asks first (unless told not to).
+  const startSync = () => (pref("syncConfirm", "on") === "off" ? void sync() : setAsking(true));
+  const confirmSync = () => {
+    if (noAsk) setPref("syncConfirm", "off");
+    setAsking(false);
+    void sync();
+  };
   const sync = () => run(async () => {
     const res = await syncNow(s);
     const r = parseRoster(res.payload, ops);
@@ -295,15 +304,25 @@ function SyncCard({ ops }: { ops: OpIndex[] }) {
               <input type="text" inputMode="numeric" autoComplete="one-time-code" value={code} onInput={(e) => setCode((e.target as HTMLInputElement).value)} placeholder="000 000" style={{ width: "9em" }} /></label>
             <button class="primary" type="submit" disabled={busy || code.replace(/\D/g, "").length !== 6} style={{ alignSelf: "flex-end" }}>Pair</button>
           </form>
+        ) : asking ? (
+          <div class="note">
+            <p style={{ margin: "0 0 8px" }}><strong>This signs you out of Arknights on your phone or PC</strong> (the game allows one session at a time). If you're in a stage, finish it first.</p>
+            <div class="row">
+              <button class="primary" onClick={confirmSync}>Sync now</button>
+              <button onClick={() => setAsking(false)}>Cancel</button>
+              <label class="row tight"><input type="checkbox" checked={noAsk} onChange={(e) => setNoAsk((e.target as HTMLInputElement).checked)} /> Don't ask again</label>
+            </div>
+          </div>
         ) : (
           <div class="row">
-            <button class="primary" onClick={sync} disabled={busy}>{busy ? "Syncing…" : `Sync ${s.toUpperCase()} now`}</button>
+            <button class="primary" onClick={startSync} disabled={busy}>{busy ? "Syncing…" : `Sync ${s.toUpperCase()} now`}</button>
             <span class="muted">{last ? `Last synced ${date(last)}, ${new Date(last).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.` : "Not synced yet."} Replaces this server's roster and depot.</span>
             <button class="ghost small" onClick={() => { forget(); setStage("start"); setMsg(null); }}>Unpair</button>
           </div>
         )}
       {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
-      <Explain>Unofficial: the app uses the community's unofficial sign-in, at your own risk, and only reads your account. It never plays or changes the game. Syncs are spaced a few minutes apart to be kind to your account and the game's servers.</Explain>
+      <p class="warn-text" style={{ margin: "10px 0 0" }}>Each sync signs you out of the game on your other devices. Play, close the game, then sync: once or twice a day is plenty.</p>
+      <Explain>Unofficial: the app uses the community's unofficial sign-in, at your own risk, and only reads your account. It never plays or changes the game. Every sync is a sign-in Yostar can see, so sync only as often as you need; syncs are also spaced a few minutes apart.</Explain>
     </section>
   );
 }

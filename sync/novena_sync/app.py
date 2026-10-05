@@ -25,8 +25,10 @@ NOTICE = (
     "Novena Sync signs in to your game account on this computer and reads it. It never changes anything in the game, "
     "never plays it for you, and never sends your account anywhere except to Novena in your own browser.\n\n"
     "The sign-in is unofficial: it uses the same community-made method as other Arknights tools (ArkPRTS). Yostar's "
-    "terms don't allow third-party tools, so there is some risk to your account. Signing in may also sign you out of "
-    "the game on your phone or PC.\n\n"
+    "terms don't allow third-party tools, so there is some risk to your account.\n\n"
+    "Signing in, and every sync, signs you out of the game on your phone or PC (the game allows one session at a "
+    "time). Sync after you've finished playing, never mid-stage, and only as often as you need: once or twice a day is "
+    "plenty, and every sync is a sign-in Yostar can see.\n\n"
     "Your email and the code Yostar sends are never stored. The session they create is kept in your computer's "
     "credential store until you sign out. Entering your roster by hand on the website is the risk-free option."
 )
@@ -192,6 +194,8 @@ class App:
         self.sync_btn.pack(anchor="w")
         self.sync_msg = ttk.Label(f, text=self._last_text() if signed else "Sign in above first.", style="PanelMuted.TLabel", wraplength=self.wrap, justify="left")
         self.sync_msg.pack(anchor="w", pady=(8, 6))
+        ttk.Label(f, text="Each sync signs you out of the game elsewhere. Play, close the game, then sync: once or twice a day is plenty.",
+                  style="PanelMuted.TLabel", wraplength=self.wrap, justify="left").pack(anchor="w", pady=(0, 6))
         opts = ttk.Frame(f, style="Panel.TFrame")
         opts.pack(fill="x")
         keep = tk.BooleanVar(value=self.settings.save_file)
@@ -284,8 +288,33 @@ class App:
         """Called by the bridge from its own thread."""
         return self.runner.submit(self._sync(server)).result(timeout=90)
 
+    def _confirm(self) -> bool:
+        """Before a sync: it signs the player out of the game on their other devices. "Don't ask again" remembers."""
+        if not self.settings.confirm_sync:
+            return True
+        win = tk.Toplevel(self.root, bg=INK, padx=int(18 * self.scale), pady=int(16 * self.scale))
+        win.title("Sync now?")
+        win.transient(self.root)
+        win.resizable(False, False)
+        ok = tk.BooleanVar(value=False)
+        again = tk.BooleanVar(value=False)
+        ttk.Label(win, text="This signs you out of Arknights on your phone or PC (the game allows one session at a time). "
+                  "If you're in a stage, finish it first.", wraplength=self.wrap, justify="left").pack(anchor="w")
+        ttk.Checkbutton(win, text="Don't ask again", variable=again).pack(anchor="w", pady=(10, 10))
+        row = ttk.Frame(win, style="Ink.TFrame")
+        row.pack(anchor="e")
+        ttk.Button(row, text="Cancel", command=win.destroy).pack(side="right")
+        ttk.Button(row, text="Sync now", style="Gold.TButton", command=lambda: (ok.set(True), win.destroy())).pack(side="right", padx=(0, 8))
+        win.grab_set()
+        self.root.wait_window(win)
+        if ok.get() and again.get():
+            self._set("confirm_sync", False)
+        return ok.get()
+
     def _sync_click(self) -> None:
         server = self.settings.server
+        if not self._confirm():
+            return
 
         def done(data: dict[str, Any]) -> None:
             self.bridge.remember(server, data)

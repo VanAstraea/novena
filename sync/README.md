@@ -8,7 +8,10 @@ website never asks for a login and never sees one.
 
 - **Unofficial sign-in, at your own risk.** It uses [ArkPRTS](https://github.com/thesadru/arkprts), the community's
   unofficial game client, the same method other Arknights tools use. Yostar's terms don't allow third-party tools, so
-  there is some risk to your account. Signing in may also sign you out of the game on your phone or PC.
+  there is some risk to your account.
+- **Every sync signs you out of the game elsewhere.** Arknights allows one session at a time, so signing in and each
+  sync end the session on your phone or PC ("Verification expired"). Play, close the game, then sync; never sync
+  mid-stage. Once or twice a day is plenty, and every sync is a sign-in Yostar can see.
 - **Read-only.** It never changes anything in the game, never plays it, and has nothing to do with MAA or any other
   automation.
 - **Your sign-in stays here.** Your email and the code Yostar emails you are never stored. The session they create is
@@ -33,7 +36,8 @@ website never asks for a login and never sees one.
    - **By file:** *Sync now* in the app saves `novena-sync-<server>.json` (in `Documents/Novena Sync`); drag it onto
      Novena's import box.
 
-Syncs are spaced three minutes apart (a click within that returns the last sync), and nothing runs in the background.
+The app and the website ask before each sync (you can turn that off). Syncs are spaced three minutes apart (a click
+within that returns the last sync), and nothing runs in the background.
 
 ## How the browser link stays safe
 
