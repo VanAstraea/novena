@@ -1,0 +1,21 @@
+name: An idea
+description: Something Novena could do, or do better.
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Novena is a planning companion: it never plays or automates the game, and it never asks for your login on the
+        website. Ideas that keep to that are the ones it can take.
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What you'd like to do, and why it would help you.
+    validations:
+      required: true
+  - type: textarea
+    id: now
+    attributes:
+      label: How you do it today
+      description: Another tool, a spreadsheet, by hand in the game...

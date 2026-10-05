@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Credits and data sources
+    url: https://vanastraea.github.io/novena/credits
+    about: Where Novena's data and art come from. A wrong drop rate or stage is often worth reporting to its source too.

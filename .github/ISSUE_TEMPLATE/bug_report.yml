@@ -1,0 +1,65 @@
+name: Something's broken
+description: A page, number or button in Novena (or Novena Sync) doesn't work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. **Please don't paste your sync files, account details or anything from your
+        Yostar account here**: this page is public. A screenshot of the problem is the most useful thing.
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: The page's address, or the app's window.
+      placeholder: https://vanastraea.github.io/novena/plan
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+      placeholder: |
+        I pressed "Farm what's short" on a priority step and the farming plan was empty.
+        I expected the materials that step is short of.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to see it
+      placeholder: |
+        1. Open My account → Priorities
+        2. ...
+  - type: dropdown
+    id: server
+    attributes:
+      label: Server
+      options: [EN, JP, KR, CN]
+    validations:
+      required: true
+  - type: dropdown
+    id: roster
+    attributes:
+      label: How your roster got into Novena
+      options:
+        - Novena Sync
+        - "A file: game sync data, Krooster or a Novena file"
+        - By hand
+        - The sample roster
+        - No roster
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Chrome 140 on Windows 11, Safari on iPhone 15
+  - type: input
+    id: sync
+    attributes:
+      label: Novena Sync version (only if it's about the app)
+      placeholder: "0.1.0"
+  - type: textarea
+    id: shots
+    attributes:
+      label: Screenshots
+      description: Drag images here. Crop out your nickname and UID.

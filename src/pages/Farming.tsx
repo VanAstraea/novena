@@ -1,5 +1,5 @@
 // Farming planner: the cheapest stage runs for what's missing, scheduled over the days ahead.
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { Await, Explain, ItemIcon, Items, itemName, itemsSig, metaSig, useAsync } from "../components/ui";
 import { LMD, type Cost } from "../lib/costs";
 import { EXP_CARDS } from "../lib/crafting";
@@ -92,6 +92,9 @@ function FarmView({ stg, items }: { stg: StagesFile; items: ItemsFile }) {
       setBusy(false);
     }
   };
+
+  // arriving with items (from "Farm what's short" or a shared link): plan straight away, no second click
+  useEffect(() => { if (Object.keys(need).length) void run(); }, []);
 
   const fromTargets = async () => {
     const s = server.value;

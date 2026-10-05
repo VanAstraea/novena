@@ -26,31 +26,34 @@ Useful without any account data:
   drop rates, solved in your browser), stages open today and this week, reset times in your local time, a
   day-by-day schedule, and a list of stages to leave out (ones you haven't cleared yet).
 - **Recruitment calculator.** Pick your five tags; see every combination with its guaranteed rarity and the
-  operators it can give.
+  operators it can give. With Novena Sync, your four slots' tags are there to check in one click.
 - **Rankings.** Usage in community clears per content type and archetype; your archetype gaps once you add a roster.
 - **Upcoming content.** Events, operators, modules and banners CN has had and your server hasn't, with estimated
   dates from the measured CN→server lag, the operators each event's guides use most, and the next Contingency Contract.
+  Names Global hasn't announced get an unofficial English translation, marked as such, until the official one lands.
 - **Event shop advisor.** Each running or coming event's shop (Yituliu's record of CN's shops), every offer valued in
   sanity per token, and how many of each would cover what your plan is short of.
 - **Integrated Strategies.** Per theme, the operators that carry runs.
 
-With your roster (typed in, or imported):
+With your roster (typed in, imported, or a made-up sample roster to try things first):
 
-- **Roster tracker** with a quick bulk editor, depot, import/export (this site's files, Novena Sync, raw syncData,
-  Krooster exports) and progress over time.
+- **Roster** shown with the game's own elite, potential, mastery and module icons; an edit mode for changing it by
+  hand; depot, import/export (this site's files, Novena Sync, raw syncData, Krooster exports) and progress over time.
 - **Novena Sync (optional desktop app):** signs in to your account on your own computer and hands the site your
-  operators, depot and currencies with one click. See [`sync/README.md`](sync/README.md).
+  roster with one click: operators and their outfits, depot, recruitment slots, your base and sanity. See
+  [`sync/README.md`](sync/README.md) and the [releases](../../releases).
 - **Depot from screenshots:** take screenshots of your in-game Depot, drop or paste them in, check what was read,
   apply. They're read on your device and never uploaded, and nothing touches the game.
-- **Plan:** the upgrades that unlock the most community clears per sanity, your planner targets first, with a
-  "doable now" check against your depot counted all together.
+- **Priorities:** the upgrades that unlock the most community clears per sanity, your planner targets first, with a
+  "doable now" check against your depot counted all together. Built by itself after an import or sync; each step can
+  become a goal or open the farming plan for what it's short of. The top three also show on Home and Today.
 - **Sanity Dump:** what today's sanity should go into, aimed at the materials you hold least against what your plan
   and your strongest operators' community builds need.
-- **Today:** a sanity timer (with an optional notification when it's full) and the day's routine as a checklist
-  with ticks that clear at the reset, plus your own tasks.
+- **Today:** your account at a glance, a sanity timer, timers from your last sync (recruitment, factories, drones)
+  with optional notifications, and the day's routine as a checklist with ticks that clear at the reset.
 - **Base (RIIC) optimizer:** best team per room over a 1–3 shift rotation, how long each team lasts on its morale, a
   dorm plan for who rests where (default morale numbers), and your fastest trainer per class and mastery plus the
-  Workshop's best byproduct operators.
+  Workshop's best byproduct operators. With Novena Sync, your base as it is now: rooms, teams, morale and production.
 - **Progress with costs:** what you raised since an earlier day and exactly what it cost (materials, LMD, EXP).
 - **Items to use:** training vouchers with the five operators each is best spent on, potential tokens and whose
   potential they raise, and items that expire soonest.
@@ -64,7 +67,10 @@ With your roster (typed in, or imported):
 - The site reads only its own static data files (built once a day) and images from a community art mirror.
 - The website never logs in to your game account. The roster is typed in or imported from a file, and the depot can
   come from screenshots you take. If you choose to, the separate **Novena Sync** app signs in on your own computer
-  (unofficially, at your own risk) and hands the site a cut-down copy: operators, depot and currencies only.
+  (unofficially, at your own risk) and hands the site a cut-down copy over `127.0.0.1`: operators and the outfits
+  they wear, depot and currencies, consumables, recruitment slots, base rooms and teams, and sanity. Never names, ids,
+  friends or messages ([the exact list](sync/novena_sync/payload.py)).
+- Notifications (sanity, recruitment, drones) are the browser's own, scheduled by the open page; nothing is sent.
 - Depot screenshots are read in your browser and never uploaded.
 - No automation of any kind: nothing here, Novena Sync included, drives the game client.
 
