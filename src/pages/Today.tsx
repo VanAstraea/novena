@@ -10,13 +10,14 @@ import { costTable, lastPlan } from "../lib/account";
 import { LMD, sanity } from "../lib/costs";
 import { diff } from "../lib/progress";
 import { autoPriorities, prioStatus } from "../lib/priorities";
+import { setTimerAlerts, timerAlerts, timerRows } from "../lib/timers";
 import { expiring } from "../lib/consumables";
 import { operators, stages as loadStages, upcoming as loadUpcoming } from "../lib/data";
 import { date, fmt, duration, relative } from "../lib/format";
 import { href } from "../lib/router";
 import { pref, setPref } from "../lib/storage";
 import { gameDay, nextDailyReset, nextWeeklyReset } from "../lib/time";
-import { account, dronesFullAt, hasRoster, server, targets } from "../state";
+import { account, hasRoster, server, targets } from "../state";
 
 interface Task { id: string; label: string; note?: string; link?: [string, string]; weekly?: boolean; custom?: boolean }
 
@@ -223,22 +224,15 @@ function Timers() {
   const a = account.value, s = server.value;
   if (!a.recruit?.length && !a.base) return null;
   const now = Date.now();
-  const rows: { at: number; what: string; note?: string }[] = [];
-  for (const sl of a.recruit || []) if (sl.start > 0 && sl.finish > 0) rows.push({ at: sl.finish * 1000, what: `Recruitment, slot ${sl.slot + 1}` });
-  for (const r of a.base?.rooms || []) {
-    if (r.room === "MANUFACTURE" && r.done && r.done > 0) rows.push({ at: r.done * 1000, what: "Factory stops", note: r.capacity ? `${r.made ?? 0} / ${r.capacity} made at sync` : undefined });
-    if (r.room === "TRADING" && r.limit && (r.orders ?? 0) >= r.limit) rows.push({ at: 0, what: "Trading Post is full", note: "deliver its orders" });
-  }
-  const d = a.base?.drones;
-  if (d && d.max) rows.push({ at: dronesFullAt(d), what: "Drones full", note: d.value < d.max ? "about" : undefined });
-  try {
-    const sv = JSON.parse(pref(`sanity.${s}`, "{}"));
-    if (sv.at && sv.cap) rows.push({ at: sv.value >= sv.cap ? 0 : sv.at + (sv.cap - sv.value) * 360_000, what: "Sanity full" });
-  } catch { /* no sanity saved */ }
-  rows.sort((x, y) => x.at - y.at);
+  const rows = timerRows(a, s);
+  const canNotify = typeof Notification !== "undefined";
   return (
     <section class="card">
-      <h2 style={{ margin: "0 0 8px" }}>Timers</h2>
+      <div class="row" style={{ justifyContent: "space-between", marginBottom: "8px" }}>
+        <h2 style={{ margin: 0 }}>Timers</h2>
+        {canNotify && <button class={timerAlerts.value ? "primary small" : "small"} aria-pressed={timerAlerts.value} onClick={() => void setTimerAlerts(!timerAlerts.value)}
+          title="A browser notification when a recruitment is ready, a factory stops or the drones are full, while a Novena tab is open">{timerAlerts.value ? "Notifying" : "Notify me"}</button>}
+      </div>
       <ul class="timers">
         {rows.map((r, i) => (
           <li key={i} class={r.at <= now ? "due" : ""}>

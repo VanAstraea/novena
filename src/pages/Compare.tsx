@@ -1,6 +1,7 @@
 // Compare 2-4 operators side by side. Each column has its own build; everything is in the URL:
 //   /compare?ops=char_a,char_b&e=2&lv=90       defaults for every column
 //   &c1e=1&c1m=X2                              column 2's own choices (c0 = first column)
+import { undoable } from "../components/Toast";
 import { Fragment, type ComponentChildren } from "preact";
 import { CommunityMarks } from "../components/Marks";
 import { useMemo } from "preact/hooks";
@@ -46,7 +47,7 @@ export default function Compare() {
                   ? <OpPicker ops={ops} exclude={ids} label={ids.length ? "Add another operator" : "Pick operators to compare"}
                     onPick={(op) => setQuery({ ops: [...ids, op.id].join(",") })} />
                   : <p class="muted">Four is the most at once. Remove one to add another.</p>}
-                {ids.length > 0 && <button class="ghost" onClick={() => setQuery({ ops: "" })}>Clear</button>}
+                {ids.length > 0 && <button class="ghost" onClick={() => { const was = ids.join(","); setQuery({ ops: "" }); undoable("Comparison cleared.", () => setQuery({ ops: was })); }}>Clear</button>}
                 {ids.length > 0 && <button class="ghost" onClick={() => navigator.clipboard?.writeText(location.href)}
                   title="Copy this comparison's address">Copy link</button>}
               </div>

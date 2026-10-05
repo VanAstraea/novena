@@ -11,6 +11,20 @@
     <link rel="preload" href="/fonts/alegreya-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/cinzel-400-900-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/cormorant-garamond-300-700-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preconnect" href="https://raw.githubusercontent.com" />
+    <script>
+      // The home page's hero art is large (4.7 MB from the community mirror): on the home page, start it downloading
+      // now, while the scripts load, instead of when the page first renders.
+      (function () {
+        var p = location.pathname;
+        if (p === "/" || p === "/novena/" || p === "/novena") {
+          var l = document.createElement("link");
+          l.rel = "preload"; l.as = "image"; l.setAttribute("fetchpriority", "high");
+          l.href = "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/skin/char_4193_lemuen_ambienceSynesthesia%237b.png";
+          document.head.appendChild(l);
+        }
+      })();
+    </script>
     <script>
       // Apply the saved theme before first paint (no flash). Storage may be blocked: fall back to the system theme.
       try { var t = localStorage.getItem("novena.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}

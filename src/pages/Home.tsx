@@ -10,7 +10,7 @@ import { pref, setPref } from "../lib/storage";
 import { gameDay, nextDailyReset, nextWeeklyReset } from "../lib/time";
 import { BuildMarks } from "../components/Marks";
 import { lastPlan } from "../lib/account";
-import { importFile } from "../lib/accountImport";
+import { importFile, loadSample } from "../lib/accountImport";
 import { autoPriorities, prioStatus } from "../lib/priorities";
 import { account, hasRoster, SERVERS, server } from "../state";
 import type { OpIndex } from "../types";
@@ -72,8 +72,9 @@ function Hero({ stage, altarRef, settled, wings }: { stage: "idle" | "reveal"; a
           <ellipse pathLength="1" cx="0" cy="0" rx="100" ry="16" />
           <ellipse pathLength="1" cx="0" cy="0" rx="118" ry="19" />
         </svg>
+        {!loaded && <div class="hero-wait" aria-hidden="true"><i /><i /></div>}
         <img class={`hero-art${loaded ? " loaded" : ""}`} src={HERO_ART} alt="Lemuen in her alternate outfit, seated before a golden pipe organ"
-          onLoad={() => setLoaded(true)} />
+          {...{ fetchpriority: "high" }} decoding="async" onLoad={() => setLoaded(true)} />
       </div>
       {settled && <Feathers />}
       <div class="hero-copy">
@@ -133,7 +134,7 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
         <p class="eyebrow">Your account</p>
         {hasRoster.value ? (
           <>
-            <h2 id="acct-h" class="display">Welcome back, Doctor</h2>
+            <h2 id="acct-h" class="display">{a.source === "sample" ? "A sample roster" : "Welcome back, Doctor"}</h2>
             <p class="motto">Plans · Farming · Progress</p>
             <p class="meta">Roster {a.source === "novena-sync" ? "synced" : "updated"} {relative(a.updated)}</p>
             <div class="acct-stats">
@@ -171,6 +172,7 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
               <li><strong>A file</strong><span>Game sync data, a Krooster export, or a Novena file from another browser.</span>{drop}</li>
               <li><strong>By hand</strong><span>A quick editor: search, tick, set elite and level in a few clicks.</span><a href={href("/roster")}>Start adding →</a></li>
             </ol>
+            <p class="acct-try">Just looking? <button class="linkish" disabled={!ops} onClick={async () => { if (ops) { await loadSample(ops); setMsg({ ok: true, text: "Loaded a sample roster: look around Today, Priorities, Roster and Base." }); } }}>Try it with a sample roster</button> <span class="muted">(made up; clear it any time)</span></p>
           </>
         )}
         {msg && (

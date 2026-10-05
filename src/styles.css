@@ -563,6 +563,14 @@ dialog.search::backdrop { background: rgba(0, 0, 0, 0.6); }
   .hero-wings.open .wing-feather { transform: rotate(var(--a)); }
 }
 
+/* while the hero art downloads: a soft halo and a slow ring where it will appear, so the hero never looks empty */
+.hero-wait { position: absolute; inset: 0; pointer-events: none; }
+.hero-wait i { position: absolute; left: 49.1%; top: 22%; border-radius: 50%; transform: translate(-50%, -50%); }
+.hero-wait i:first-child { width: 70%; aspect-ratio: 1; background: radial-gradient(circle, rgba(242, 213, 153, 0.22), rgba(201, 156, 80, 0.06) 45%, transparent 70%); animation: hero-wait 2.4s ease-in-out infinite alternate; }
+.hero-wait i:last-child { width: 34%; aspect-ratio: 3 / 1; border: 1px solid rgba(242, 213, 153, 0.45); box-shadow: 0 0 18px rgba(242, 213, 153, 0.25); animation: hero-wait 2.4s ease-in-out infinite alternate-reverse; }
+@keyframes hero-wait { from { opacity: 0.35; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .hero-wait i { animation: none; } }
+
 /* feathers drifting through the hero (components/Feathers.tsx) */
 .feathers { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
 .feather { position: absolute; top: -70px; animation: feather-fall var(--fall) linear var(--delay) infinite both; }
@@ -718,6 +726,11 @@ details[open] > summary.cut { margin-bottom: 12px; border-bottom: 1px solid var(
 
 .badge.unofficial { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-style: dashed; vertical-align: middle; font-family: var(--font); font-size-adjust: 0.53; }
 
+.acct-try { margin: 16px 0 0; font-size: 0.92rem; }
+button.linkish { all: unset; cursor: pointer; color: var(--accent-strong); text-decoration: underline; text-underline-offset: 3px; }
+button.linkish:hover { color: var(--text); }
+.sample-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-color: var(--accent); background: var(--accent-soft); }
+
 /* --- compare -------------------------------------------------------------------------------------------------- */
 /* equal columns; the mirror's portraits are 180 × 360, so they're shown near that size, never blown up */
 .cmp-table { table-layout: fixed; min-width: 640px; }
@@ -842,4 +855,17 @@ details[open] > summary.cut { margin-bottom: 12px; border-bottom: 1px solid var(
   .top-row { flex-wrap: wrap; row-gap: 0; }
   .nav { order: 3; flex: 1 0 100%; min-height: 42px; }
   .top-actions { margin-left: auto; }
+}
+
+/* phones: the sections live in a bar at the bottom; the top row keeps the logo, search and settings */
+.bottom-nav { display: none; }
+@media (max-width: 560px) {
+  .bottom-nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); background: var(--bar); border-top: 1px solid var(--border); backdrop-filter: blur(10px); }
+  .bottom-nav a { display: grid; justify-items: center; gap: 3px; padding: 4px 0; color: var(--muted); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.02em; text-decoration: none; }
+  .bottom-nav a[aria-current="page"] { color: var(--accent); }
+  .bottom-nav a[aria-current="page"] svg { filter: drop-shadow(0 0 6px rgba(223, 183, 104, 0.45)); }
+  .top .nav { display: none; }
+  body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+  .toasts { bottom: calc(76px + env(safe-area-inset-bottom)); }
 }

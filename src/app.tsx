@@ -8,7 +8,9 @@ import { loadShared, useAsync, useTabGlide } from "./components/ui";
 import { BASE, manifest } from "./lib/data";
 import { date, relative } from "./lib/format";
 import { pref, setPref } from "./lib/storage";
-import { href, route } from "./lib/router";
+import { clearSample } from "./lib/accountImport";
+import { watchTimers } from "./lib/timers";
+import { href, navigate, route } from "./lib/router";
 import { match, PAGES, SECTIONS } from "./pages/registry";
 import { account, hasRoster, SERVERS, server, targets, theme, type Theme } from "./state";
 import type { Server } from "./types";
@@ -18,6 +20,7 @@ effect(() => {
   void server.value;
   loadShared();
 });
+watchTimers(); // once: it follows the account and server by itself
 
 const STALE_DAYS = 3;
 
@@ -120,6 +123,44 @@ function GetStarted() {
   );
 }
 
+/** While the sample roster is in use: say so on every page, with the way to your own. */
+function SampleBanner() {
+  if (account.value.source !== "sample") return null;
+  return (
+    <div class="banner sample-banner" role="status">
+      <div><strong>You're exploring a sample roster.</strong> Everything here is made up, to show what Novena does.</div>
+      <div class="row tight">
+        <a class="btn small primary" href={href("/roster", { tab: "import" })}>Bring your own</a>
+        <button class="small ghost" onClick={() => { clearSample(); navigate(href("/")); }}>Clear the sample</button>
+      </div>
+    </div>
+  );
+}
+
+/** Phones: the sections in a bar at the bottom of the screen, within reach of a thumb (the top row hides there). */
+const SECTION_ICON: Record<string, string> = {
+  account: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0",
+  operators: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-6 9a6 6 0 0 1 12 0M16 4.5a3.5 3.5 0 0 1 0 6.5m2 9a6 6 0 0 0-3-5.2",
+  farming: "M12 21V11m0 0c0-4 3-7 7-7 0 4-3 7-7 7Zm0 3c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5Z",
+  recruit: "M4 8h16M4 8l2-4h12l2 4M4 8v11h16V8M9 13h6",
+  upcoming: "M4 6h16v14H4zM4 10h16M8 3v4m8-4v4",
+  is: "M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z",
+};
+
+function BottomNav() {
+  const section = match(route.value.path)?.page.group;
+  return (
+    <nav class="bottom-nav" aria-label="Sections">
+      {SECTIONS.map((g) => (
+        <a key={g.id} href={href(g.home)} aria-current={section === g.id ? "page" : undefined}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={SECTION_ICON[g.id]} /></svg>
+          <span>{g.id === "account" ? "Account" : g.label}</span>
+        </a>
+      ))}
+    </nav>
+  );
+}
+
 function StaleBanner() {
   const m = useAsync(manifest, []);
   if (!m.data) return null;
@@ -175,11 +216,13 @@ export function App() {
       <a class="skip" href="#main">Skip to content</a>
       <Header />
       <SectionStrip />
+      <SampleBanner />
       <StaleBanner />
       <main id="main" tabIndex={-1}>
         <Page key={server.value} />
       </main>
       <Footer />
+      <BottomNav />
       <SearchDialog />
       <OperatorPanel />
       <Toasts />

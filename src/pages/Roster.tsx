@@ -1,6 +1,7 @@
 // My roster: quick bulk entry, depot, import/export and progress over time. Saved in this browser only.
 import { useMemo, useState } from "preact/hooks";
 import { Chart } from "../components/Chart";
+import { undoable } from "../components/Toast";
 import { MasteryMark, ModuleMark } from "../components/Marks";
 import { DepotImport } from "../components/DepotImport";
 import { OpPicker } from "../components/OpPicker";
@@ -212,7 +213,10 @@ function EditRow({ r, op, set }: { r: RosterOp; op: OpIndex; set: (id: string, p
           </span>
         ) : "–"}
       </td>
-      <td data-label=""><button class="small ghost" aria-label={`Remove ${op.name}`} onClick={() => update((acc) => { const o = { ...acc.ops }; delete o[r.id]; return { ...acc, ops: o }; })}>✕</button></td>
+      <td data-label=""><button class="small ghost" aria-label={`Remove ${op.name}`} onClick={() => {
+        update((acc) => { const o = { ...acc.ops }; delete o[r.id]; return { ...acc, ops: o }; });
+        undoable(`${op.name} removed from your roster.`, () => update((acc) => ({ ...acc, ops: { ...acc.ops, [r.id]: r } })));
+      }}>✕</button></td>
     </tr>
   );
 }
