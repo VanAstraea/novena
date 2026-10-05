@@ -5,9 +5,12 @@ import { BuildMarks } from "../components/Marks";
 import { toast } from "../components/Toast";
 import { parse } from "../lib/build";
 import { WeightsControl } from "../components/Weights";
-import { Avatar, Await, Explain, Items, itemsSig, metaSig, useAsync } from "../components/ui";
+import { Avatar, Await, Explain, GIcon, Items, itemsSig, metaSig, useAsync } from "../components/ui";
 import { lastPlan } from "../lib/account";
-import { autoPriorities, buildPriorities, freshPriorities, prioError, prioStatus, prioSupport, prioTop, setPrioSettings } from "../lib/priorities";
+import { autoPriorities, buildPriorities, filtersOn, freshPriorities, NO_FILTERS, prioError, prioFilters, prioStatus, prioSupport, prioTop, setPrioFilters, setPrioSettings, type PrioFilters } from "../lib/priorities";
+import { OpPicker } from "../components/OpPicker";
+import { art } from "../lib/data";
+import { CLASS_NAMES } from "../lib/format";
 import { EXP, LMD } from "../lib/costs";
 import { Stock } from "../lib/crafting";
 import { operators, usage as loadUsage } from "../lib/data";
@@ -35,7 +38,7 @@ export default function Plan() {
 }
 
 function PlanView({ ops }: { ops: Map<string, OpIndex> }) {
-  useEffect(() => { void autoPriorities(); }, [account.value.ops, targets.value, prioTop.value, prioSupport.value]);
+  useEffect(() => { void autoPriorities(); }, [account.value.ops, targets.value, prioTop.value, prioSupport.value, prioFilters.value]);
   const fresh = freshPriorities();
   const plan = fresh || lastPlan.value?.result || null; // an older result stays on screen while the new one builds
   const progress = prioStatus.value, error = prioError.value;
@@ -54,7 +57,8 @@ function PlanView({ ops }: { ops: Map<string, OpIndex> }) {
           <button class="primary" onClick={build} disabled={!!progress || !items || !meta}>{progress ? "Working…" : "Rebuild"}</button>
         </div>
         <WeightsControl compact />
-        {progress && <p role="status" class="muted" style={{ marginTop: "8px" }}>{plan ? "Updating for your latest roster: " : ""}{progress}…</p>}
+        <FiltersControl ops={ops} />
+        {progress && <p role="status" class="muted" style={{ marginTop: "8px" }}>{plan ? "Updating the priorities (the list below is the previous one): " : ""}{progress}…</p>}
         {error && <p role="alert" class="bad-text">{error}</p>}
         <Explain>Each upgrade is scored by how many more community clear guides (MAA Copilot) your roster could follow, per sanity it costs. Unstated parts of a guide's usual build (E2, M3, module) count as soft: missing M3 on a skill 98% of owners mastered leaves a 2% chance. Your Planner targets are applied first as goals. Runs in your browser by itself after an import or sync and whenever your roster has changed; the first run downloads the guidebook (a few MB).</Explain>
       </section>
@@ -154,4 +158,42 @@ function makeGoal(st: PlanStep, op: OpIndex) {
   try { parse(`${op.name} ${text}`); } catch (e) { toast((e as Error).message, { kind: "bad" }); return; }
   saveTargets([...targets.value.filter((t) => t.id !== op.id), { id: op.id, text }]);
   toast(`${op.name}: ${step} is a goal now.`, { link: { href: href("/planner"), label: "Open the planner" } });
+}
+
+const RARITIES: [number, string][] = [[6, "6★"], [5, "5★"], [4, "4★"], [3, "3★ and below"]];
+const KINDS: [keyof PrioFilters["kinds"], string][] = [["promote", "Promotion and levels"], ["skill", "Skill levels"], ["mastery", "Masteries"], ["module", "Modules"]];
+const CAPS = [0, 500, 1000, 2000, 5000];
+
+/** "What to suggest": only some rarities or classes, only some kinds of upgrade, a sanity cap per step, operators
+ *  left out. The plan rebuilds when they change; Today, Home, the Sanity Dump and the event shops follow it. */
+function FiltersControl({ ops }: { ops: Map<string, OpIndex> }) {
+  const f = prioFilters.value;
+  const set = (patch: Partial<PrioFilters>) => setPrioFilters({ ...f, ...patch });
+  const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
+  const owned = Object.keys(account.value.ops).map((id) => ops.get(id)).filter((o): o is OpIndex => !!o);
+  const classes = [...new Set(owned.map((o) => o.cls))].sort();
+  return (
+    <details class="weights" open={filtersOn(f)}>
+      <summary>What to suggest{filtersOn(f) ? " (filtered)" : ""}</summary>
+      <div class="filters">
+        <div class="filter-row"><span class="weights-label">Rarity</span>
+          <div class="chips">{RARITIES.map(([r, label]) => <button key={r} class="chip" aria-pressed={f.rarity.includes(r)} onClick={() => set({ rarity: toggle(f.rarity, r) })}>{label}</button>)}</div></div>
+        <div class="filter-row"><span class="weights-label">Class</span>
+          <div class="chips">{classes.map((c) => <button key={c} class="chip cls-chip" aria-pressed={f.cls.includes(c)} onClick={() => set({ cls: toggle(f.cls, c) })}><GIcon src={art.classIcon(c)} alt="" size={16} />{CLASS_NAMES[c] || c}</button>)}</div></div>
+        <div class="filter-row"><span class="weights-label">Upgrades</span>
+          <div class="chips">{KINDS.map(([k, label]) => <button key={k} class="chip" aria-pressed={f.kinds[k]} onClick={() => set({ kinds: { ...f.kinds, [k]: !f.kinds[k] } })}>{label}</button>)}</div></div>
+        <div class="filter-row"><span class="weights-label">Cost per step</span>
+          <select value={f.maxSanity} onChange={(e) => set({ maxSanity: +(e.target as HTMLSelectElement).value })}>
+            {CAPS.map((c) => <option key={c} value={c}>{c ? `Up to ${fmt(c)} sanity` : "Any"}</option>)}
+          </select></div>
+        <div class="filter-row"><span class="weights-label">Leave out</span>
+          <div class="chips">
+            {f.skip.map((id) => { const o = ops.get(id); return <button key={id} class="chip" onClick={() => set({ skip: f.skip.filter((x) => x !== id) })} title="Suggest again">{o?.name || id} ✕</button>; })}
+            <OpPicker ops={owned} exclude={f.skip} label="" placeholder="An operator to leave out…" onPick={(o) => set({ skip: [...f.skip, o.id] })} />
+          </div></div>
+        {filtersOn(f) && <button class="small ghost" onClick={() => setPrioFilters(NO_FILTERS)}>Clear the filters</button>}
+      </div>
+      <p class="explain">Rarity: 6★ only, for example, suggests nothing for anyone else. Your Planner goals are always included. Today, Home, the Sanity Dump and the event shops follow these.</p>
+    </details>
+  );
 }

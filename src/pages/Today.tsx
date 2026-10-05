@@ -9,7 +9,7 @@ import { Await, CutHead, Divider, Explain, itemName, itemsSig, metaSig, OpLink, 
 import { costTable, lastPlan } from "../lib/account";
 import { LMD, sanity } from "../lib/costs";
 import { diff } from "../lib/progress";
-import { autoPriorities, prioStatus } from "../lib/priorities";
+import { autoPriorities, filtersOn, prioStatus } from "../lib/priorities";
 import { setTimerAlerts, timerAlerts, timerRows } from "../lib/timers";
 import { expiring } from "../lib/consumables";
 import { operators, stages as loadStages, upcoming as loadUpcoming } from "../lib/data";
@@ -171,7 +171,7 @@ function Overview() {
             <>
               <div class="next-grid" style={{ marginTop: "12px" }}>
                 <section class="card">
-                  <h2 class="label">Next priorities</h2>
+                  <h2 class="label">Next priorities{filtersOn() ? " · filtered" : ""}</h2>
                   {steps.length ? (
                     <ul>{steps.map((x, i) => { const op = byId.get(x.id); return <li key={i}>{op ? <OpLink op={op} sub={<BuildMarks s={x.after} from={x.before} op={op} />} /> : x.id}</li>; })}</ul>
                   ) : targets.value.length ? (

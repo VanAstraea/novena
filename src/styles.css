@@ -712,6 +712,11 @@ button.linkish { all: unset; cursor: pointer; color: var(--accent-strong); text-
 button.linkish:hover { color: var(--text); }
 .sample-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-color: var(--accent); background: var(--accent-soft); }
 
+.filters { display: grid; gap: 10px; margin-top: 10px; }
+.filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.filter-row .picker { flex: 1 1 220px; max-width: 260px; }
+.filter-row .picker label > span:first-child:empty { display: none; }
+
 /* --- compare -------------------------------------------------------------------------------------------------- */
 /* equal columns; the mirror's portraits are 180 × 360, so they're shown near that size, never blown up */
 .cmp-table { table-layout: fixed; min-width: 640px; }

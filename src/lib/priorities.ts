@@ -17,13 +17,20 @@ export function setPrioSettings(top: number, support: boolean) {
   setPref("prioTop", String(top)); setPref("prioSupport", support ? "1" : "");
 }
 
+/** What the player wants suggested: rarities, classes, kinds of upgrade, a sanity cap per step, operators left out. */
+export interface PrioFilters { rarity: number[]; cls: string[]; kinds: { promote: boolean; skill: boolean; mastery: boolean; module: boolean }; maxSanity: number; skip: string[] }
+export const NO_FILTERS: PrioFilters = { rarity: [], cls: [], kinds: { promote: true, skill: true, mastery: true, module: true }, maxSanity: 0, skip: [] };
+export const prioFilters = signal<PrioFilters>((() => { try { return { ...NO_FILTERS, ...JSON.parse(pref("prioFilters", "{}")) }; } catch { return NO_FILTERS; } })());
+export function setPrioFilters(f: PrioFilters) { prioFilters.value = f; setPref("prioFilters", JSON.stringify(f)); }
+export const filtersOn = (f = prioFilters.value) => !!(f.rarity.length || f.cls.length || f.maxSanity || f.skip.length || Object.values(f.kinds).some((v) => !v));
+
 /** Working: the phase it's in. */
 export const prioStatus = signal<string | null>(null);
 export const prioError = signal("");
 
 /** A short fingerprint of everything the result depends on. */
 export function priorityKey(): string {
-  const text = JSON.stringify([server.value, account.value.ops, targets.value, prioTop.value, prioSupport.value, contentLevels.value]);
+  const text = JSON.stringify([server.value, account.value.ops, targets.value, prioTop.value, prioSupport.value, contentLevels.value, prioFilters.value]);
   let h = 2166136261;
   for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
   return `${server.value}:${(h >>> 0).toString(36)}:${text.length}`;
@@ -60,6 +67,7 @@ export async function buildPriorities(): Promise<void> {
         fixed: opsList.filter((o) => o.obtain === "is").map((o) => o.id),
         weights: effectiveWeights(),
         top: prioTop.value, support: prioSupport.value ? SUPPORT_SLOTS : 0, goals: goalStates(targets.value, states, costs, ops),
+        ...planFilters(ops),
       }, (phase, done, total) => (prioStatus.value = total > 1 ? `${phase} (${done}/${total})` : phase));
       lastPlan.value = { key, result };
       void setItem(`priorities.${s}`, { key, result });
@@ -89,4 +97,16 @@ let soon = 0;
 export function prioritiesSoon(ms = 1500) {
   clearTimeout(soon);
   soon = window.setTimeout(() => void autoPriorities(), ms);
+}
+
+/** The planner's share of the filters: which operators it may raise, which kinds of upgrade, the sanity cap. */
+function planFilters(ops: Map<string, { rarity: number; cls: string }>) {
+  const f = prioFilters.value;
+  if (!filtersOn(f)) return {};
+  const skip = new Set(f.skip);
+  const only = Object.keys(account.value.ops).filter((id) => {
+    const o = ops.get(id);
+    return o && !skip.has(id) && (!f.rarity.length || f.rarity.includes(Math.max(3, o.rarity))) && (!f.cls.length || f.cls.includes(o.cls));
+  });
+  return { only, kinds: f.kinds, maxSanity: f.maxSanity || undefined };
 }

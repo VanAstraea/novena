@@ -237,6 +237,12 @@ export interface PlanInput {
   support: number;
   goals: Record<string, OpState>;
   stageFilter?: string[];
+  /** Only suggest upgrades for these operators (the player's filters); goals are always kept. */
+  only?: string[];
+  /** Kinds of upgrade the player wants suggested (missing: all). A step that needs a left-out kind isn't suggested. */
+  kinds?: { promote: boolean; skill: boolean; mastery: boolean; module: boolean };
+  /** No single step costing more sanity than this. */
+  maxSanity?: number;
 }
 
 export interface PlanStep {
@@ -381,8 +387,15 @@ export function makePlan(input: PlanInput, progress?: (phase: string, done: numb
   const goalValue = goalSteps.length ? cov.value() : null;
 
   const fixed = new Set(input.fixed || []);
+  const only = input.only ? new Set(input.only) : null;
+  const kinds = input.kinds;
+  const allowed = (from: OpState, to: OpState) => !kinds || (
+    (kinds.promote || (to.elite === from.elite && to.level === from.level)) &&
+    (kinds.skill || to.skillLevel === from.skillLevel) &&
+    (kinds.mastery || to.masteries.every((m, i) => m === from.masteries[i])) &&
+    (kinds.module || Object.entries(to.modules).every(([k, v]) => v === (from.modules[k] || 0))));
   const candidates = (cid: string): PlanStep[] => {
-    if (fixed.has(cid)) return [];
+    if (fixed.has(cid) || (only && !only.has(cid))) return [];
     const current = cov.roster.get(cid)!;
     const seen = new Set<string>();
     const out: PlanStep[] = [];
@@ -397,8 +410,11 @@ export function makePlan(input: PlanInput, progress?: (phase: string, done: numb
         const k = stateKey(after);
         if (k === stateKey(current) || seen.has(k)) continue;
         if (shared.has(cid) && (after.elite !== current.elite || after.level !== current.level || after.skillLevel !== current.skillLevel)) continue;
+        if (!allowed(current, after)) continue;
         seen.add(k);
-        out.push(priced(cid, current, after));
+        const step = priced(cid, current, after);
+        if (input.maxSanity && step.sanity > input.maxSanity) continue;
+        out.push(step);
       }
     }
     return out;

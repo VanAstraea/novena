@@ -10,7 +10,7 @@ import { gameDay, nextDailyReset, nextWeeklyReset } from "../lib/time";
 import { BuildMarks } from "../components/Marks";
 import { lastPlan } from "../lib/account";
 import { importFile, loadSample } from "../lib/accountImport";
-import { autoPriorities, prioStatus } from "../lib/priorities";
+import { autoPriorities, filtersOn, prioStatus } from "../lib/priorities";
 import { account, hasRoster, SERVERS, server } from "../state";
 import type { OpIndex } from "../types";
 
@@ -141,7 +141,7 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
               <div><span>{fmt(list.reduce((n, o) => n + o.masteries.filter((m) => m >= 3).length, 0))}</span>M3 skills</div>
             </div>
             <div class="acct-next">
-              <p class="eyebrow" style={{ margin: "0 0 8px" }}>Raise next</p>
+              <p class="eyebrow" style={{ margin: "0 0 8px" }}>Raise next{filtersOn() ? " · filtered" : ""}</p>
               {next.length ? (
                 <ol>
                   {next.map((st, i) => {
@@ -162,11 +162,11 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
           </>
         ) : (
           <>
-            <h2 id="acct-h" class="display">Bring your roster</h2>
+            <h2 id="acct-h" class="display">Import your roster</h2>
             <p class="motto">Plans · gaps · a daily Sanity Dump</p>
             <p class="acct-lede">Novena plans around what you own: who to raise next, what you're short of, and the cheapest way to farm it. Your roster stays in this browser.</p>
             <ol class="acct-ways">
-              <li><strong>Novena Sync</strong><span>One click after you play. A small desktop app: your sign-in stays on your computer.</span><a href={href("/roster", { tab: "import" })}>Set it up →</a></li>
+              <li><strong>Novena Sync</strong><span>A small app for your computer that brings your operators, depot and base over in one click, whenever you like. Your sign-in never leaves your PC.</span><a href={href("/roster", { tab: "import" })}>Set it up →</a></li>
               <li><strong>A file</strong><span>Game sync data, a Krooster export, or a Novena file from another browser.</span>{drop}</li>
               <li><strong>By hand</strong><span>A quick editor: search, tick, set elite and level in a few clicks.</span><a href={href("/roster")}>Start adding →</a></li>
             </ol>
