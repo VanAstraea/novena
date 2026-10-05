@@ -55,10 +55,16 @@ jobs:
           path: |
             sync/novena-sync-*.zip
             sync/SHA256SUMS-*.txt
+      - name: Version from the tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#sync-v}" >> "$GITHUB_ENV"
       - name: Attach to the release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          name: Novena Sync ${{ env.VERSION }}
+          body_path: sync/RELEASE.md
           files: |
             sync/novena-sync-*.zip
             sync/SHA256SUMS-*.txt
