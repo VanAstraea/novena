@@ -1,15 +1,21 @@
-// Today: the day's routine as a checklist with ticks (ported from ako's Today), plus the sanity timer. Ticks are kept
-// per server and per game day (weekly ones per game week) in this browser, and clear themselves at the reset.
+// Today, the account's home (after ako's Overview and Today): your account at a glance, what's next, what changed,
+// progress over time, the sanity timer, and the day's routine as a checklist. Ticks are kept per server and per game
+// day (weekly ones per game week) in this browser, and clear themselves at the reset.
 import { useMemo, useState } from "preact/hooks";
+import { Chart } from "../components/Chart";
 import { SanityTimer } from "../components/SanityTimer";
-import { Await, Explain, itemName, itemsSig, useAsync } from "../components/ui";
+import { Await, Explain, itemName, itemsSig, metaSig, OpLink, useAsync } from "../components/ui";
+import { costTable, lastPlan } from "../lib/account";
+import { stateLabel } from "../lib/build";
+import { LMD, sanity } from "../lib/costs";
+import { diff } from "../lib/progress";
 import { expiring } from "../lib/consumables";
-import { upcoming as loadUpcoming } from "../lib/data";
-import { date, duration } from "../lib/format";
+import { operators, stages as loadStages, upcoming as loadUpcoming } from "../lib/data";
+import { date, fmt, duration, relative } from "../lib/format";
 import { href } from "../lib/router";
 import { pref, setPref } from "../lib/storage";
 import { gameDay, nextDailyReset, nextWeeklyReset } from "../lib/time";
-import { account, server } from "../state";
+import { account, hasRoster, server, targets } from "../state";
 
 interface Task { id: string; label: string; note?: string; link?: [string, string]; weekly?: boolean; custom?: boolean }
 
@@ -92,6 +98,7 @@ export default function Today() {
   return (
     <div class="stack fade-in">
       <h1>Today</h1>
+      {hasRoster.value && <Overview />}
       <SanityTimer />
       <section class="card">
         <div class="row" style={{ justifyContent: "space-between" }}>
@@ -119,3 +126,74 @@ export default function Today() {
     </div>
   );
 }
+
+/** The account at a glance: totals, what's next, what changed since an earlier day, and progress over time. */
+function Overview() {
+  const s = server.value;
+  const st = useAsync(() => Promise.all([operators(s), costTable(s), loadStages(s), loadUpcoming(s).catch(() => null)]), [s]);
+  const a = account.value;
+  const ops = Object.values(a.ops);
+  const masteries = ops.reduce((n, o) => n + o.masteries.reduce((x, y) => x + y, 0), 0);
+  const tiles: [string, number][] = [
+    ["Operators", ops.length], ["Elite 2", ops.filter((o) => o.elite >= 2).length], ["Masteries", masteries],
+    ["M3 skills", ops.reduce((n, o) => n + o.masteries.filter((m) => m >= 3).length, 0)],
+    ["Modules", ops.reduce((n, o) => n + Object.values(o.modules).filter((m) => m > 0).length, 0)], ["LMD held", a.depot[LMD] || 0],
+  ];
+  const snaps = a.snapshots;
+  return (
+    <>
+      <div class="tiles6">
+        {tiles.map(([k, v]) => <div key={k} class="stat"><div class="k">{k}</div><div class="v">{fmt(v)}</div></div>)}
+      </div>
+      <Await state={st} what="your account">
+        {([list, costs, stg, up]) => {
+          const byId = new Map(list.map((o) => [o.id, o]));
+          const weekday = gameDay(s).weekday;
+          const steps = (lastPlan.value?.result.steps || []).slice(0, 4);
+          const today = new Date().toDateString();
+          const earlier = snaps.filter((x) => x.roster && new Date(x.t).toDateString() !== today);
+          const base = earlier[earlier.length - 1];
+          const meta = metaSig.value, items = itemsSig.value;
+          const change = base && meta && items ? diff({ roster: base.roster!, depot: base.depot || {} }, { roster: a.ops, depot: a.depot }, costs, meta.const, byId) : null;
+          const raised = change ? new Set(change.changes.map((c) => c.id)).size : 0;
+          return (
+            <>
+              <div class="next-grid" style={{ marginTop: "12px" }}>
+                <section class="card">
+                  <h2 class="label">Next in your plan</h2>
+                  {steps.length ? (
+                    <ul>{steps.map((x, i) => { const op = byId.get(x.id); return <li key={i}>{op ? <OpLink op={op} sub={stateLabel(x.after)} /> : x.id}</li>; })}</ul>
+                  ) : targets.value.length ? (
+                    <ul>{targets.value.slice(0, 4).map((t) => { const op = byId.get(t.id); return <li key={t.id}>{op ? <OpLink op={op} sub={t.text} /> : t.text}</li>; })}</ul>
+                  ) : <p class="muted">No plan yet. <a href={href("/plan")}>Build your plan</a> or press Make it a goal on an operator.</p>}
+                  {steps.length > 0 && <a class="btn small" href={href("/plan")} style={{ marginTop: "8px" }}>The whole plan</a>}
+                </section>
+                <section class="card">
+                  <h2 class="label">Open today</h2>
+                  <p style={{ margin: 0 }}>{stg.zones.filter((z) => z.days.includes(weekday)).map((z) => `${z.prefix} · ${z.name}`).join(", ") || "Only the always-open stages."}</p>
+                  {(up?.running || []).map((e) => <p key={e.id} style={{ margin: "8px 0 0" }}><strong>{e.name}</strong> <span class="muted">ends {date(e.end)}</span></p>)}
+                  <a class="btn small" href={href("/dump")} style={{ marginTop: "8px" }}>Today's runs</a>
+                </section>
+                <section class="card">
+                  <h2 class="label">Since {base ? date(base.t) : "your first day here"}</h2>
+                  {change && raised ? (
+                    <p style={{ margin: 0 }}><strong>{raised}</strong> operator{raised === 1 ? "" : "s"} raised, worth about <strong>{fmt(sanity(change.spent, items!.values))}</strong> sanity of materials, {fmt(change.spent[LMD] || 0)} LMD.</p>
+                  ) : <p class="muted" style={{ margin: 0 }}>{base ? "Nothing raised since then." : "From tomorrow, what you raise shows here."}</p>}
+                  <p class="muted" style={{ margin: "8px 0 0" }}>Roster {a.source === "novena-sync" ? "synced" : "updated"} {relative(a.updated)}.</p>
+                  <a class="btn small" href={href("/roster", { tab: "progress" })} style={{ marginTop: "8px" }}>What changed</a>
+                </section>
+              </div>
+              {snaps.length > 1 && (
+                <div class="grid two" style={{ marginTop: "12px" }}>
+                  <Chart label="Elite 2 operators" points={snaps.map((x) => [x.t, x.e2])} />
+                  <Chart label="M3 skills" points={snaps.map((x) => [x.t, x.m3])} />
+                </div>
+              )}
+            </>
+          );
+        }}
+      </Await>
+    </>
+  );
+}
+

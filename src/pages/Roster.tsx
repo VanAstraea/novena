@@ -1,5 +1,6 @@
 // My roster: quick bulk entry, depot, import/export and progress over time. Saved in this browser only.
 import { useMemo, useState } from "preact/hooks";
+import { Chart } from "../components/Chart";
 import { DepotImport } from "../components/DepotImport";
 import { OpPicker } from "../components/OpPicker";
 import { Avatar, Await, Explain, ItemIcon, itemName, Items, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
@@ -512,22 +513,3 @@ function Changes({ ops }: { ops: OpIndex[] }) {
   );
 }
 
-function Chart({ label, points }: { label: string; points: [number, number][] }) {
-  const w = 320, h = 120, pad = 24;
-  const xs = points.map((p) => p[0]), ys = points.map((p) => p[1]);
-  const [x0, x1] = [Math.min(...xs), Math.max(...xs)];
-  const [y0, y1] = [Math.min(...ys), Math.max(...ys) + (Math.max(...ys) === Math.min(...ys) ? 1 : 0)];
-  const px = (x: number) => pad + (x1 === x0 ? (w - 2 * pad) / 2 : ((x - x0) / (x1 - x0)) * (w - 2 * pad));
-  const py = (y: number) => h - pad - ((y - y0) / (y1 - y0)) * (h - 2 * pad);
-  return (
-    <section class="card">
-      <h3>{label}: {ys[ys.length - 1]}</h3>
-      <svg width="100%" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${label} over time: from ${ys[0]} to ${ys[ys.length - 1]}`}>
-        <polyline fill="none" stroke="var(--accent)" stroke-width="2" points={points.map((p) => `${px(p[0])},${py(p[1])}`).join(" ")} />
-        {points.map((p) => <circle key={p[0]} cx={px(p[0])} cy={py(p[1])} r="3" fill="var(--accent)" />)}
-        <text x={pad} y={h - 6} fill="var(--muted)" font-size="10">{date(x0)}</text>
-        <text x={w - pad} y={h - 6} fill="var(--muted)" font-size="10" text-anchor="end">{date(x1)}</text>
-      </svg>
-    </section>
-  );
-}

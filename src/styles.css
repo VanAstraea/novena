@@ -490,6 +490,17 @@ dialog.search::backdrop { background: rgba(0, 0, 0, 0.6); }
 .get-started li { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border: 1px solid var(--border); background: var(--surface-2); }
 .get-started li.done a { color: var(--muted); text-decoration: line-through; }
 .get-started .tick { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border: 1px solid var(--line); color: var(--good); font-weight: 700; }
+.weights { margin-top: 10px; }
+.weights summary { cursor: pointer; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.weights-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 6px 18px; margin-top: 8px; }
+.weights-label { min-width: 110px; font-size: 0.86rem; }
+.chart { position: relative; }
+.chart-tip { position: absolute; right: 14px; top: 12px; margin: 0; font-size: 0.8rem; color: var(--muted); }
+.tiles6 { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.tiles6 .stat { border: 1px solid var(--border); background: var(--surface); }
+.next-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.next-grid .card { margin: 0; }
+.next-grid ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
 .dropzone { display: grid; place-items: center; min-height: 96px; padding: 16px; border: 2px dashed var(--line); background: var(--surface-2); text-align: center; cursor: pointer; color: var(--muted); }
 .dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
 

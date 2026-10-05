@@ -44,7 +44,7 @@ function Header() {
               {p.short || p.title}
             </a>
           ))}
-          <a href={href("/roster")} aria-current={inAccount ? "page" : undefined}>My account</a>
+          <a href={href("/today")} aria-current={inAccount ? "page" : undefined}>My account</a>
         </nav>
         <div class="top-actions">
           <button class="searchpill" onClick={() => (searchOpen.value = true)} aria-label="Search (Ctrl+K)" title="Search (Ctrl+K)">

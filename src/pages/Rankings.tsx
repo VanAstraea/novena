@@ -1,5 +1,7 @@
 // Usage rankings from community clears, per content type and archetype; archetype gaps once a roster is in.
 import { useMemo, useState } from "preact/hooks";
+import { WeightsControl } from "../components/Weights";
+import { contentLevels, customised, weightedScore } from "../lib/weights";
 import { Await, Explain, metaSig, OpLink, SortTh, Stars, Tabs, useAsync } from "../components/ui";
 import { operators, usage as loadUsage } from "../lib/data";
 import { CATEGORY_NAMES, CLASS_NAMES, CLASS_ORDER, pct } from "../lib/format";
@@ -38,14 +40,14 @@ function Ops({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
   const meta = metaSig.value;
   const s = server.value;
   const here = q.get("here") === "1";
-  const value = (o: OpIndex) => (cat === "all" ? usage.ops[o.id]?.score : usage.ops[o.id]?.u?.[cat]) || 0;
+  const value = (o: OpIndex) => (cat === "all" ? (customised() ? weightedScore(usage.ops[o.id]?.u) : usage.ops[o.id]?.score) : usage.ops[o.id]?.u?.[cat]) || 0;
   const rows = useMemo(() => ops.filter((o) => usage.ops[o.id]?.score && (!cls || o.cls === cls) && (!branch || o.branch === branch) && (!here || o.on.includes(s)))
     .map((o) => ({ o, u: value(o), lift: usage.ops[o.id]?.lift || 0, own: usage.ops[o.id]?.inv?.own || 0 }))
     .sort((a, b) => {
       const k = sort.key as "u" | "lift" | "own";
       const key = sort.key === "usage" ? "u" : k;
       return sort.key === "name" ? a.o.name.localeCompare(b.o.name) * sort.dir : ((a[key] as number) - (b[key] as number)) * sort.dir;
-    }), [ops, usage, cat, cls, branch, sort, here, s]);
+    }), [ops, usage, cat, cls, branch, sort, here, s, contentLevels.value]);
   const branches = [...new Set(ops.filter((o) => !cls || o.cls === cls).map((o) => o.branch))].sort((a, b) => (meta?.branches[a] || a).localeCompare(meta?.branches[b] || b));
   return (
     <>
@@ -68,6 +70,7 @@ function Ops({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
           </label>
           <label class="row tight"><input type="checkbox" checked={here} onChange={(e) => setQuery({ here: (e.target as HTMLInputElement).checked ? "1" : "" })} /> Only on this server</label>
         </div>
+        {cat === "all" && <WeightsControl compact />}
       </div>
       <div class="table-wrap">
         <table class="cards">
@@ -107,7 +110,7 @@ function Ops({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
 function Archetypes({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
   const meta = metaSig.value;
   const cat = (route.value.query.get("cat") || "all") as Category | "all";
-  const rows = Object.entries(usage.archetypes).map(([a, u]) => ({ a, v: cat === "all" ? u.score : u.u[cat] || 0,
+  const rows = Object.entries(usage.archetypes).map(([a, u]) => ({ a, v: cat === "all" ? (customised() ? weightedScore(u.u) : u.score) : u.u[cat] || 0,
     cls: ops.find((o) => o.branch === a)?.cls, top: ops.filter((o) => o.branch === a).sort((x, y) => (usage.ops[y.id]?.score || 0) - (usage.ops[x.id]?.score || 0)).slice(0, 3) }))
     .filter((r) => r.cls).sort((x, y) => y.v - x.v);
   return (

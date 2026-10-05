@@ -1,6 +1,8 @@
 // Plan: the upgrades that unlock the most followable community clears per sanity, goals first, with a
 // "doable now" depot check counted all together.
 import { useState } from "preact/hooks";
+import { WeightsControl } from "../components/Weights";
+import { contentLevels, effectiveWeights } from "../lib/weights";
 import { Avatar, Await, Explain, Items, itemsSig, metaSig, useAsync } from "../components/ui";
 import { costTable, goalStates, guidebook, lastPlan, rosterStates, runPlan } from "../lib/account";
 import { stateLabel } from "../lib/build";
@@ -35,7 +37,7 @@ function PlanView({ ops }: { ops: Map<string, OpIndex> }) {
   const [support, setSupport] = useState(true);
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const key = JSON.stringify([s, account.value.ops, targets.value, top, support]);
+  const key = JSON.stringify([s, account.value.ops, targets.value, top, support, contentLevels.value]);
   const plan = lastPlan.value?.key === key ? lastPlan.value.result : null;
   const items = itemsSig.value;
   const meta = metaSig.value;
@@ -52,7 +54,7 @@ function PlanView({ ops }: { ops: Map<string, OpIndex> }) {
         available: opsList.filter((o) => o.on.includes(s)).map((o) => o.id),
         shared: opsList.filter((o) => o.patch).map((o) => o.id),
         fixed: opsList.filter((o) => o.obtain === "is").map((o) => o.id),
-        weights: { main: 0.25, event: 0.35, annihilation: 0.1, cc: 0.2, supply: 0.05, other: 0.05 },
+        weights: effectiveWeights(),
         top, support: support ? SUPPORT_SLOTS : 0, goals: goalStates(targets.value, states, costs, ops),
       }, (phase, done, total) => setProgress(total > 1 ? `${phase} (${done}/${total})` : phase));
       lastPlan.value = { key, result };
@@ -73,6 +75,7 @@ function PlanView({ ops }: { ops: Map<string, OpIndex> }) {
           <label class="row tight"><input type="checkbox" checked={support} onChange={(e) => setSupport((e.target as HTMLInputElement).checked)} /> Count on borrowing one support operator</label>
           <button class="primary" onClick={build} disabled={!!progress || !items || !meta}>{progress ? "Working…" : plan ? "Rebuild plan" : "Build my plan"}</button>
         </div>
+        <WeightsControl compact />
         {progress && <p role="status" class="muted" style={{ marginTop: "8px" }}>{progress}…</p>}
         {error && <p role="alert" class="bad-text">{error}</p>}
         <Explain>Each upgrade is scored by how many more community clear guides (MAA Copilot) your roster could follow, per sanity it costs. Unstated parts of a guide's usual build (E2, M3, module) count as soft: missing M3 on a skill 98% of owners mastered leaves a 2% chance. Your Planner targets are applied first as goals. Runs in your browser; the first run downloads the guidebook (a few MB).</Explain>

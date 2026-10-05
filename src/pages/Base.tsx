@@ -30,6 +30,8 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
   const [shifts, setShifts] = useState(2);
   const [tab, setTab] = useState("A");
   const [copied, setCopied] = useState(false);
+  const [view, setView] = useState(() => pref("baseView", "teams"));
+  const pick = (v: string) => { setView(v); setPref("baseView", v); };
   const roster = account.value.ops;
   const [dorms, setDorms] = useState<DormSettings>(() => { try { return { ...DEFAULT_DORMS, ...JSON.parse(pref("dorms", "{}")) }; } catch { return DEFAULT_DORMS; } });
   const saveDorms = (patch: Partial<DormSettings>) => { const next = { ...dorms, ...patch }; setDorms(next); setPref("dorms", JSON.stringify(next)); };
@@ -67,7 +69,12 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
         </div>
         <p style={{ marginTop: "10px" }}>Average production bonus: <strong>+{fmt(avg)}%</strong> <span class="muted">(rooms' percent bonuses added up, over the rotation)</span></p>
       </section>
-      {plan.length > 1 && <Tabs label="Shifts" value={tab} onChange={setTab} tabs={plan.map((_, i) => ({ key: "ABC"[i], label: `Shift ${"ABC"[i]}` }))} />}
+      <Tabs label="Base sections" value={view} onChange={pick} tabs={[
+        { key: "teams", label: "Teams" }, { key: "dorms", label: "Dorms and morale" }, { key: "training", label: "Training and Workshop" },
+        { key: "unlocks", label: `Skills to unlock${unlocks.length ? ` (${unlocks.length})` : ""}` },
+      ]} />
+      {(view === "teams" || view === "dorms") && plan.length > 1 && <Tabs label="Shifts" value={tab} onChange={setTab} tabs={plan.map((_, i) => ({ key: "ABC"[i], label: `Shift ${"ABC"[i]}` }))} />}
+      {view === "teams" && <>
       <div class="table-wrap">
         <table class="cards">
           <thead><tr><th>Room</th><th>Makes</th><th>Team</th><th class="num">Bonus</th><th class="num" title="From full morale, before the first member runs out">Lasts</th></tr></thead>
@@ -77,16 +84,17 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
         </table>
       </div>
       <Explain>Skill values from MAA's curated base data; skill combinations (like Texas + Lappland) count when all their members are placed. Each shift takes the best teams from who's left. "Lasts" is how long a team works from full morale (24) before its first member runs out, with the game's default drain and the team's own morale skills; it's flagged when that's shorter than the shift. Faction buffs and conditional effects aren't modelled.</Explain>
-      {rest && <DormCard plan={rest} shift={"ABC"[k]} ops={ops} dorms={dorms} save={saveDorms} />}
-      {shifts === 1 && <p class="note">With one shift, nobody rests: every team runs out of morale before the day is over. Two or three shifts let the others recover in the dorms.</p>}
-      <TrainingCard data={data} ops={ops} />
-      {unlocks.length > 0 && (
+      </>}
+      {view === "dorms" && (rest ? <DormCard plan={rest} shift={"ABC"[k]} ops={ops} dorms={dorms} save={saveDorms} />
+        : <p class="note">With one shift, nobody rests: every team runs out of morale before the day is over. Two or three shifts let the others recover in the dorms.</p>)}
+      {view === "training" && <TrainingCard data={data} ops={ops} />}
+      {view === "unlocks" && (unlocks.length === 0 ? <p class="muted">No promotion would unlock a base skill that raises this rotation's production.</p> : (
         <section class="card">
           <h2>Base skills worth unlocking</h2>
           <ul>{unlocks.slice(0, 8).map((u) => <li key={u.id}><a href={href(`/operator/${u.id}`)}>{ops.get(u.id)?.name}</a> at E{u.elite}: +{u.gain.toFixed(1)}% average production</li>)}</ul>
           <Explain>Promoting these operators unlocks a base skill that would raise the rotation's average.</Explain>
         </section>
-      )}
+      ))}
     </>
   );
 }
