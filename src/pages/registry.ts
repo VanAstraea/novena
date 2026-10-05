@@ -27,7 +27,8 @@ export const PAGES: PageDef[] = [
   { path: "/base", title: "Base (RIIC) optimizer", short: "Base", nav: "account", keywords: ["riic", "infrastructure", "shifts", "trading post", "factory"], load: () => import("./Base") },
   { path: "/pulls", title: "Pull planner", short: "Pulls", nav: "account", keywords: ["orundum", "headhunting", "savings", "banners"], load: () => import("./Pulls") },
   { path: "/settings", title: "Settings & backup", keywords: ["export", "import", "backup", "privacy", "theme"], load: () => import("./Settings") },
-  { path: "/about", title: "About & credits", keywords: ["sources", "license", "privacy", "credits"], load: () => import("./About") },
+  { path: "/about", title: "About", keywords: ["privacy", "feedback", "support"], load: () => import("./About") },
+  { path: "/credits", title: "Credits", keywords: ["sources", "license", "licenses", "credits", "attribution", "copyright", "fonts"], load: () => import("./Credits") },
 ];
 
 export function match(path: string): { page: PageDef; params: Record<string, string> } | null {

@@ -109,7 +109,7 @@ export function GIcon({ src, alt, size = 22, title }: { src: string; alt: string
 /** The game's operator-list card: half-body portrait, class icon, rarity bar, name. */
 export function PortraitCard({ op, sub, href, elite = 0 }: { op: OpIndex; sub?: ComponentChildren; href: string; elite?: number }) {
   return (
-    <a class={`pcard r${op.rarity}`} href={href} title={op.name}>
+    <a class={`pcard r${op.rarity}`} href={href} title={op.name} data-morph>
       <Art srcs={art.portraits(op.id, elite)} class="portrait" fallback={<span class="ph" aria-hidden="true">{initials(op.name)}</span>} />
       <span class="cls"><img src={art.classIcon(op.cls)} alt="" loading="lazy" /></span>
       {op.src && <span class="flag badge cn" title="Not on this server yet">CN</span>}

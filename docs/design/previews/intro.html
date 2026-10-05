@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novena intro preview</title>
+<!-- Preview only. The live site self-hosts its fonts (no third-party requests). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #06080f;
+  --navy: #0d1830;
+  --gold: #d8b25a;
+  --gold-hi: #f3d993;
+  --ivory: #f5f0e6;
+  --muted: #aab1c0;
+  --line: rgba(243, 217, 147, 0.22);
+  --glass: rgba(10, 16, 32, 0.46);
+  --serif: "Cormorant Garamond", Georgia, serif;
+  --sans: Inter, system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--ink); color: var(--ivory); font-family: var(--sans); overflow: hidden; }
+.stage { position: fixed; inset: 0; overflow: hidden; background: var(--ink); }
+.layer { position: absolute; inset: 0; pointer-events: none; }
+.at { position: absolute; left: 50%; top: 50%; }
+
+/* Scene */
+#bg { width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; filter: brightness(0.36) saturate(0.7) contrast(1.08) sepia(0.12); opacity: 0; transform-origin: 66% 45%; }
+#bgTint { opacity: 0; background:
+  linear-gradient(90deg, rgba(6, 8, 15, 0.94) 0%, rgba(6, 8, 15, 0.78) 30%, rgba(13, 24, 48, 0.22) 58%, rgba(6, 8, 15, 0.4) 100%),
+  linear-gradient(0deg, rgba(6, 8, 15, 0.9), transparent 34%),
+  linear-gradient(180deg, rgba(6, 8, 15, 0.6), transparent 18%); }
+#shafts { opacity: 0; mix-blend-mode: screen; }
+#shafts i { position: absolute; top: -20vh; height: 150vh; transform: rotate(16deg); transform-origin: top; background: linear-gradient(180deg, transparent, rgba(243, 217, 147, 0.09) 35%, rgba(243, 217, 147, 0.04) 70%, transparent); animation: breathe 7s ease-in-out infinite; }
+#shafts i:nth-child(1) { left: 58%; width: 140px; }
+#shafts i:nth-child(2) { left: 70%; width: 240px; animation-delay: -2.5s; }
+#shafts i:nth-child(3) { left: 84%; width: 110px; animation-delay: -5s; }
+@keyframes breathe { 50% { opacity: 0.45; } }
+#altarGlow { width: 90vmin; height: 90vmin; margin: -45vmin 0 0 -45vmin; border-radius: 50%; opacity: 0; mix-blend-mode: screen;
+  background: radial-gradient(circle, rgba(243, 217, 147, 0.34), rgba(216, 178, 90, 0.12) 40%, transparent 68%); }
+#ring { position: absolute; opacity: 1; overflow: visible; }
+
+/* God rays: two interleaved ray sets, faded out from the centre */
+.rays { width: 140vmax; height: 140vmax; margin: -70vmax 0 0 -70vmax; border-radius: 50%; opacity: 0; mix-blend-mode: screen;
+  background:
+    repeating-conic-gradient(from 0deg, rgba(255, 236, 180, 0) 0deg 3deg, rgba(255, 236, 180, 0.55) 4deg, rgba(255, 236, 180, 0) 5deg 13deg),
+    repeating-conic-gradient(from 7deg, rgba(243, 217, 147, 0) 0deg 5deg, rgba(243, 217, 147, 0.28) 7deg, rgba(243, 217, 147, 0) 9deg 22deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 16%, transparent 44%);
+  mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 16%, transparent 44%); }
+#altarRays { width: 120vmin; height: 120vmin; margin: -60vmin 0 0 -60vmin; opacity: 0; mix-blend-mode: screen; }
+#altarRays .rays { position: absolute; left: 50%; top: 50%; width: 120vmin; height: 120vmin; margin: -60vmin 0 0 -60vmin; opacity: 0.8; animation: spin 90s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Shockwave rings and anamorphic flares */
+.shock { width: 30vmin; height: 30vmin; margin: -15vmin 0 0 -15vmin; border-radius: 50%; opacity: 0; border: 2px solid rgba(255, 240, 205, 0.95);
+  box-shadow: 0 0 22px rgba(243, 217, 147, 0.7), inset 0 0 22px rgba(243, 217, 147, 0.5); }
+.shock.flat { height: 8vmin; margin-top: -4vmin; }
+.flare { left: 0; right: 0; height: 2px; margin-top: -1px; opacity: 0; transform-origin: 50% 50%;
+  background: linear-gradient(90deg, transparent 4%, rgba(255, 246, 222, 0.0) 12%, #fffaf0 50%, rgba(255, 246, 222, 0) 88%, transparent 96%);
+  box-shadow: 0 0 14px 3px rgba(255, 226, 160, 0.65); }
+.flare::after { content: ""; position: absolute; left: 20%; right: 20%; top: -40px; height: 80px; background: radial-gradient(ellipse at center, rgba(255, 226, 160, 0.35), transparent 70%); }
+
+/* Camera over the art */
+#cam { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+#art { display: block; width: 2033px; height: 2146px; opacity: 0; }
+
+/* Light and darkness */
+#leak { opacity: 0; background: linear-gradient(112deg, transparent 32%, rgba(243, 217, 147, 0.16) 46%, rgba(243, 217, 147, 0.05) 52%, transparent 62%); }
+#vigTight { background: radial-gradient(circle at 50% 50%, transparent 0 13vmin, rgba(6, 8, 15, 0.7) 24vmin, var(--ink) 40vmin); }
+#vigWide { opacity: 0; background: radial-gradient(ellipse at 50% 48%, transparent 0 22vmin, rgba(6, 8, 15, 0.72) 48vmin, var(--ink) 78vmin); }
+#starGlow, #haloGlow { opacity: 0; mix-blend-mode: screen; }
+#starGlow { background: radial-gradient(circle at 50% 50%, rgba(243, 217, 147, 0.5), rgba(216, 178, 90, 0.14) 16vmin, transparent 30vmin); }
+#haloGlow { width: 72vmin; height: 72vmin; margin: -36vmin 0 0 -36vmin; border-radius: 50%; background: radial-gradient(circle, rgba(255, 250, 235, 0.6), rgba(243, 217, 147, 0.2) 36%, transparent 70%); }
+#candle { opacity: 0; mix-blend-mode: screen; background: radial-gradient(ellipse at 46% 78%, rgba(255, 186, 104, 0.32), transparent 55%); }
+#bloom { width: 60vmin; height: 60vmin; margin: -30vmin 0 0 -30vmin; border-radius: 50%; opacity: 0; mix-blend-mode: screen;
+  background: radial-gradient(circle, #fffdf6 0%, rgba(255, 246, 220, 0.95) 22%, rgba(243, 217, 147, 0.55) 45%, transparent 70%); }
+#white { background: #fff8ea; opacity: 0; }
+#particles { width: 100%; height: 100%; }
+
+/* Intro lines, split into letters */
+#lines p { position: absolute; left: 0; right: 0; margin: 0; text-align: center; text-shadow: 0 2px 18px rgba(6, 8, 15, 0.9), 0 0 2px rgba(6, 8, 15, 0.8); }
+.ch { display: inline-block; opacity: 0; white-space: pre; }
+.latin { bottom: calc(17vh + 40px); font-family: var(--serif); font-style: italic; font-size: 34px; letter-spacing: 0.04em; color: var(--gold-hi); }
+.english { bottom: 17vh; font-family: var(--serif); font-size: 19px; letter-spacing: 0.08em; color: var(--muted); opacity: 0; }
+.ora { bottom: calc(17vh + 34px); font-family: var(--serif); font-weight: 600; font-size: 64px; letter-spacing: 0.34em; text-transform: uppercase; color: var(--ivory); }
+.pray { bottom: 17vh; font-family: var(--serif); font-style: italic; font-size: 20px; letter-spacing: 0.12em; color: var(--gold-hi); opacity: 0; }
+
+/* Final interface */
+#ui { pointer-events: auto; }
+#ui [data-in], #crest { opacity: 0; }
+.top { position: absolute; left: 0; right: 0; top: 0; height: 72px; display: flex; align-items: center; gap: 28px; padding: 0 44px; border-bottom: 1px solid rgba(243, 217, 147, 0.12); }
+.brand { display: flex; align-items: center; gap: 12px; color: var(--ivory); text-decoration: none; font-family: var(--serif); font-size: 26px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
+.brand img { width: 34px; height: 34px; }
+.top nav { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.top nav a { padding: 8px 12px; color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+.top .actions { display: flex; gap: 10px; align-items: center; }
+.pill { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 12px; border: 1px solid var(--line); background: rgba(10, 16, 32, 0.35); color: var(--muted); font: inherit; font-size: 13px; }
+kbd { font-family: var(--sans); font-size: 11px; padding: 1px 6px; border: 1px solid var(--line); color: var(--muted); }
+.server { height: 36px; display: grid; place-items: center; padding: 0 12px; border: 1px solid var(--line); font-size: 13px; color: var(--ivory); }
+
+.intro { position: absolute; left: 6vw; top: 52%; transform: translateY(-50%); width: min(520px, 36vw); }
+#crest { display: block; width: 112px; height: 112px; margin: 0 0 12px -6px; }
+.eyebrow { margin: 0 0 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.44em; text-transform: uppercase; color: var(--gold-hi); }
+.intro h1 { margin: 0; white-space: nowrap; font-family: var(--serif); font-weight: 600; font-size: clamp(80px, 8.4vw, 132px); line-height: 0.88; letter-spacing: 0.05em; color: var(--ivory); text-shadow: 0 0 48px rgba(243, 217, 147, 0.22), 0 0 1px rgba(243, 217, 147, 0); }
+.tag { margin: 16px 0 0; font-family: var(--serif); font-style: italic; font-size: 26px; color: var(--ivory); }
+.tag span { color: var(--gold); margin: 0 0.4em; font-style: normal; }
+.body { margin: 20px 0 0; padding-left: 18px; border-left: 2px solid var(--gold); max-width: 46ch; color: var(--muted); font-size: 15px; line-height: 1.65; }
+.search { margin-top: 26px; width: 100%; height: 56px; display: flex; align-items: center; gap: 14px; padding: 0 18px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(14px); color: var(--muted); font: inherit; font-size: 15px; text-align: left;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%); }
+.search span { flex: 1; }
+.quick { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.quick a { padding: 7px 14px; border: 1px solid var(--line); color: var(--ivory); text-decoration: none; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(10, 16, 32, 0.3); }
+
+.today { position: absolute; right: 2.4vw; bottom: 5vh; width: 280px; padding: 18px 20px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(16px) saturate(1.1);
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%); }
+.today h2 { margin: 0 0 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold-hi); }
+.today .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.today .row div { background: rgba(8, 12, 24, 0.7); padding: 8px 10px; }
+.today .k { font-size: 11px; color: var(--muted); }
+.today .v { font-family: var(--serif); font-size: 24px; font-weight: 600; }
+.today p { margin: 12px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.today a { display: inline-block; margin-top: 12px; color: var(--gold-hi); font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; }
+.foot { position: absolute; left: 6vw; bottom: 26px; max-width: 40vw; font-size: 11.5px; color: rgba(170, 177, 192, 0.7); letter-spacing: 0.02em; }
+
+/* Skip (part of the design) */
+#skip { position: absolute; top: 24px; right: 32px; z-index: 5; padding: 8px 14px; border: 1px solid var(--line); background: rgba(6, 8, 15, 0.4); color: var(--muted); font: inherit; font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase; cursor: pointer; opacity: 0; }
+
+/* Preview controls (not part of the design) */
+#proto[hidden] { display: none; }
+#proto { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(0, 0, 0, 0.72); border: 1px solid #333; border-radius: 8px; font-size: 12px; color: #ddd; }
+#proto button, #proto select { background: #1d1d1d; color: #eee; border: 1px solid #444; border-radius: 4px; padding: 4px 8px; font: inherit; cursor: pointer; }
+#proto input[type=range] { width: 300px; }
+#proto output { width: 56px; font-variant-numeric: tabular-nums; }
+#proto a { color: #f3d993; }
+#loading { position: fixed; inset: 0; display: grid; place-items: center; color: #666; font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="layer"><img id="bg" alt=""></div>
+  <div class="layer" id="bgTint"></div>
+  <div class="layer" id="shafts"><i></i><i></i><i></i></div>
+  <div class="layer"><div class="at" id="altarRays"><div class="rays"></div></div></div>
+  <div class="layer"><div class="at" id="altarGlow"></div></div>
+  <svg id="ring" class="layer" aria-hidden="true"></svg>
+  <div class="layer"><div id="cam"><img id="art" alt="Lemuen in her alternate outfit"></div></div>
+  <div class="layer" id="leak"></div>
+  <div class="layer" id="vigTight"></div>
+  <div class="layer" id="vigWide"></div>
+  <div class="layer" id="starGlow"></div>
+  <div class="layer"><div class="at rays" id="starRays"></div></div>
+  <div class="layer" id="candle"></div>
+  <div class="layer"><div class="at" id="haloGlow"></div></div>
+  <div class="layer"><div class="at rays" id="haloRays"></div></div>
+  <div class="layer"><div class="at" id="bloom"></div></div>
+  <div class="layer" id="fx"></div>
+  <div class="layer" id="white"></div>
+  <canvas class="layer" id="particles"></canvas>
+  <div class="layer" id="lines">
+    <p class="latin" id="l1">Et lux perpetua luceat eis.</p>
+    <p class="english" id="l2">And let perpetual light shine upon them.</p>
+    <p class="ora" id="l3">Ora et labora</p>
+    <p class="pray" id="l4">Pray, and work.</p>
+  </div>
+
+  <div class="layer" id="ui">
+    <header class="top" data-in>
+      <a class="brand" href="#"><img src="../logo/novena-mark.svg" alt="">Novena</a>
+      <nav aria-label="Main">
+        <a href="#">Operators</a><a href="#">Compare</a><a href="#">Planner</a><a href="#">Farming</a>
+        <a href="#">Recruit</a><a href="#">Rankings</a><a href="#">Upcoming</a><a href="#">My account</a>
+      </nav>
+      <div class="actions">
+        <button class="pill">Search <kbd>Ctrl K</kbd></button>
+        <span class="server">EN</span>
+      </div>
+    </header>
+
+    <section class="intro">
+      <img id="crest" src="../logo/novena-crest.svg" alt="Novena emblem">
+      <p class="eyebrow" data-in>An Arknights companion</p>
+      <h1 id="wordmark">NOVENA</h1>
+      <p class="tag" data-in>Ora et labora</p>
+      <p class="body" data-in>Plan upgrades, compare operators and farm smarter. No sign-up, no tracking: everything you enter stays in this browser.</p>
+      <button class="search" data-in>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f3d993" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20 L 16 16"/></svg>
+        <span>Find an operator, item or stage</span><kbd>Ctrl K</kbd>
+      </button>
+      <div class="quick" data-in><a href="#">Planner</a><a href="#">Farming</a><a href="#">Recruit</a><a href="#">Rankings</a></div>
+    </section>
+
+    <aside class="today" data-in>
+      <h2>Today on Global</h2>
+      <div class="row">
+        <div><div class="k">Daily reset</div><div class="v">6 h 12 m</div></div>
+        <div><div class="k">Weekly reset</div><div class="v">2 d 6 h</div></div>
+      </div>
+      <p>Open today: CE-6 · LS-6 · PR-A · PR-B<br>Current event ends in 5 days</p>
+      <a href="#">Plan today's farming →</a>
+    </aside>
+
+    <p class="foot" data-in>Unofficial fan tool. Not affiliated with Hypergryph, Yostar or Gryphline. Art: Lemuen, alternate outfit © Hypergryph, loaded from a community mirror.</p>
+  </div>
+
+  <button id="skip">Skip</button>
+</div>
+
+<div id="loading">Loading art…</div>
+
+<div id="proto" hidden>
+  <button id="pReplay">Replay</button>
+  <button id="pPause">Pause</button>
+  <select id="pRate" title="Speed"><option value="1">1×</option><option value="0.5">0.5×</option><option value="0.25">0.25×</option></select>
+  <input id="pScrub" type="range" min="0" max="7000" step="10" value="0">
+  <output id="pTime">0.00 s</output>
+  <button id="pReduced" title="Preview the prefers-reduced-motion version">Reduced motion</button>
+  <a href="transition.html">Card → page ›</a>
+</div>
+
+<script>
+// Art loads from the local design-refs cache when present, else from the community mirrors.
+const REFS = "../../../.cache/design-refs/";
+const ART_SRC = [REFS + "lemuen_ambienceSynesthesia.png",
+  "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/skin/char_4193_lemuen_ambienceSynesthesia%237b.png"];
+// bg-hero-dusk.png is the generated hall; until it exists the official cathedral hall stands in.
+const BG_SRC = [REFS + "bg-hero-dusk.png", REFS + "26_g2_laterano_cathedralhall.png",
+  "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/cn/assets/dyn/avg/backgrounds/26_g2_laterano_cathedralhall.png"];
+
+const AW = 2033, AH = 2146, T = 7000, SWAP = 4900, IGNITE = 1650;
+// Points of interest in the art, in its own pixels.
+const STAR = [1024, 92], DEVOTEE = [1352, 1245], HANDS = [1271, 1234], HALO = [998, 472], FACE = [998, 520];
+const E = {
+  linear: "linear",
+  inout: "cubic-bezier(.65,0,.35,1)",
+  in: "cubic-bezier(.7,0,.84,0)",
+  out: "cubic-bezier(.16,1,.3,1)",
+  punch: "cubic-bezier(.2,1.6,.4,1)",
+  soft: "cubic-bezier(.4,0,.2,1)",
+};
+const qs = new URLSearchParams(location.search);
+const $ = (id) => document.getElementById(id);
+let W = innerWidth, H = innerHeight;
+let anims = [];
+
+function loadFirst(img, urls) {
+  return new Promise((resolve) => {
+    let i = 0;
+    img.onerror = () => (++i < urls.length ? (img.src = urls[i]) : resolve(false));
+    img.onload = () => img.decode().then(() => resolve(true), () => resolve(true));
+    img.src = urls[0];
+  });
+}
+
+// Wrap each character in a span so letters can be animated one by one.
+function split(el) {
+  el.innerHTML = [...el.textContent].map((c) => `<span class="ch">${c === " " ? " " : c}</span>`).join("");
+  return [...el.children];
+}
+const chars = { l1: split($("l1")), l3: split($("l3")), word: split($("wordmark")) };
+
+// The camera puts point f of the art at (px, py) of the viewport, at scale s.
+const cam = (f, s, px = 0.5, py = 0.5) => `translate(${W * px - f[0] * s}px, ${H * py - f[1] * s}px) scale(${s})`;
+function finalGeom() {
+  const s = Math.min((H * 0.88) / AH, (W * 0.5) / AW);
+  const cx = W * 0.67, cy = H * 0.55;
+  const halo = [cx - (AW / 2 - HALO[0]) * s, cy - (AH / 2 - HALO[1]) * s];
+  return { s, cx, cy, halo };
+}
+// The final composition, zoomed about the halo. Translation is linear in scale here,
+// so the pull-back keeps the halo pinned while the scene opens out around it.
+function camFinal(zoom = 1) {
+  const g = finalGeom(), s = g.s * zoom;
+  return `translate(${g.halo[0] - HALO[0] * s}px, ${g.halo[1] - HALO[1] * s}px) scale(${s})`;
+}
+// Where the halo sits on screen during the close-up before the bloom.
+const haloY = () => H * 0.46 - (FACE[1] - HALO[1]) * 1.8;
+const hands = () => [W / 2 + (HANDS[0] - DEVOTEE[0]) * 1.33, H / 2 + (HANDS[1] - DEVOTEE[1]) * 1.33];
+
+// frames: [{ t: ms, e: easing to the next frame, ...css }]
+function track(el, frames) {
+  frames = frames.map((f) => ({ ...f, t: Math.max(0, Math.min(T, f.t)) }));
+  if (frames[0].t > 0) frames.unshift({ ...frames[0], t: 0 });
+  if (frames.at(-1).t < T) frames.push({ ...frames.at(-1), t: T });
+  const kf = frames.map(({ t, e, ...css }) => ({ ...css, offset: t / T, easing: e || E.soft }));
+  const a = el.animate(kf, { duration: T, fill: "both" });
+  a.pause();
+  anims.push(a);
+  return a;
+}
+const place = (el, x, y) => Object.assign(el.style, { left: x + "px", top: y + "px" });
+
+// Effects: shockwave rings and anamorphic flares, created per build.
+function shock(x, y, t, { flat = false, grow = 3, life = 900 } = {}) {
+  const el = document.createElement("div");
+  el.className = "at shock" + (flat ? " flat" : "");
+  $("fx").append(el);
+  place(el, x, y);
+  track(el, [{ t: t - 1, opacity: 0, transform: "scale(.15)", e: "step-end" }, { t, opacity: 1, transform: "scale(.15)", e: E.out }, { t: t + life, opacity: 0, transform: `scale(${grow})` }]);
+}
+function flare(y, t, { peak = 1, life = 700 } = {}) {
+  const el = document.createElement("div");
+  el.className = "at flare";
+  $("fx").append(el);
+  el.style.top = y + "px";
+  track(el, [{ t: t - 280, opacity: 0, transform: "scaleX(.05)", e: E.out }, { t, opacity: peak, transform: "scaleX(1)" }, { t: t + life, opacity: 0, transform: "scaleX(1.5)" }]);
+}
+// A wave of light passing across letters.
+function glint(chars, t0, step, base) {
+  const glow = "0 0 18px rgba(255, 236, 180, 0.95), 0 0 3px rgba(255, 255, 255, 0.9)";
+  chars.forEach((c, j) => {
+    const t = t0 + j * step;
+    track(c, [{ t, color: base.color, textShadow: base.shadow, e: E.out }, { t: t + 110, color: "#fffbea", textShadow: glow }, { t: t + 330, color: base.color, textShadow: base.shadow }]);
+  });
+}
+const DARK = "0 2px 18px rgba(6, 8, 15, 0.9), 0 0 2px rgba(6, 8, 15, 0.8)";
+// Letters fly in from a blur one by one, and (optionally) dissolve upward later.
+// In and out share one track per letter, since two tracks on one property would fight.
+function letters(chars, { inAt, inStep, dur = 480, outAt, outStep = 10, up = -10 }) {
+  chars.forEach((c, j) => {
+    const t = inAt + j * inStep;
+    const frames = [{ t, opacity: 0, transform: "translateY(18px) scale(1.15)", filter: "blur(10px)", e: E.out }, { t: t + dur, opacity: 1, transform: "none", filter: "blur(0px)" }];
+    if (outAt) {
+      const o = outAt + j * outStep;
+      frames.push({ t: o, opacity: 1, transform: "none", filter: "blur(0px)", e: E.in }, { t: o + 340, opacity: 0, transform: `translateY(${up}px) scale(1.25)`, filter: "blur(6px)" });
+    }
+    track(c, frames);
+  });
+}
+
+function build() {
+  const keep = anims[0]?.currentTime ?? 0;
+  anims.forEach((a) => a.cancel());
+  anims = [];
+  $("fx").innerHTML = "";
+  W = innerWidth; H = innerHeight;
+  const g = finalGeom(), hy = haloY();
+
+  place($("altarGlow"), g.cx, g.cy - AH * g.s * 0.12);
+  place($("altarRays"), g.halo[0], g.halo[1]);
+  place($("starRays"), W / 2, H / 2);
+  place($("haloGlow"), W / 2, hy);
+  place($("haloRays"), W / 2, hy);
+  place($("bloom"), W / 2, hy);
+  // Halo rings over the final art; they draw themselves on during the reveal.
+  const ringY = g.halo[1] - 6, rx = AW * g.s * 0.42;
+  $("ring").innerHTML = `<ellipse pathLength="1" stroke-dasharray="1" cx="${g.halo[0]}" cy="${ringY}" rx="${rx}" ry="${rx * 0.16}" fill="none" stroke="#f3d993" stroke-opacity=".34" stroke-width="1.4"/>
+    <ellipse pathLength="1" stroke-dasharray="1" cx="${g.halo[0]}" cy="${ringY}" rx="${rx * 1.18}" ry="${rx * 0.19}" fill="none" stroke="#f3d993" stroke-opacity=".16" stroke-width="1"/>`;
+
+  // Master clock, read by the particle layer.
+  track($("stage"), [{ t: 0, e: E.linear }, { t: T }]);
+
+  // Camera: a slow push on the star with a kick when it ignites, a pan to the devotee,
+  // a tilt up to the halo that accelerates into the bloom, then the pull back.
+  track($("cam"), [
+    { t: 0, transform: cam(STAR, 1.22), e: E.linear },
+    { t: IGNITE - 50, transform: cam(STAR, 1.29), e: E.out },
+    { t: IGNITE + 120, transform: cam(STAR, 1.345), e: E.linear },
+    { t: 2400, transform: cam(STAR, 1.37), e: E.inout },
+    { t: 3500, transform: cam(DEVOTEE, 1.3), e: E.linear },
+    { t: 3700, transform: cam(DEVOTEE, 1.33), e: E.inout },
+    { t: 4400, transform: cam(FACE, 1.55, 0.5, 0.46), e: E.in },
+    { t: SWAP - 10, transform: cam(FACE, 2.05, 0.5, 0.46), e: "step-end" },
+    { t: SWAP, transform: camFinal(2.6), e: "cubic-bezier(.22,1,.36,1)" },
+    { t: 6400, transform: camFinal(1) },
+  ]);
+  track($("art"), [{ t: 1150, opacity: 0 }, { t: 2100, opacity: 1 }]);
+
+  // Darkness and the Law.
+  track($("leak"), [{ t: 200, opacity: 0, transform: "translateX(-4%)" }, { t: 1100, opacity: 1 }, { t: 2100, opacity: 0, transform: "translateX(3%)" }]);
+  track($("starGlow"), [{ t: 1100, opacity: 0 }, { t: IGNITE - 40, opacity: 0.6, e: E.out }, { t: IGNITE + 60, opacity: 1 }, { t: 2400, opacity: 0.5 }, { t: 2900, opacity: 0 }]);
+  track($("starRays"), [{ t: IGNITE - 200, opacity: 0, transform: "rotate(-8deg) scale(.6)", e: E.out }, { t: IGNITE + 150, opacity: 0.9, transform: "rotate(0deg) scale(1)", e: E.linear }, { t: 2500, opacity: 0.55, transform: "rotate(9deg) scale(1.08)" }, { t: 2900, opacity: 0, transform: "rotate(12deg) scale(1.1)" }]);
+  shock(W / 2, H / 2, IGNITE, { grow: 3.4, life: 1000 });
+  flare(H / 2, IGNITE, { peak: 0.75, life: 600 });
+  track($("vigTight"), [{ t: 2350, opacity: 1 }, { t: 3000, opacity: 0 }]);
+  track($("vigWide"), [{ t: 2300, opacity: 0 }, { t: 2900, opacity: 1 }, { t: 4300, opacity: 1 }, { t: 4750, opacity: 0.5 }, { t: SWAP - 10, opacity: 0.5, e: "step-end" }, { t: SWAP, opacity: 0 }]);
+
+  // The devotee, by candlelight.
+  track($("candle"), [
+    { t: 2600, opacity: 0 }, { t: 2900, opacity: 0.55, e: E.linear }, { t: 3050, opacity: 0.8, e: E.linear }, { t: 3180, opacity: 0.5, e: E.linear },
+    { t: 3330, opacity: 0.85, e: E.linear }, { t: 3500, opacity: 0.6, e: E.linear }, { t: 3650, opacity: 0.75 }, { t: 4000, opacity: 0 },
+  ]);
+
+  // The halo pulses, rays gather, and everything blooms to white.
+  track($("haloGlow"), [{ t: 3800, opacity: 0, transform: "scale(.7)" }, { t: 4400, opacity: 0.8, transform: "scale(1)", e: E.in }, { t: 4850, opacity: 1, transform: "scale(1.6)" }, { t: 5200, opacity: 0 }]);
+  track($("haloRays"), [{ t: 3900, opacity: 0, transform: "rotate(0deg) scale(.5)", e: E.in }, { t: SWAP, opacity: 1, transform: "rotate(-24deg) scale(1.5)" }, { t: 5300, opacity: 0, transform: "rotate(-30deg) scale(1.7)" }]);
+  shock(W / 2, hy, 4180, { flat: true, grow: 3, life: 800 });
+  shock(W / 2, hy, 4480, { flat: true, grow: 4.2, life: 800 });
+  flare(hy, SWAP - 30, { peak: 1, life: 600 });
+  track($("bloom"), [
+    { t: 4250, opacity: 0, transform: "scale(.2)", e: E.in },
+    { t: 4650, opacity: 0.9, transform: "scale(1)", e: E.in },
+    { t: SWAP, opacity: 1, transform: "scale(7)" },
+    { t: 5600, opacity: 0, transform: "scale(7)" },
+  ]);
+  track($("white"), [
+    { t: IGNITE - 70, opacity: 0, e: E.out }, { t: IGNITE, opacity: 0.1 }, { t: IGNITE + 260, opacity: 0 },
+    { t: 4500, opacity: 0, e: E.in }, { t: SWAP, opacity: 1, e: E.linear }, { t: 5000, opacity: 1, e: E.out }, { t: 6100, opacity: 0 },
+  ]);
+
+  // The reveal.
+  const at = (t, on) => [{ t: t - 1, ...on[0], e: "step-end" }, { t, ...on[1] }];
+  track($("bg"), [...at(SWAP, [{ opacity: 0, transform: "scale(1.12)" }, { opacity: 1, transform: "scale(1.12)", e: E.out }]), { t: 6900, opacity: 1, transform: "scale(1)" }]);
+  track($("bgTint"), at(SWAP, [{ opacity: 0 }, { opacity: 1 }]));
+  track($("altarGlow"), [{ t: SWAP, opacity: 0 }, { t: 6000, opacity: 1 }]);
+  track($("altarRays"), [{ t: 5000, opacity: 0, transform: "scale(.8)" }, { t: 6300, opacity: 0.5, transform: "scale(1)" }]);
+  shock(g.halo[0], g.halo[1], 5020, { flat: true, grow: 6, life: 1100 });
+  shock(g.halo[0], g.halo[1], 5300, { flat: true, grow: 4.5, life: 1000 });
+  $("ring").querySelectorAll("ellipse").forEach((el, i) => track(el, [{ t: 5500 + i * 200, strokeDashoffset: 1, e: E.inout }, { t: 6700 + i * 200, strokeDashoffset: 0 }]));
+  track($("shafts"), [{ t: 5200, opacity: 0 }, { t: 6600, opacity: 1 }]);
+
+  // Words.
+  letters(chars.l1, { inAt: 250, inStep: 24, outAt: 2350 });
+  glint(chars.l1, IGNITE, 16, { color: "#f3d993", shadow: DARK });
+  track($("l2"), [{ t: 1300, opacity: 0, transform: "translateY(8px)" }, { t: 1900, opacity: 1, transform: "none" }, { t: 2350, opacity: 1 }, { t: 2750, opacity: 0 }]);
+  letters(chars.l3, { inAt: 3300, inStep: 55, dur: 520, outAt: 4600, outStep: 14, up: -18 });
+  glint(chars.l3, 4200, 26, { color: "#f5f0e6", shadow: DARK });
+  track($("l4"), [{ t: 3850, opacity: 0, transform: "translateY(8px)" }, { t: 4250, opacity: 1, transform: "none" }, { t: 4550, opacity: 1 }, { t: 4800, opacity: 0 }]);
+
+  // The interface arrives; the emblem ignites and light runs across the wordmark.
+  track($("crest"), [{ t: 5950, opacity: 0, transform: "scale(.6) rotate(-20deg)", filter: "drop-shadow(0 0 0 rgba(243,217,147,0))", e: E.punch },
+    { t: 6450, opacity: 1, transform: "scale(1) rotate(0deg)", filter: "drop-shadow(0 0 28px rgba(243,217,147,.85))" }, { t: 7000, opacity: 1, transform: "scale(1) rotate(0deg)", filter: "drop-shadow(0 0 10px rgba(243,217,147,.35))" }]);
+  letters(chars.word, { inAt: 6050, inStep: 50, dur: 500 });
+  const WORD = "0 0 48px rgba(243, 217, 147, 0.22), 0 0 1px rgba(243, 217, 147, 0)";
+  glint(chars.word, 6480, 38, { color: "#f5f0e6", shadow: WORD });
+  document.querySelectorAll("#ui [data-in]").forEach((el, i) => {
+    const t0 = 6050 + i * 80;
+    track(el, [{ t: t0, opacity: 0, transform: "translateY(10px)", e: E.out }, { t: t0 + 650, opacity: 1, transform: "none" }]);
+  });
+  track($("skip"), [{ t: 300, opacity: 0 }, { t: 900, opacity: 1 }, { t: 5800, opacity: 1 }, { t: 6300, opacity: 0 }]);
+
+  seek(keep);
+}
+
+const clock = () => anims[0]?.currentTime ?? 0;
+function seek(t) { anims.forEach((a) => { a.pause(); a.currentTime = t; }); }
+function play() { if (clock() >= T) seek(0); anims.forEach((a) => a.play()); }
+function skip() { anims.forEach((a) => a.finish()); }
+function setRate(r) { anims.forEach((a) => a.updatePlaybackRate(r)); }
+
+// Particles: sparks rising from the devotee's hands, a feather burst from the halo, then dust in the light.
+const cv = $("particles"), ctx = cv.getContext("2d");
+function rng(seed) { return () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296); }
+const r = rng(9);
+const LIFE = 1.7; // seconds; the last feather is gone before the intro ends
+const burst = Array.from({ length: 72 }, () => ({
+  born: 4560 + r() * 440, ang: r() * Math.PI * 2, v: 240 + r() * 680, tau: 0.45 + r() * 0.5,
+  len: 4 + r() * 7, rot: r() * Math.PI * 2, spin: (r() - 0.5) * 3, gold: r() < 0.25, sway: 6 + r() * 16, ph: r() * 6,
+}));
+const sparks = Array.from({ length: 48 }, () => ({ born: 3050 + r() * 950, vx: (r() - 0.5) * 40, vy: 50 + r() * 110, s: 6 + r() * 12, life: 1 + r() * 0.8, ph: r() * 6 }));
+const dust = Array.from({ length: 60 }, () => ({ x: r(), y: r(), v: 6 + r() * 16, s: 0.6 + r() * 1.8, ph: r() * 6 }));
+const sprite = document.createElement("canvas");
+sprite.width = sprite.height = 32;
+{ const s = sprite.getContext("2d"), gr = s.createRadialGradient(16, 16, 0, 16, 16, 16);
+  gr.addColorStop(0, "rgba(255,240,200,1)"); gr.addColorStop(0.35, "rgba(243,217,147,.5)"); gr.addColorStop(1, "rgba(243,217,147,0)");
+  s.fillStyle = gr; s.fillRect(0, 0, 32, 32); }
+
+function feather(x, y, len, ang, a, gold) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.globalAlpha = a;
+  ctx.fillStyle = gold ? "#f3d993" : "#fffaf0";
+  ctx.beginPath(); ctx.ellipse(0, 0, len, len * 0.27, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = a * 0.7; ctx.strokeStyle = gold ? "#b98a33" : "#d9d1bf"; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(-len * 1.2, 0); ctx.lineTo(len * 0.9, 0); ctx.stroke();
+  ctx.restore();
+}
+function frame(now) {
+  const dpr = devicePixelRatio || 1;
+  if (cv.width !== W * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const t = clock(), g = finalGeom();
+
+  ctx.globalCompositeOperation = "lighter";
+  const hp = hands();
+  for (const p of sparks) {
+    const a = (t - p.born) / 1000;
+    if (a <= 0 || a > p.life) continue;
+    const x = hp[0] + p.vx * a + Math.sin(a * 3 + p.ph) * 8, y = hp[1] - p.vy * a - 30 * a * a;
+    ctx.globalAlpha = Math.min(1, a / 0.15) * (1 - a / p.life) * (0.7 + 0.3 * Math.sin(a * 20 + p.ph));
+    ctx.drawImage(sprite, x - p.s / 2, y - p.s / 2, p.s, p.s);
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
+
+  const o = t >= SWAP ? g.halo : [W / 2, haloY()];
+  for (const p of burst) {
+    const a = (t - p.born) / 1000;
+    if (a <= 0 || a > LIFE) continue;
+    const d = p.v * p.tau * (1 - Math.exp(-a / p.tau));
+    const x = o[0] + Math.cos(p.ang) * d + Math.sin(a * 1.6 + p.ph) * p.sway * a;
+    const y = o[1] + Math.sin(p.ang) * d * 0.8 + 22 * a * a;
+    const alpha = Math.min(1, a / 0.12) * Math.max(0, Math.min(1, 1 - (a - 0.8) / (LIFE - 0.8)));
+    feather(x, y, p.len, p.rot + p.spin * a, alpha, p.gold);
+  }
+  const k = Math.max(0, Math.min(1, (t - 5400) / 1200));
+  if (k > 0) {
+    ctx.globalCompositeOperation = "lighter";
+    const sec = (window.__virtualNow ?? now) / 1000, x0 = g.cx - W * 0.3, span = W * 0.6;
+    for (const m of dust) {
+      const y = ((m.y * H - sec * m.v) % H + H) % H;
+      const x = x0 + m.x * span + Math.sin(sec * 0.4 + m.ph) * 12;
+      ctx.globalAlpha = k * (0.35 + 0.35 * Math.sin(sec * 1.3 + m.ph));
+      const s = 10 * m.s;
+      ctx.drawImage(sprite, x - s / 2, y - s / 2, s, s);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+  }
+  if (!$("proto").hidden) { $("pScrub").value = t; $("pTime").value = (t / 1000).toFixed(2) + " s"; }
+  requestAnimationFrame(frame);
+}
+
+// Skip: the button, Esc, a click or a scroll all finish the intro at once.
+$("skip").addEventListener("click", (e) => { e.stopPropagation(); skip(); });
+addEventListener("keydown", (e) => { if (e.key === "Escape") skip(); });
+$("stage").addEventListener("click", (e) => { if (clock() < T && !e.target.closest("#ui")) skip(); });
+addEventListener("wheel", () => { if (clock() < T && anims[0]?.playState === "running") skip(); }, { passive: true });
+addEventListener("resize", build);
+
+function reducedMotion() {
+  skip();
+  $("stage").animate([{ opacity: 0 }, { opacity: 1 }], { duration: 600, easing: "ease-out" });
+}
+
+window.__ready = Promise.all([loadFirst($("art"), ART_SRC), loadFirst($("bg"), BG_SRC), document.fonts.ready]).then(() => {
+  $("loading").remove();
+  build();
+  requestAnimationFrame(frame);
+  if (!qs.has("clean")) {
+    $("proto").hidden = false;
+    $("pReplay").onclick = () => { seek(0); play(); };
+    $("pPause").onclick = () => (anims[0].playState === "running" ? seek(clock()) : play());
+    $("pRate").onchange = (e) => setRate(+e.target.value);
+    $("pScrub").oninput = (e) => seek(+e.target.value);
+    $("pReduced").onclick = () => { seek(0); reducedMotion(); };
+  }
+  window.__seek = seek; window.__play = play; window.__T = T;
+  // For frame-by-frame capture: seek, pin the dust clock, and wait for the canvas to draw.
+  window.__step = (t) => { seek(t); window.__virtualNow = t; return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); };
+  if (qs.has("hold")) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || qs.has("reduced")) reducedMotion();
+  else play();
+});
+</script>
+</body>
+</html>

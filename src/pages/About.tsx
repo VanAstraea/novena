@@ -1,25 +1,8 @@
-import { Await, useAsync } from "../components/ui";
+import { useAsync } from "../components/ui";
 import { manifest } from "../lib/data";
 import { date } from "../lib/format";
 import { href } from "../lib/router";
 import { REPO_URL, SUPPORT } from "../config";
-
-const SOURCES = [
-  { name: "ArknightsAssets / ArknightsGamedata", url: "https://github.com/ArknightsAssets/ArknightsGamedata", key: "gamedata",
-    what: "Game tables for all four servers: operators, skills, modules, items, stages, events.", license: "Game data © Hypergryph / Yostar" },
-  { name: "Penguin Statistics", url: "https://penguin-stats.io/", key: "penguin",
-    what: "Crowd-sourced drop rates per server, for the farming planner.", license: "CC BY-NC 4.0" },
-  { name: "Yituliu (ark.yituliu.cn)", url: "https://ark.yituliu.cn/", key: "yituliu",
-    what: "Material values in sanity, and how ~100k CN accounts build each operator.", license: "Used with credit; see their site" },
-  { name: "MAA Copilot (prts.plus)", url: "https://prts.plus/", key: "copilot",
-    what: "Community clear guides, read for usage statistics only (no guide is republished).", license: "Community-submitted; used for aggregates" },
-  { name: "MAA (MaaAssistantArknights)", url: "https://github.com/MaaAssistantArknights/MaaAssistantArknights", key: "maa",
-    what: "Integrated Strategies priorities and base skill values, used as data only.", license: "AGPL-3.0 (data files)" },
-  { name: "Arknights Toolbox depot recognition", url: "https://github.com/arkntools/depot-recognition", key: "dr",
-    what: "Reads depot screenshots on your device (item matching and digit reading).", license: "MIT (bundled; see notices)" },
-  { name: "ArknightsGameResource", url: "https://github.com/yuanyan3060/ArknightsGameResource", key: "art",
-    what: "Operator avatars, skill and item icons, loaded from this mirror (not bundled).", license: "Art © Hypergryph / Yostar" },
-];
 
 export default function About() {
   const m = useAsync(manifest, []);
@@ -42,36 +25,13 @@ export default function About() {
         <p><a href={href("/settings")}>Back up or delete your data</a></p>
       </section>
       <section class="card">
-        <h2>Data sources and credits</h2>
-        <p>A scheduled job fetches each source once a day and publishes static files; your browser never contacts these services directly. Thank you to everyone who runs and contributes to them.</p>
-        <Await state={m} what="data dates">
-          {(man) => (
-            <div class="table-wrap">
-              <table class="cards">
-                <thead><tr><th>Source</th><th>Used for</th><th>License</th><th>Last updated</th></tr></thead>
-                <tbody>
-                  {SOURCES.map((s) => {
-                    const t = s.key === "penguin" ? Math.max(0, ...Object.values(man.servers).map((x) => x?.penguin || 0)) : man.sources[s.key]?.date;
-                    return (
-                      <tr key={s.name}>
-                        <td data-label="Source"><a href={s.url} rel="noopener">{s.name}</a></td>
-                        <td data-label="Used for">{s.what}</td>
-                        <td data-label="License">{s.license}</td>
-                        <td data-label="Last updated">{t ? date(t) : s.key === "art" || s.key === "maa" ? "Live mirror" : s.key === "dr" ? "Library" : "–"}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Await>
-        {m.data && <p class="muted" style={{ marginTop: "8px" }}>This site's data was built {date(m.data.built)}. {m.data.sources.copilot?.guides?.toLocaleString()} clear guides counted.</p>}
-        <p class="muted">Both usage sources are CN, which runs ahead of the other servers: rankings hold, but percentages read lower than they will be once your server catches up. Estimates are labelled where they appear.</p>
+        <h2>Where everything comes from</h2>
+        <p>Game tables, drop rates, material values and community statistics are fetched once a day by a scheduled job; operator art and icons load from community mirrors. Every source, image mirror, font and open-source package is listed with its license on the <a href={href("/credits")}>Credits</a> page.</p>
+        {m.data && <p class="muted">This site's data was built {date(m.data.built)}. {m.data.sources.copilot?.guides?.toLocaleString()} community clear guides counted.</p>}
+        <p class="muted">Usage statistics come from CN, which runs ahead of the other servers: rankings hold, but percentages read lower than they will be once your server catches up. Estimates are labelled where they appear.</p>
       </section>
       <section class="card" id="support">
         <h2>Feedback and support</h2>
-        <p>Open-source libraries the site bundles, with their licenses: <a href={`${import.meta.env.BASE_URL}THIRD_PARTY_NOTICES.txt`}>third-party notices</a>.</p>
         <p>Found a wrong number or have an idea? <a href={`${REPO_URL}/issues`} rel="noopener">Open an issue on GitHub</a>.</p>
         {SUPPORT.length > 0 && (
           <p>If the tool helps you, you can support its development: {SUPPORT.map((s, i) => <span key={s.url}>{i ? " · " : ""}<a href={s.url} rel="noopener">{s.label}</a></span>)}. Donations are optional and unlock nothing; hosting is free, so they go to development time.</p>

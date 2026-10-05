@@ -1,7 +1,8 @@
 // Settings and the single-file backup. Everything here works on this browser's storage only.
 import { useState } from "preact/hooks";
 import { Explain } from "../components/ui";
-import { clearAll, getItem, keys, setItem } from "../lib/storage";
+import { clearAll, getItem, keys, setItem, setPref } from "../lib/storage";
+import { href, navigate } from "../lib/router";
 import { SERVERS, server, theme, type Theme } from "../state";
 import type { Server } from "../types";
 
@@ -80,6 +81,9 @@ export default function Settings() {
           </label>
         </div>
         <Explain>The server sets operator names, what's available, drop rates, reset times and upcoming dates. Each server keeps its own roster.</Explain>
+        <p style={{ marginTop: "12px" }}>
+          <button onClick={() => { setPref("introSeen", ""); navigate(href("/", { intro: 1 })); }}>Play the intro again</button>
+        </p>
       </section>
     </div>
   );

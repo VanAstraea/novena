@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novena card-to-page preview</title>
+<!-- Preview only. The live site self-hosts its fonts (no third-party requests). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #06080f;
+  --surface: #0c1222;
+  --surface-2: #121a2e;
+  --gold: #d8b25a;
+  --gold-hi: #f3d993;
+  --ivory: #f5f0e6;
+  --muted: #aab1c0;
+  --line: rgba(243, 217, 147, 0.2);
+  --glass: rgba(10, 16, 32, 0.5);
+  --serif: "Cormorant Garamond", Georgia, serif;
+  --sans: Inter, system-ui, sans-serif;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--ink); color: var(--ivory); font-family: var(--sans); }
+body { overflow: hidden; }
+a { color: inherit; }
+
+.top { position: relative; z-index: 3; height: 64px; display: flex; align-items: center; gap: 28px; padding: 0 44px; background: rgba(6, 8, 15, 0.92); border-bottom: 1px solid rgba(243, 217, 147, 0.12); view-transition-name: header; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; font-family: var(--serif); font-size: 24px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
+.top nav { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.top nav a { padding: 8px 12px; color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+.top nav a[aria-current] { color: var(--ivory); box-shadow: inset 0 -2px 0 var(--gold); }
+.pill { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 12px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 13px; }
+kbd { font-family: var(--sans); font-size: 11px; padding: 1px 6px; border: 1px solid var(--line); color: var(--muted); }
+
+/* Operator list */
+.list { padding: 34px 44px; }
+.list-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.eyebrow { margin: 0 0 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold-hi); }
+.list h1 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 52px; letter-spacing: 0.04em; line-height: 1; }
+.filters { display: flex; gap: 8px; }
+.chip { padding: 7px 14px; border: 1px solid var(--line); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); background: rgba(10, 16, 32, 0.4); }
+.chip[aria-pressed="true"] { color: var(--ivory); background: var(--surface-2); box-shadow: inset 0 -2px 0 var(--gold); }
+.grid { margin-top: 26px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 14px; }
+.pcard { position: relative; display: block; aspect-ratio: 1 / 1.62; overflow: hidden; text-decoration: none; background: linear-gradient(180deg, #1a2440, #0b1020); border: 1px solid rgba(243, 217, 147, 0.14);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%); transition: transform .25s var(--ease), border-color .25s; }
+.pcard::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; z-index: 2; background: linear-gradient(90deg, #f6d27a, #e09a3a); }
+.pcard:hover { transform: translateY(-4px); border-color: rgba(243, 217, 147, 0.45); }
+.pcard .art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
+.pcard .cls { position: absolute; top: 9px; left: 8px; z-index: 2; width: 26px; height: 26px; padding: 3px; background: rgba(6, 8, 15, 0.7); }
+.pcard .foot { position: absolute; inset: auto 0 0; padding: 30px 10px 10px; background: linear-gradient(0deg, rgba(6, 8, 15, 0.96) 30%, transparent); }
+.stars { color: var(--gold-hi); font-size: 11px; letter-spacing: 1px; }
+.pcard .name { display: block; width: fit-content; margin-top: 2px; font-family: var(--serif); font-size: 19px; font-weight: 600; line-height: 1.1; }
+.pcard.arrive { animation: arrive .6s var(--ease) both; }
+@keyframes arrive { from { transform: scale(1.08); box-shadow: 0 0 0 1px var(--gold-hi), 0 0 40px rgba(243, 217, 147, 0.5); } }
+.pcard small { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); }
+
+/* Operator page */
+.hero { position: relative; height: calc(100vh - 64px); overflow: hidden; }
+.hero .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; filter: brightness(0.32) saturate(0.7) sepia(0.12); animation: fade .8s .1s both; }
+.hero .tint { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(6, 8, 15, 0.96) 0%, rgba(6, 8, 15, 0.8) 34%, rgba(6, 8, 15, 0.15) 62%, rgba(6, 8, 15, 0.45) 100%), linear-gradient(0deg, rgba(6, 8, 15, 0.9), transparent 30%); }
+.hero .glow { position: absolute; right: 8vw; top: 6vh; width: 80vmin; height: 80vmin; border-radius: 50%; background: radial-gradient(circle, rgba(243, 217, 147, 0.22), transparent 65%); mix-blend-mode: screen; animation: fade 1s .25s both; }
+.hero .splash { position: absolute; right: 2vw; top: 0; height: 104%; width: auto; max-width: 62vw; object-fit: contain; }
+.copy { position: absolute; left: 6vw; top: 50%; transform: translateY(-50%); width: min(560px, 42vw); }
+.copy > * { animation: rise .55s var(--ease) both; animation-delay: calc(var(--i) * 60ms + 260ms); }
+.back { display: inline-flex; gap: 8px; align-items: center; margin-bottom: 26px; padding: 6px 12px 6px 8px; border: 1px solid var(--line); color: var(--muted); font: inherit; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; background: transparent; cursor: pointer; }
+.ident { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold-hi); }
+.ident img { width: 30px; height: 30px; padding: 4px; background: rgba(243, 217, 147, 0.12); border: 1px solid var(--line); }
+.copy h1 { width: fit-content; margin: 14px 0 6px; font-family: var(--serif); font-weight: 600; font-size: 78px; line-height: 0.95; letter-spacing: 0.02em; text-shadow: 0 0 40px rgba(243, 217, 147, 0.18); }
+.copy .stars { font-size: 18px; letter-spacing: 3px; }
+.badges { display: flex; gap: 8px; margin-top: 14px; }
+.badge { padding: 4px 10px; border: 1px solid var(--line); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.build { display: flex; gap: 10px; margin-top: 24px; align-items: center; }
+.seg { display: flex; border: 1px solid var(--line); }
+.seg button { height: 34px; padding: 0 14px; border: 0; border-right: 1px solid var(--line); background: rgba(10, 16, 32, 0.5); color: var(--muted); font: inherit; font-size: 13px; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { color: var(--ivory); background: var(--surface-2); box-shadow: inset 0 -3px 0 var(--gold); }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 18px; background: var(--line); border: 1px solid var(--line); }
+.stats div { padding: 10px 12px; background: rgba(8, 12, 24, 0.82); }
+.stats .k { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+.stats .v { font-family: var(--serif); font-size: 26px; font-weight: 600; }
+.actions { display: flex; gap: 10px; margin-top: 22px; }
+.btn { height: 42px; padding: 0 20px; border: 1px solid var(--line); background: transparent; color: var(--ivory); font: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); }
+.btn.primary { background: var(--gold); border-color: var(--gold); color: #140f05; }
+.tabs { position: absolute; left: 6vw; bottom: 0; display: flex; gap: 2px; animation: rise .55s var(--ease) .6s both; }
+.tabs a { padding: 14px 18px; color: var(--muted); text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; }
+.tabs a[aria-current] { color: var(--ivory); box-shadow: inset 0 -2px 0 var(--gold); }
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } }
+@keyframes fade { from { opacity: 0; } }
+
+/* The shared-element morph */
+::view-transition-group(op-art), ::view-transition-group(op-name) { animation-duration: .62s; animation-timing-function: var(--ease); }
+::view-transition-old(op-art), ::view-transition-new(op-art) { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; animation-duration: .62s; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+
+#note { position: fixed; right: 14px; bottom: 12px; z-index: 9; padding: 6px 10px; background: rgba(0, 0, 0, 0.7); border: 1px solid #333; border-radius: 6px; font-size: 12px; color: #ccc; }
+#note[hidden] { display: none; }
+#note a { color: #f3d993; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#">
+    <img src="../logo/novena-mark.svg" width="32" height="32" alt="">
+    Novena
+  </a>
+  <nav aria-label="Main">
+    <a href="#" aria-current="page">Operators</a><a href="#">Compare</a><a href="#">Planner</a><a href="#">Farming</a>
+    <a href="#">Recruit</a><a href="#">Rankings</a><a href="#">Upcoming</a><a href="#">My account</a>
+  </nav>
+  <button class="pill">Search <kbd>Ctrl K</kbd></button>
+</header>
+<main id="view"></main>
+<p id="note">Click a card, then Back. <a href="intro.html">‹ Intro</a></p>
+
+<script>
+const REFS = "../../../.cache/design-refs/";
+const MIRROR = "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main";
+const UI = "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/cn/assets/dyn/arts";
+const BG = REFS + "26_g2_laterano_cathedralhall.png";
+const OPS = [
+  { id: "char_4193_lemuen", name: "Lemuen", cls: "SNIPER", label: "Sniper", branch: "Deadeye",
+    stats: { HP: "1,448", ATK: "1,201", DEF: "175", RES: "0", "DP cost": "22", Block: "1", Interval: "2.7 s", Redeploy: "70 s" } },
+  { id: "char_300_phenxi", name: "Fiammetta", cls: "SNIPER", label: "Sniper", branch: "Artilleryman" },
+  { id: "char_213_mostma", name: "Mostima", cls: "CASTER", label: "Caster", branch: "Splash Caster" },
+  { id: "char_1032_excu2", name: "Executor the Ex Foedere", cls: "WARRIOR", label: "Guard", branch: "Reaper" },
+  { id: "char_245_cello", name: "Virtuosa", cls: "SUPPORT", label: "Supporter", branch: "Ritualist" },
+  { id: "char_332_archet", name: "Archetto", cls: "SNIPER", label: "Sniper", branch: "Marksman" },
+  { id: "char_4194_rmixer", name: "Sankta Miksaparato", cls: "TANK", label: "Defender", branch: "Sentry Protector" },
+  { id: "char_103_angel", name: "Exusiai", cls: "SNIPER", label: "Sniper", branch: "Marksman" },
+];
+const portrait = (o) => REFS + `portrait_${o.id}.png`;
+const splash = (o) => (o.id === "char_4193_lemuen" ? REFS + "skin_char_4193_lemuen_2b.png" : `${MIRROR}/skin/${o.id}_2b.png`);
+const clsIcon = (o) => `${UI}/profession_large_hub/icon_profession_${o.cls.toLowerCase()}_large_white.png`;
+const view = document.getElementById("view");
+const qs = new URLSearchParams(location.search);
+let current = null;
+
+function listHTML() {
+  return `<section class="list">
+    <div class="list-head">
+      <div><p class="eyebrow">Operators</p><h1>Laterano</h1></div>
+      <div class="filters"><span class="chip">All</span><span class="chip" aria-pressed="true">6★</span><span class="chip" aria-pressed="true">Laterano</span><span class="chip">Sort: rarity</span></div>
+    </div>
+    <div class="grid">${OPS.map((o, i) => `
+      <a class="pcard" href="#" data-i="${i}">
+        <img class="art" src="${portrait(o)}" onerror="this.onerror=null;this.src='${MIRROR}/portrait/${o.id}_1.png'" alt="">
+        <img class="cls" src="${clsIcon(o)}" alt="${o.label}">
+        <div class="foot"><div class="stars">★★★★★★</div><b class="name">${o.name}</b><small>${o.branch}</small></div>
+      </a>`).join("")}</div>
+  </section>`;
+}
+
+function opHTML(o) {
+  const stats = o.stats ? `<div class="stats" style="--i:5">${Object.entries(o.stats).map(([k, v]) => `<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")}</div>` : "";
+  return `<section class="hero">
+    <img class="bg" src="${BG}" alt="">
+    <div class="tint"></div><div class="glow"></div>
+    <img class="splash" src="${splash(o)}" alt="${o.name}">
+    <div class="copy">
+      <button class="back" style="--i:0">← Operators</button>
+      <div class="ident" style="--i:1"><img src="${clsIcon(o)}" alt="">${o.label} · ${o.branch}</div>
+      <h1>${o.name}</h1>
+      <div class="stars" style="--i:2">★★★★★★</div>
+      <div class="badges" style="--i:3"><span class="badge">Laterano</span><span class="badge">Headhunting</span><span class="badge">EN · JP · KR · CN</span></div>
+      <div class="build" style="--i:4">
+        <div class="seg"><button>E0</button><button>E1</button><button aria-pressed="true">E2</button></div>
+        <div class="seg"><button aria-pressed="true">Lv 90</button></div>
+        <div class="seg"><button aria-pressed="true">Trust 100%</button></div>
+      </div>
+      ${stats}
+      <div class="actions" style="--i:6"><button class="btn primary">Plan upgrades</button><button class="btn">Compare</button></div>
+    </div>
+    <nav class="tabs"><a href="#" aria-current="page">Overview</a><a href="#">Skills</a><a href="#">Modules</a><a href="#">Base</a><a href="#">Costs</a></nav>
+  </section>`;
+}
+
+const settle = (img, ms = 1500) => Promise.race([img.decode().catch(() => {}), new Promise((r) => setTimeout(r, ms))]);
+function transition(update) {
+  if (!document.startViewTransition) return update();
+  const vt = document.startViewTransition(update);
+  // ?step (used for recording): hold every animation once the transition is ready, so frames can be stepped.
+  if (qs.has("step")) vt.ready.then(() => { document.getAnimations().forEach((a) => a.pause()); window.__vtReady?.(); });
+  return vt.finished;
+}
+const frame2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+window.__vtSeek = (t) => { document.getAnimations().forEach((a) => (a.currentTime = t)); return frame2(); };
+window.__vtEnd = () => { document.getAnimations().forEach((a) => a.finish()); return frame2(); };
+window.__open = (i) => new Promise((r) => { window.__vtReady = r; openOp(i); });
+window.__back = () => new Promise((r) => { window.__vtReady = r; back(); });
+
+async function openOp(i) {
+  const o = OPS[i], card = view.querySelector(`[data-i="${i}"]`);
+  card.querySelector(".art").style.viewTransitionName = "op-art";
+  card.querySelector(".name").style.viewTransitionName = "op-name";
+  current = i;
+  await transition(async () => {
+    view.innerHTML = opHTML(o);
+    view.querySelector(".splash").style.viewTransitionName = "op-art";
+    view.querySelector("h1").style.viewTransitionName = "op-name";
+    await settle(view.querySelector(".splash"));
+  });
+}
+
+async function back() {
+  const i = current;
+  view.querySelector(".splash").style.viewTransitionName = "";
+  await transition(async () => {
+    view.innerHTML = listHTML();
+    const card = view.querySelector(`[data-i="${i}"]`);
+    card.querySelector(".name").style.viewTransitionName = "op-name";
+    card.classList.add("arrive");
+  });
+  view.querySelectorAll("[style*=view-transition-name]").forEach((el) => (el.style.viewTransitionName = ""));
+}
+
+view.addEventListener("click", (e) => {
+  const card = e.target.closest(".pcard");
+  if (card) { e.preventDefault(); openOp(+card.dataset.i); }
+  if (e.target.closest(".back")) back();
+});
+// Warm the splash art on hover so the morph has its target ready.
+view.addEventListener("pointerover", (e) => { const c = e.target.closest(".pcard"); if (c) new Image().src = splash(OPS[+c.dataset.i]); });
+
+view.innerHTML = listHTML();
+if (qs.has("auto") || qs.has("step")) document.getElementById("note").hidden = true;
+window.__ready = Promise.all([...view.querySelectorAll("img")].map((im) => settle(im, 4000)))
+  .then(() => { const im = new Image(); im.src = splash(OPS[0]); return settle(im, 4000); });
+window.__play = () => { setTimeout(() => openOp(0), 900); setTimeout(back, 4000); };
+</script>
+</body>
+</html>

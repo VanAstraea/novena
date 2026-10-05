@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Novena emblem sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #06080f; color: #f5f0e6; font-family: Inter, system-ui, sans-serif; }
+  .sheet { display: grid; grid-template-columns: 620px 1fr; gap: 0; width: 1440px; }
+  .hero { display: grid; place-items: center; height: 760px; background: radial-gradient(circle at 50% 45%, #16223f, #06080f 70%); }
+  .hero img { width: 520px; filter: drop-shadow(0 0 40px rgba(243, 217, 147, 0.25)); }
+  .side { display: grid; grid-template-rows: 1fr 1fr; }
+  .row { display: flex; align-items: center; gap: 44px; padding: 0 48px; border-left: 1px solid #1c2440; }
+  .row + .row { border-top: 1px solid #1c2440; }
+  .light { background: #f3efe6; color: #1b1a17; }
+  figure { margin: 0; display: grid; justify-items: center; gap: 10px; }
+  figcaption { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; }
+  .lockup { display: flex; align-items: center; gap: 14px; font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 40px; letter-spacing: 0.18em; }
+  .mono { color: #1b1a17; }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="hero"><img src="novena-emblem.svg" alt="Novena emblem"></div>
+  <div class="side">
+    <div class="row">
+      <figure><img src="novena-crest.svg" width="220" alt=""><figcaption>Crest</figcaption></figure>
+      <figure><img src="novena-mark.svg" width="96" alt=""><figcaption>Mark 96</figcaption></figure>
+      <figure><img src="novena-mark.svg" width="48" alt=""><figcaption>48</figcaption></figure>
+      <figure><img src="novena-mark.svg" width="24" alt=""><figcaption>24</figcaption></figure>
+      <figure><div class="lockup"><img src="novena-mark.svg" width="44" alt="">NOVENA</div><figcaption>Header lockup</figcaption></figure>
+    </div>
+    <div class="row light">
+      <figure><img src="novena-crest.svg" width="220" alt=""><figcaption>On light</figcaption></figure>
+      <figure><img src="novena-mark.svg" width="48" alt=""><figcaption>48</figcaption></figure>
+      <figure><img src="novena-mark-mono.svg" width="48" alt=""><figcaption>Mono 48</figcaption></figure>
+      <figure><img src="novena-mark-mono.svg" width="24" alt=""><figcaption>Mono 24</figcaption></figure>
+      <figure><div class="lockup"><img src="novena-mark.svg" width="44" alt="">NOVENA</div><figcaption>Lockup on light</figcaption></figure>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f8e3a3"/><stop offset=".55" stop-color="#d9b25c"/><stop offset="1" stop-color="#a8792e"/>
+  </linearGradient>
+  <linearGradient id="ivory" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#fbf8f0"/>
+  </linearGradient>
+  <linearGradient id="feather" x1="1" y1="0" x2="0" y2="0">
+    <stop offset="0" stop-color="#fbf8f0"/><stop offset="1" stop-color="#d6ccb6"/>
+  </linearGradient>
+  <radialGradient id="core" cx=".5" cy=".5" r=".5">
+    <stop offset="0" stop-color="#fff6d8"/><stop offset="1" stop-color="#d9b25c"/>
+  </radialGradient>
+</defs>
+  
+  <g>
+    <path d="M269.1 228.8 L307.3 115 L263.4 226.8 Z" fill="#fbf8f0" opacity=".55"/>
+    <path d="M283.5 243.6 L385.9 181 L280.5 238.4 Z" fill="#fbf8f0" opacity=".55"/>
+    <path d="M285 264.2 L403.7 282 L286.1 258.3 Z" fill="#fbf8f0" opacity=".55"/>
+    <path d="M273 280.9 L352.4 370.9 L277.6 277.1 Z" fill="#fbf8f0" opacity=".55"/>
+    <path d="M253 286 L256 406 L259 286 Z" fill="#fbf8f0" opacity=".55"/>
+    <path d="M234.4 277.1 L159.6 370.9 L239 280.9 Z" fill="#fbf8f0" opacity=".55"/>
+    <path d="M225.9 258.3 L108.3 282 L227 264.2 Z" fill="#fbf8f0" opacity=".55"/>
+    <path d="M231.5 238.4 L126.1 181 L228.5 243.6 Z" fill="#fbf8f0" opacity=".55"/>
+    <path d="M248.6 226.8 L204.7 115 L242.9 228.8 Z" fill="#fbf8f0" opacity=".55"/>
+    <path d="M263 226 L256 56 L249 226 Z" fill="url(#gold)"/>
+    <path d="M280.6 237.5 L384.6 102.8 L269.9 228.5 Z" fill="url(#gold)"/>
+    <path d="M286.8 257.7 L453 221.3 L284.3 243.9 Z" fill="url(#gold)"/>
+    <path d="M278.5 277.1 L429.2 356 L285.5 264.9 Z" fill="url(#gold)"/>
+    <path d="M259.7 286.6 L324.4 443.9 L272.8 281.8 Z" fill="url(#gold)"/>
+    <path d="M239.2 281.8 L187.6 443.9 L252.3 286.6 Z" fill="url(#gold)"/>
+    <path d="M226.5 264.9 L82.8 356 L233.5 277.1 Z" fill="url(#gold)"/>
+    <path d="M227.7 243.9 L59 221.3 L225.2 257.7 Z" fill="url(#gold)"/>
+    <path d="M242.1 228.5 L127.4 102.8 L231.4 237.5 Z" fill="url(#gold)"/>
+  </g>
+  <path d="M174 150 A82 21 0 0 1 338 150" fill="none" stroke="url(#gold)" stroke-width="7" stroke-linecap="round"/>
+  <g>
+    <path d="M236 300 Q172 305 96 348 Q153.6 333.3 236 300 Z" fill="url(#feather)" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M236 300 L96 348" stroke="#a8792e" stroke-width="1" opacity=".55"/>
+    <path d="M236 300 Q160.2 279.8 56 302 Q128.1 307.5 236 300 Z" fill="url(#feather)" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M236 300 L56 302" stroke="#a8792e" stroke-width="1" opacity=".55"/>
+    <path d="M236 300 Q160.6 252.3 40 246 Q116.3 275.1 236 300 Z" fill="url(#feather)" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M236 300 L40 246" stroke="#a8792e" stroke-width="1" opacity=".55"/>
+    <path d="M236 300 Q174 227.5 52 186 Q121 239 236 300 Z" fill="url(#feather)" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M236 300 L52 186" stroke="#a8792e" stroke-width="1" opacity=".55"/>
+    <path d="M236 300 Q198.5 208.5 92 128 Q142.7 202.6 236 300 Z" fill="url(#feather)" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M236 300 L92 128" stroke="#a8792e" stroke-width="1" opacity=".55"/>
+  </g>
+  <g transform="translate(512 0) scale(-1 1)">
+    <path d="M236 300 Q172 305 96 348 Q153.6 333.3 236 300 Z" fill="url(#feather)" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M236 300 L96 348" stroke="#a8792e" stroke-width="1" opacity=".55"/>
+    <path d="M236 300 Q160.2 279.8 56 302 Q128.1 307.5 236 300 Z" fill="url(#feather)" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M236 300 L56 302" stroke="#a8792e" stroke-width="1" opacity=".55"/>
+    <path d="M236 300 Q160.6 252.3 40 246 Q116.3 275.1 236 300 Z" fill="url(#feather)" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M236 300 L40 246" stroke="#a8792e" stroke-width="1" opacity=".55"/>
+    <path d="M236 300 Q174 227.5 52 186 Q121 239 236 300 Z" fill="url(#feather)" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M236 300 L52 186" stroke="#a8792e" stroke-width="1" opacity=".55"/>
+    <path d="M236 300 Q198.5 208.5 92 128 Q142.7 202.6 236 300 Z" fill="url(#feather)" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M236 300 L92 128" stroke="#a8792e" stroke-width="1" opacity=".55"/>
+  </g>
+  <path d="M256 58 Q243 253.2 138 274 Q243 294.8 256 470 Z" fill="url(#ivory)"/>
+  <path d="M256 58 Q269 253.2 374 274 Q269 294.8 256 470 Z" fill="#d6ccb6"/>
+  <path d="M256 58 Q243 253.2 138 274 Q243 294.8 256 470 Z M256 58 Q269 253.2 374 274 Q269 294.8 256 470 Z" fill="none" stroke="url(#gold)" stroke-width="2.5" stroke-linejoin="miter"/>
+  <path d="M256 58 L256 470" stroke="#a8792e" stroke-width="1.2" opacity=".6"/>
+  <path d="M338 150 A82 21 0 0 1 174 150" fill="none" stroke="url(#gold)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M352 150 A96 25 0 0 1 160 150" fill="none" stroke="#f8e3a3" stroke-width="1.4" opacity=".7"/>
+  <path d="M256 250 L272 274 L256 298 L240 274 Z" fill="url(#core)" stroke="#a8792e" stroke-width="1.5"/>
+  <path d="M256 262 L263 274 L256 286 L249 274 Z" fill="#0b1020"/>
+</svg>

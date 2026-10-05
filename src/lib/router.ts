@@ -25,11 +25,44 @@ export function href(path: string, query?: Record<string, string | number | unde
   return BASE + path.replace(/^\//, "") + (s ? `?${s}` : "");
 }
 
-export function navigate(to: string, opts: { replace?: boolean } = {}): void {
-  if (opts.replace) history.replaceState(null, "", to);
-  else history.pushState(null, "", to);
-  route.value = current();
-  if (!opts.replace) window.scrollTo(0, 0);
+export function navigate(to: string, opts: { replace?: boolean; morph?: Element | null } = {}): void {
+  const go = () => {
+    if (opts.replace) history.replaceState(null, "", to);
+    else history.pushState(null, "", to);
+    route.value = current();
+    if (!opts.replace) window.scrollTo(0, 0);
+  };
+  // Page changes cross-fade; an operator card grows into the operator page's splash art (a View Transition).
+  if (opts.replace || !document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) return go();
+  const named = morphNames(opts.morph);
+  const vt = document.startViewTransition(async () => {
+    go();
+    await settle(named.length > 0);
+  });
+  vt.finished.finally(() => named.forEach((el) => (el.style.viewTransitionName = "")));
+}
+
+/** Name the clicked card's portrait and name so they morph into the operator page's splash art and title. */
+function morphNames(card: Element | null | undefined): HTMLElement[] {
+  const img = card?.querySelector<HTMLElement>("img.portrait"), name = card?.querySelector<HTMLElement>(".nm");
+  if (!img || !name) return [];
+  img.style.viewTransitionName = "op-art";
+  name.style.viewTransitionName = "op-name";
+  return [img, name];
+}
+
+/** Let the new page render (and, for a morph, its splash art load) before the transition captures it. Timers, not
+ *  animation frames: the browser pauses rendering while a transition's update runs, so frames would never come. */
+async function settle(waitForArt: boolean): Promise<void> {
+  const tick = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  await tick(0);
+  if (!waitForArt) return;
+  const until = performance.now() + 250;
+  while (performance.now() < until) {
+    const img = document.querySelector<HTMLImageElement>(".ophero img.splash");
+    if (img?.complete && img.naturalWidth) return;
+    await tick(16);
+  }
 }
 
 /** Replace the query string of the current page without adding a history entry (filters, pickers). */
@@ -51,5 +84,5 @@ document.addEventListener("click", (e) => {
   if (!a || a.target || a.hasAttribute("download") || a.origin !== location.origin) return;
   if (!a.pathname.startsWith(BASE.replace(/\/$/, "")) || /\.\w+$/.test(a.pathname)) return;
   e.preventDefault();
-  navigate(a.pathname + a.search + a.hash);
+  navigate(a.pathname + a.search + a.hash, { morph: a.matches("[data-morph]") ? a : null });
 });

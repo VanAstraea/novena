@@ -40,9 +40,10 @@ export async function opMap(s: Server): Promise<Map<string, OpIndex>> {
 
 // Images come from community mirrors of the game's art (they belong to Hypergryph/Yostar and aren't bundled here):
 // operator art and item, skill and base-skill icons from ArknightsGameResource; game UI icons (classes, branches,
-// modules, elite, potential, mastery, rarity) from the ArknightsAssets dump.
+// modules, elite, potential, mastery, rarity) and story scenes from the ArknightsAssets dump.
 const ART = "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main";
-const UI = "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/cn/assets/dyn/arts";
+const DYN = "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/cn/assets/dyn";
+const UI = `${DYN}/arts`;
 const e = encodeURIComponent;
 export const art = {
   avatar: (id: string) => `${ART}/avatar/${e(id)}.png`,
@@ -50,6 +51,10 @@ export const art = {
   portraits: (id: string, elite = 0) => [...(elite >= 2 ? [`${ART}/portrait/${e(id)}_2.png`] : []), `${ART}/portrait/${e(id)}_1.png`],
   /** Full splash art (about 1 MB each: load only where it's the point). */
   splashes: (id: string, elite = 0) => [...(elite >= 2 ? [`${ART}/skin/${e(id)}_2b.png`] : []), `${ART}/skin/${e(id)}_1b.png`],
+  /** An outfit's full art, by its skin file name ("char_4193_lemuen_ambienceSynesthesia#7b"). */
+  skin: (file: string) => `${ART}/skin/${e(file)}.png`,
+  /** A story-mode scene background (1024 × 576). */
+  scene: (name: string) => `${DYN}/avg/backgrounds/${e(name)}.png`,
   item: (icon: string) => `${ART}/item/${e(icon)}.png`,
   skill: (icon: string) => `${ART}/skill/skill_icon_${e(icon)}.png`,
   riic: (icon: string) => `${ART}/building_skill/${e(icon)}.png`,

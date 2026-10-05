@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const PAGES: [string, RegExp][] = [
-  ["/", /Novena/],
+  ["/", /Novena/i],
   ["/operators", /Operators/],
   ["/operator/char_202_demkni", /Saria/],
   ["/operator/char_202_demkni?tab=skills", /Saria/],
@@ -19,6 +19,7 @@ const PAGES: [string, RegExp][] = [
   ["/pulls", /Pull planner/],
   ["/settings", /Settings/],
   ["/about", /About/],
+  ["/credits", /Credits/],
 ];
 
 // Images come from a third-party mirror; a missing one isn't a site error.

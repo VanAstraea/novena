@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { effect } from "@preact/signals";
 import { SearchDialog, searchOpen } from "./components/Search";
 import { loadShared, useAsync } from "./components/ui";
-import { manifest } from "./lib/data";
+import { BASE, manifest } from "./lib/data";
 import { date } from "./lib/format";
 import { href, route } from "./lib/router";
 import { match, PAGES } from "./pages/registry";
@@ -18,15 +18,9 @@ effect(() => {
 
 const STALE_DAYS = 3;
 
-/** The Novena mark: a halo over a feather. */
+/** The Novena mark: a faceted star pierced by a halo. */
 export function Logo({ size = 30 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <ellipse cx="16" cy="6.5" rx="11" ry="3.6" fill="none" stroke="var(--accent)" stroke-width="2.2" />
-      <path d="M21 11 C 13 15.5, 9.5 22, 10.5 30 C 15.5 26.5, 20.5 20, 21 11 Z" fill="var(--text)" />
-      <path d="M21 11 C 17 17, 14 23, 10.5 30" fill="none" stroke="var(--bar)" stroke-width="1.1" />
-    </svg>
-  );
+  return <img src={`${BASE}novena-mark.svg`} width={size} height={size} alt="" />;
 }
 
 function Header() {
@@ -103,8 +97,8 @@ function Footer() {
           Data: game tables via <a href="https://github.com/ArknightsAssets/ArknightsGamedata" rel="noopener">ArknightsAssets</a>,
           drop rates from <a href="https://penguin-stats.io/" rel="noopener">Penguin Statistics</a> (CC BY-NC 4.0),
           material values and operator statistics from <a href="https://ark.yituliu.cn/" rel="noopener">Yituliu</a>,
-          clear guides from <a href="https://prts.plus/" rel="noopener">MAA Copilot</a>, IS and base data from <a href="https://github.com/MaaAssistantArknights/MaaAssistantArknights" rel="noopener">MAA</a>,
-          images from <a href="https://github.com/yuanyan3060/ArknightsGameResource" rel="noopener">ArknightsGameResource</a>. <a href={href("/about")}>Full credits</a>.
+          clear guides from the <a href="https://prts.plus/" rel="noopener">MAA Copilot</a> guide database, base and IS data from <a href="https://github.com/MaaAssistantArknights/MaaAssistantArknights" rel="noopener">MAA</a>'s resource files.
+          Images from <a href="https://github.com/yuanyan3060/ArknightsGameResource" rel="noopener">ArknightsGameResource</a> and <a href="https://github.com/ArknightsAssets/ArknightsAssets2" rel="noopener">ArknightsAssets2</a>. <a href={href("/credits")}>Full credits and licenses</a>.
         </p>
         <p>Unofficial fan tool. Not affiliated with Hypergryph, Yostar or Gryphline. Arknights and all game assets belong to their owners. Code: MIT.
           {SUPPORT.length > 0 && <> · <a href={href("/about") + "#support"}>Support the project</a></>}</p>
