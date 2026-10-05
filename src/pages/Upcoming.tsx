@@ -1,12 +1,14 @@
 // Upcoming content, with CN as the preview: events, operators, modules, banners and Contingency Contract.
-import { Avatar, Await, Explain, OpLink, Stars, Tabs, useAsync } from "../components/ui";
-import { operators, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
+import { Avatar, Await, Explain, ItemIcon, itemName, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
+import { costTable } from "../lib/account";
+import { planNeeds } from "../lib/needs";
+import { operators, shops as loadShops, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
 import { date, pct, relative } from "../lib/format";
 import { href, route, setQuery } from "../lib/router";
 import { account, hasRoster, server } from "../state";
-import type { OpIndex, UpcomingFile, UsageFile } from "../types";
+import type { OpIndex, ShopEvent, UpcomingFile, UsageFile } from "../types";
 
-type View = "events" | "operators" | "modules" | "banners" | "cc";
+type View = "events" | "shops" | "operators" | "modules" | "banners" | "cc";
 
 const KIND: Record<string, string> = { limited: "Limited", collab: "Collaboration", special: "Special (pick rate-ups)", kernel: "Kernel" };
 
@@ -41,10 +43,11 @@ export default function Upcoming() {
             <>
               <p class="muted">CN runs months ahead. Dates here are CN's plus the lag measured over the last events both servers ran ({up.lag_days ?? "?"} days); servers do skip and reorder things, collaborations especially.</p>
               <Tabs label="Upcoming sections" value={view} onChange={(v) => setQuery({ view: v === "events" ? "" : v })} tabs={[
-                { key: "events", label: `Events (${up.events.length})` }, { key: "operators", label: `Operators (${up.operators.length})` },
+                { key: "events", label: `Events (${up.events.length})` }, { key: "shops", label: "Event shops" }, { key: "operators", label: `Operators (${up.operators.length})` },
                 { key: "modules", label: "Modules" }, { key: "banners", label: `Banners (${up.banners.length})` }, { key: "cc", label: "Contingency Contract" },
               ]} />
               {view === "events" && <Events up={up} byId={byId} />}
+              {view === "shops" && <Shops ops={ops} />}
               {view === "operators" && <Operators up={up} byId={byId} usage={usage} />}
               {view === "modules" && <Modules up={up} byId={byId} usage={usage} />}
               {view === "banners" && <Banners up={up} byId={byId} usage={usage} />}
@@ -54,6 +57,64 @@ export default function Upcoming() {
         }}
       </Await>
     </div>
+  );
+}
+
+function Shops({ ops }: { ops: OpIndex[] }) {
+  const s = server.value;
+  const st = useAsync(() => Promise.all([loadShops(s), costTable(s)]), [s]);
+  return (
+    <Await state={st} what="event shops">
+      {([shops, costs]) => {
+        const items = itemsSig.value, meta = metaSig.value;
+        if (!items || !meta) return <p class="muted">Loading…</p>;
+        const needs = hasRoster.value ? planNeeds(ops, costs, meta, items) : null;
+        if (!shops.events.length) return <p class="muted">No event shop is recorded for the events running or coming here.</p>;
+        return (
+          <div class="stack">
+            {needs && needs.from === "none" && <p class="note">Set targets in the <a href={href("/planner")}>Upgrade planner</a> (or build a <a href={href("/plan")}>Plan</a>) to see which offers cover what you're short of.</p>}
+            {shops.events.map((e) => <ShopCard key={e.id} e={e} values={items.values} short={needs?.short || {}} />)}
+            <Explain>Shops come from Yituliu's record of every CN event shop; this server runs the same events later with the same shops. An offer's value is the sanity its items are worth (the planner's material values); "per token" ranks offers by value for the tokens. "You need" is how many purchases would cover what your plan is still short of after your depot (crafting included).</Explain>
+          </div>
+        );
+      }}
+    </Await>
+  );
+}
+
+function ShopCard({ e, values, short }: { e: ShopEvent; values: Record<string, number>; short: Record<string, number> }) {
+  const rows = e.offers.map(([id, price, qty, stock, area]) => {
+    const unit = values[id];
+    const worth = unit !== undefined ? unit * qty : null;
+    let need = short[id] > 0 ? Math.ceil(short[id] / qty) : 0;
+    if (stock !== null) need = Math.min(need, stock);
+    return { id, price, qty, stock, area, worth, per: worth !== null ? worth / price : null, need };
+  }).sort((a, b) => (b.per ?? -1) - (a.per ?? -1) || a.id.localeCompare(b.id));
+  const needTokens = rows.reduce((t, r) => t + r.need * r.price, 0);
+  return (
+    <details class="card" open={e.status === "running" || undefined}>
+      <summary style={{ cursor: "pointer" }}>
+        <strong>{e.name}</strong> <span class="muted">· {e.status === "running" ? `running, ends ${date(e.end!)}` : <>coming <Eta eta={e.eta!} confirmed={e.confirmed} /></>}</span>
+        {needTokens > 0 && <span class="badge" style={{ marginLeft: "8px" }}>{needTokens.toLocaleString()} tokens for what you need</span>}
+      </summary>
+      <div class="table-wrap" style={{ marginTop: "10px" }}>
+        <table class="cards">
+          <thead><tr><th>Offer</th><th class="num">Price</th><th class="num">Stock</th><th class="num">Value</th><th class="num">Per token</th><th class="num">You need</th></tr></thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id + r.price + r.area}>
+                <td data-label="Offer"><span class="row tight"><ItemIcon id={r.id} bare />{r.qty > 1 ? `${r.qty} × ` : ""}{itemName(r.id)}</span></td>
+                <td data-label="Price" class="num">{r.price}</td>
+                <td data-label="Stock" class="num">{r.stock ?? "∞"}</td>
+                <td data-label="Value" class="num">{r.worth !== null ? r.worth.toFixed(1) : "–"}</td>
+                <td data-label="Per token" class="num">{r.per !== null ? r.per.toFixed(2) : "–"}</td>
+                <td data-label="You need" class={`num${r.need ? " good-text" : ""}`}>{r.need || ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
   );
 }
 

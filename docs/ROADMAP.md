@@ -6,18 +6,17 @@
 - Credits page with every source, mirror, font and package license.
 - Reddit launch post (`docs/reddit-post.md`).
 
-## After launch, in order
+## Ported from ako (done)
 
-1. **Event shop advisor.** Which event-shop offers are worth your tokens: Yituliu's record of CN event shops, matched to
-   events, priced with our item values. Ported from ako.
-2. **Training Room and Workshop picks.** The fastest trainer you own for each mastery, and who raises the Workshop's
-   byproduct rate. Needs only your roster. Ported from ako.
-3. **Progress with costs.** What changed between two roster snapshots, and the materials, LMD and EXP it took.
-4. **Sanity timer.** Type your current sanity, see when it's full, with an optional browser notification.
-5. **Base morale and dorms.** Morale-aware shifts and a dorm plan, using the game's default morale rules (no live data).
-6. **Daily checklist.** The day's routine with ticks, kept in the browser.
-7. **Items to use.** Training vouchers, potential tokens and expiring items, from the depot screenshot or typed in.
-8. **Operator list from screenshots.** Waiting on sample screenshots.
+Event shop advisor · Training Room and Workshop picks · progress with exact costs between snapshots · sanity timer
+with notifications · morale and dorm plan (default numbers) · daily checklist · items to use (vouchers, potential
+tokens, expiring items).
+
+## Next
+
+- **Operator list from screenshots.** Waiting on sample screenshots.
+- **Faction and conditional base effects** (ako had some: Control Center faction buffs, faction-counting trainers):
+  they need to know who's stationed where, so they fit best once Novena Sync can bring the base layout.
 
 ## Novena Sync (optional companion): built, not yet released
 

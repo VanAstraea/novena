@@ -1,6 +1,6 @@
 // Import the depot from screenshots: read in this browser, reviewed by the user, then applied. Nothing is uploaded.
 import { useEffect, useRef, useState } from "preact/hooks";
-import { prepare, recognize, type Slot } from "../lib/depot/client";
+import { prepare, recognize, type Slot, depotItems } from "../lib/depot/client";
 import { fmt } from "../lib/format";
 import { account, saveAccount, server, snapshotOf } from "../state";
 import { Explain, ItemIcon, itemsSig } from "./ui";
@@ -92,8 +92,7 @@ export function DepotImport() {
   };
 
   if (!items) return null;
-  const all = Object.entries(items.items).filter(([id, it]) => ["material", "chip", "skill", "module", "exp", "other"].includes(it.group) && id !== "EXP" && id !== "4001")
-    .sort((a, b) => a[1].name.localeCompare(b[1].name));
+  const all = depotItems(items).sort((a, b) => a[1].name.localeCompare(b[1].name));
 
   return (
     <section class="card">

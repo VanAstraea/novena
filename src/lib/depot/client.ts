@@ -10,11 +10,17 @@ let ready: Promise<number> | null = null;
 const waiting = new Map<string, { resolve: (r: { slots: Slot[]; width: number; height: number }) => void; reject: (e: Error) => void }>();
 let onProgress: ((step: string) => void) | null = null;
 
-/** Items the depot shows that recognition knows: materials, chips, skill summaries, module items, battle records. */
+/** Items the depot screenshots are read for: materials, chips, skill summaries, module items, battle records and the
+ *  like. Not the items listed only for other views (sanity potions, training vouchers, potential tokens, event items),
+ *  which the game shows elsewhere and whose icons would only slow recognition down. */
+export function depotItems(items: ItemsFile): [string, ItemsFile["items"][string]][] {
+  const tokens = new Set(Object.values(items.potential || {}).flatMap((t) => Object.values(t)));
+  return Object.entries(items.items).filter(([id, it]) => ["material", "chip", "skill", "module", "exp", "other"].includes(it.group)
+    && id !== "EXP" && id !== "4001" && !tokens.has(id) && !/^(AP_SUPPLY|VOUCHER_|ACTIVITY_ITEM)/.test(it.type || ""));
+}
+
 export function recognisable(items: ItemsFile) {
-  return Object.entries(items.items)
-    .filter(([id, it]) => ["material", "chip", "skill", "module", "exp", "other"].includes(it.group) && id !== "EXP" && id !== "4001")
-    .map(([id, it]) => ({ id, icon: it.icon, rarity: Math.min(Math.max(it.rarity, 1), 6), sort: it.sort }));
+  return depotItems(items).map(([id, it]) => ({ id, icon: it.icon, rarity: Math.min(Math.max(it.rarity, 1), 6), sort: it.sort }));
 }
 
 function getWorker(): Worker {

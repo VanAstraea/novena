@@ -1,8 +1,8 @@
 """What leaves the game data: only what Novena uses.
 
 The game's sync data holds far more than a roster (your nickname, friends, mail, purchase history, every stage
-cleared). Before anything is saved or sent, it's cut down to operators, the depot and the currencies the pull planner
-counts. The result is still shaped like sync data, so Novena reads it with the importer it already has.
+cleared). Before anything is saved or sent, it's cut down to operators, the depot, the currencies the pull planner
+counts, and consumables (training vouchers, sanity potions: how many and when they expire). The result is still shaped like sync data, so Novena reads it with the importer it already has.
 """
 
 from __future__ import annotations
@@ -39,9 +39,15 @@ def minimize(raw: dict[str, Any], server: str) -> dict[str, Any]:
         chars[key] = out
     inventory = {k: int(v) for k, v in (user.get("inventory") or {}).items() if isinstance(v, (int, float)) and v > 0}
     status = {k: (user.get("status") or {}).get(k) for k in STATUS_KEYS if (user.get("status") or {}).get(k) is not None}
+    consumable = {}
+    for item, stacks in (user.get("consumable") or {}).items():
+        kept = {inst: {"ts": int(st.get("ts") or -1), "count": int(st.get("count") or 0)}
+                for inst, st in (stacks or {}).items() if int(st.get("count") or 0) > 0}
+        if kept:
+            consumable[item] = kept
     return {
         "app": APP, "version": 1, "server": server, "synced": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "user": {"troop": {"chars": chars}, "inventory": inventory, "status": status},
+        "user": {"troop": {"chars": chars}, "inventory": inventory, "status": status, "consumable": consumable},
     }
 
 

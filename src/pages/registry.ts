@@ -21,6 +21,7 @@ export const PAGES: PageDef[] = [
   { path: "/rankings", title: "Rankings", nav: "main", keywords: ["usage", "tier", "who to build", "meta"], load: () => import("./Rankings") },
   { path: "/upcoming", title: "Upcoming content", short: "Upcoming", nav: "main", keywords: ["future", "events", "banners", "cc", "contingency contract", "leaks"], load: () => import("./Upcoming") },
   { path: "/is", title: "Integrated Strategies", short: "IS", nav: "main", keywords: ["roguelike", "rogue"], load: () => import("./IS") },
+  { path: "/today", title: "Today", short: "Today", nav: "account", keywords: ["checklist", "daily", "routine", "sanity", "timer", "notification"], load: () => import("./Today") },
   { path: "/roster", title: "My roster", short: "Roster", nav: "account", keywords: ["account", "import", "depot", "inventory"], load: () => import("./Roster") },
   { path: "/plan", title: "Plan: what to build next", short: "Plan", nav: "account", keywords: ["priority", "guides"], load: () => import("./Plan") },
   { path: "/dump", title: "Sanity Dump", short: "Sanity Dump", nav: "account", keywords: ["today", "what to farm"], load: () => import("./Dump") },

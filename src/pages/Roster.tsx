@@ -2,9 +2,16 @@
 import { useMemo, useState } from "preact/hooks";
 import { DepotImport } from "../components/DepotImport";
 import { OpPicker } from "../components/OpPicker";
-import { Avatar, Await, Explain, ItemIcon, itemsSig, Stars, Tabs, useAsync } from "../components/ui";
+import { Avatar, Await, Explain, ItemIcon, itemName, Items, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
+import { costTable } from "../lib/account";
+import { expiring, held, tokenUse, voucherIds, voucherPicks } from "../lib/consumables";
+import { usage as loadUsage } from "../lib/data";
+import { planNeeds } from "../lib/needs";
+import { CLASSES } from "../lib/training";
+import { EXP, LMD, sanity } from "../lib/costs";
+import { diff, type Change } from "../lib/progress";
 import { operators } from "../lib/data";
-import { date } from "../lib/format";
+import { date, fmt } from "../lib/format";
 import { exportRoster, parseRoster, type Imported } from "../lib/importers";
 import { pref, setPref } from "../lib/storage";
 import { BridgeError, forget, hello, isPaired, pair, SYNC_SERVERS, syncNow } from "../lib/syncBridge";
@@ -14,7 +21,7 @@ import { href, route, setQuery } from "../lib/router";
 import { account, loaded, saveAccount, server, snapshotOf, type Account, type RosterOp } from "../state";
 import type { OpIndex } from "../types";
 
-type Tab = "operators" | "depot" | "import" | "progress";
+type Tab = "operators" | "depot" | "use" | "import" | "progress";
 
 export default function Roster() {
   const s = server.value;
@@ -26,12 +33,12 @@ export default function Roster() {
       <h1>My roster</h1>
       <p class="muted">Saved in this browser only, separately for each server. <a href={href("/settings")}>Back it up</a>.</p>
       <Tabs label="Roster sections" value={tab} onChange={(t) => setQuery({ tab: t === "operators" ? "" : t })} tabs={[
-        { key: "operators", label: `Operators (${Object.keys(a.ops).length})` }, { key: "depot", label: "Depot" },
+        { key: "operators", label: `Operators (${Object.keys(a.ops).length})` }, { key: "depot", label: "Depot" }, { key: "use", label: "To use" },
         { key: "import", label: "Import / export" }, { key: "progress", label: "Progress" },
       ]} />
       <Await state={st} what="operators">
         {(ops) => !loaded.value ? <p class="muted">Loading your data…</p>
-          : tab === "depot" ? <Depot /> : tab === "import" ? <Import ops={ops} /> : tab === "progress" ? <Progress /> : <Ops ops={ops} />}
+          : tab === "depot" ? <Depot /> : tab === "use" ? <ToUse ops={ops} /> : tab === "import" ? <Import ops={ops} /> : tab === "progress" ? <Progress ops={ops} /> : <Ops ops={ops} />}
       </Await>
     </div>
   );
@@ -172,7 +179,7 @@ function apply(r: Imported, mode: "replace" | "merge"): string {
   update((acc) => ({
     ...acc, ops: mode === "replace" ? r.ops : { ...acc.ops, ...r.ops },
     depot: r.depot ? (mode === "replace" ? r.depot : { ...acc.depot, ...r.depot }) : acc.depot,
-    savings: r.savings || acc.savings, source: r.format === "Novena Sync" ? "novena-sync" : "import",
+    savings: r.savings || acc.savings, consumables: r.consumables || acc.consumables, source: r.format === "Novena Sync" ? "novena-sync" : "import",
   }));
   return `Imported ${Object.keys(r.ops).length} operators${r.depot ? ` and ${Object.keys(r.depot).length} depot items` : ""} from ${r.format}${r.skipped ? ` (${r.skipped} entries skipped: unknown on this server)` : ""}.`;
 }
@@ -301,12 +308,97 @@ function SyncCard({ ops }: { ops: OpIndex[] }) {
   );
 }
 
-function Progress() {
+/** Items waiting to be used: training vouchers (and who to spend them on), potential tokens, and what expires. */
+function ToUse({ ops }: { ops: OpIndex[] }) {
+  const s = server.value;
+  const st = useAsync(() => Promise.all([costTable(s), loadUsage()]), [s]);
+  const byId = useMemo(() => new Map(ops.map((o) => [o.id, o])), [ops]);
+  const items = itemsSig.value, meta = metaSig.value;
+  const a = account.value;
+  const setVoucher = (id: string, n: number) => update((acc) => {
+    const keep = (acc.consumables?.[id] || []).filter((x) => x.ts > 0);
+    return { ...acc, consumables: { ...acc.consumables, [id]: n > 0 ? [...keep, { count: n, ts: -1 }] : keep } };
+  });
+  const classLabel = (cls: string) => CLASSES.find(([c]) => c === cls)?.[1] || cls;
+  return (
+    <Await state={st} what="costs and community data">
+      {([costs, usage]) => {
+        if (!items || !meta) return <p class="muted">Loading…</p>;
+        const goals = planNeeds(ops, costs, meta, items).goals;
+        const have = held(a);
+        const vouchers = voucherIds(items);
+        const tokens = Object.entries(a.depot).filter(([, n]) => n > 0).map(([id, n]) => ({ id, n, use: tokenUse(id, items, a.ops, byId, classLabel) }))
+          .filter((t) => t.use).sort((x, y) => Number(y.use!.ready) - Number(x.use!.ready) || x.use!.target.localeCompare(y.use!.target));
+        const soon = expiring(a, items);
+        const potion = soon.reduce((t, e) => t + (e.sanity || 0), 0);
+        const days = (ts: number) => Math.max(0, Math.ceil((ts * 1000 - Date.now()) / 86400_000));
+        return (
+          <div class="stack">
+            <section class="card">
+              <h2>Training vouchers</h2>
+              <p class="muted">Novena Sync brings these in; or type how many you have. Each one is ranked against your roster: what your plan raises first, then what players most often raise that far, then the dearest to raise by hand.</p>
+              <div class="stack">
+                {vouchers.map((id) => {
+                  const n = have[id] || 0;
+                  const picks = n ? voucherPicks(id, items, a.ops, byId, costs, meta.const, usage, goals) : [];
+                  return (
+                    <div key={id} class="voucher">
+                      <div class="row">
+                        <ItemIcon id={id} bare /><strong>{itemName(id)}</strong>
+                        <label class="row tight" style={{ marginLeft: "auto" }}><span class="muted">Have</span>
+                          <input type="number" min={0} max={99} value={n} onChange={(e) => setVoucher(id, Math.max(0, Number((e.target as HTMLInputElement).value) || 0))} /></label>
+                      </div>
+                      {n > 0 && (picks.length ? (
+                        <ol class="picks">{picks.map((p) => (
+                          <li key={p.id + p.upgrade}><OpLink op={byId.get(p.id)!} /> <span>{p.upgrade}</span>
+                            <small class="muted"> · saves ~{fmt(p.sanity)} sanity{p.planned ? " · in your plan" : ""}{p.rate ? ` · ${Math.round(p.rate * 100)}% of players do this` : ""}</small></li>
+                        ))}</ol>
+                      ) : <p class="muted">Nobody in your roster can use it right now.</p>)}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+            <section class="card">
+              <h2>Potential tokens</h2>
+              {tokens.length ? (
+                <ul>{tokens.map((t) => <li key={t.id}><span class="row tight"><ItemIcon id={t.id} count={t.n} /> <strong>{t.use!.target}</strong></span> <span class={t.use!.ready ? "" : "muted"}>{t.use!.note}</span></li>)}</ul>
+              ) : <p class="muted">No potential tokens in your depot. They come in with Novena Sync or a sync file, or add them on the Depot tab.</p>}
+            </section>
+            <section class="card">
+              <h2>Expiring soon</h2>
+              {soon.length ? (
+                <>
+                  {potion > 0 && <p>Sanity potions hold <strong>{potion}</strong> sanity before they expire: plan them into your farming.</p>}
+                  <div class="table-wrap">
+                    <table class="cards">
+                      <thead><tr><th>Item</th><th class="num">Count</th><th>Expires</th></tr></thead>
+                      <tbody>{soon.map((e, i) => (
+                        <tr key={e.id + i}>
+                          <td data-label="Item"><span class="row tight"><ItemIcon id={e.id} bare />{itemName(e.id)}</span></td>
+                          <td data-label="Count" class="num">{e.count}{e.sanity ? <small class="muted"> ({e.sanity} sanity)</small> : null}</td>
+                          <td data-label="Expires" class={days(e.ts) <= 7 ? "warn-text" : ""}>{date(e.ts * 1000)} <small class="muted">in {days(e.ts)} day{days(e.ts) === 1 ? "" : "s"}</small></td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                </>
+              ) : <p class="muted">Nothing that expires. Time-limited items (sanity potions, limited permits) come in with Novena Sync or a sync file.</p>}
+            </section>
+          </div>
+        );
+      }}
+    </Await>
+  );
+}
+
+function Progress({ ops }: { ops: OpIndex[] }) {
   const snaps = account.value.snapshots;
   if (snaps.length < 1) return <p class="muted">Progress is recorded once a day whenever you edit or import your roster.</p>;
   const series: [keyof (typeof snaps)[0], string][] = [["ops", "Operators"], ["e2", "E2"], ["m3", "M3 skills"], ["mods", "Modules"]];
   return (
     <div class="grid two">
+      <Changes ops={ops} />
       {series.map(([k, label]) => <Chart key={k} label={label} points={snaps.map((s) => [s.t, s[k] as number])} />)}
       <section class="card" style={{ gridColumn: "1 / -1" }}>
         <h2>Snapshots</h2>
@@ -318,6 +410,72 @@ function Progress() {
         </div>
       </section>
     </div>
+  );
+}
+
+const KIND_LABEL: Record<Change["kind"], string> = { new: "Joined", growth: "Promotion and levels", skill: "Skill level", mastery: "Mastery", module: "Module", potential: "Potential" };
+
+/** What changed since an earlier snapshot, and exactly what it cost. */
+function Changes({ ops }: { ops: OpIndex[] }) {
+  const s = server.value;
+  const today = new Date().toDateString();
+  const earlier = account.value.snapshots.filter((x) => x.roster && new Date(x.t).toDateString() !== today);
+  const [since, setSince] = useState<number | null>(null);
+  const costs = useAsync(() => costTable(s), [s]);
+  const byId = useMemo(() => new Map(ops.map((o) => [o.id, o])), [ops]);
+  const meta = metaSig.value, items = itemsSig.value;
+  if (!earlier.length) {
+    return <section class="card" style={{ gridColumn: "1 / -1" }}><h2>What changed</h2><p class="muted">From tomorrow, this shows what you raised since an earlier day and exactly what it cost: Novena keeps a full copy of your roster once a day (the last 60 days) whenever you edit, import or sync it.</p></section>;
+  }
+  const base = earlier.find((x) => x.t === since) || earlier[earlier.length - 1];
+  return (
+    <section class="card" style={{ gridColumn: "1 / -1" }}>
+      <div class="row" style={{ justifyContent: "space-between" }}>
+        <h2 style={{ margin: 0 }}>What changed</h2>
+        <label class="field"><span>Since</span>
+          <select value={base.t} onChange={(e) => setSince(Number((e.target as HTMLSelectElement).value))}>
+            {[...earlier].reverse().map((x) => <option key={x.t} value={x.t}>{date(x.t)}</option>)}
+          </select>
+        </label>
+      </div>
+      <Await state={costs} what="upgrade costs">
+        {(table) => {
+          if (!meta || !items) return <p class="muted">Loading…</p>;
+          const p = diff({ roster: base.roster!, depot: base.depot || {} }, { roster: account.value.ops, depot: account.value.depot }, table, meta.const, byId);
+          if (!p.changes.length) return <p class="muted" style={{ marginTop: "8px" }}>Nothing raised since then.</p>;
+          const byOp = new Map<string, Change[]>();
+          p.changes.forEach((c) => byOp.set(c.id, [...(byOp.get(c.id) || []), c]));
+          const lmd = p.spent[LMD] || 0, exp = p.spent[EXP] || 0;
+          return (
+            <>
+              <div class="statgrid" style={{ margin: "10px 0" }}>
+                <div class="stat"><div class="k">Operators raised</div><div class="v">{byOp.size}</div></div>
+                <div class="stat"><div class="k">LMD spent</div><div class="v">{fmt(lmd)}</div></div>
+                <div class="stat"><div class="k">EXP spent</div><div class="v">{fmt(exp)}</div></div>
+                <div class="stat"><div class="k">Worth in sanity</div><div class="v">{fmt(sanity(p.spent, items.values))}</div></div>
+              </div>
+              <div class="table-wrap">
+                <table class="cards">
+                  <thead><tr><th>Operator</th><th>Change</th><th>Cost</th></tr></thead>
+                  <tbody>
+                    {[...byOp.entries()].map(([id, list]) => list.map((c, i) => (
+                      <tr key={id + i}>
+                        <td data-label="Operator">{i === 0 && byId.get(id) ? <OpLink op={byId.get(id)!} /> : null}</td>
+                        <td data-label="Change">{KIND_LABEL[c.kind]}: {c.before} → {c.after}</td>
+                        <td data-label="Cost"><Items cost={c.cost} empty="–" /></td>
+                      </tr>
+                    )))}
+                  </tbody>
+                </table>
+              </div>
+              <h3 style={{ marginTop: "14px" }}>Materials spent</h3>
+              <Items cost={Object.fromEntries(Object.entries(p.spent).filter(([k]) => k !== LMD && k !== EXP))} />
+            </>
+          );
+        }}
+      </Await>
+      <Explain>Priced with the game's own costs: levels to the cap before each promotion, skill levels, masteries and modules. Alternate forms share their base form's promotion and levels, so those count once.</Explain>
+    </section>
   );
 }
 

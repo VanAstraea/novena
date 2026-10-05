@@ -30,6 +30,8 @@ Useful without any account data:
 - **Rankings.** Usage in community clears per content type and archetype; your archetype gaps once you add a roster.
 - **Upcoming content.** Events, operators, modules and banners CN has had and your server hasn't, with estimated
   dates from the measured CN→server lag, the operators each event's guides use most, and the next Contingency Contract.
+- **Event shop advisor.** Each running or coming event's shop (Yituliu's record of CN's shops), every offer valued in
+  sanity per token, and how many of each would cover what your plan is short of.
 - **Integrated Strategies.** Per theme, the operators that carry runs.
 
 With your roster (typed in, or imported):
@@ -44,7 +46,14 @@ With your roster (typed in, or imported):
   "doable now" check against your depot counted all together.
 - **Sanity Dump:** what today's sanity should go into, aimed at the materials you hold least against what your plan
   and your strongest operators' community builds need.
-- **Base (RIIC) optimizer:** best team per room over a 1–3 shift rotation, as a readable list.
+- **Today:** a sanity timer (with an optional notification when it's full) and the day's routine as a checklist
+  with ticks that clear at the reset, plus your own tasks.
+- **Base (RIIC) optimizer:** best team per room over a 1–3 shift rotation, how long each team lasts on its morale, a
+  dorm plan for who rests where (default morale numbers), and your fastest trainer per class and mastery plus the
+  Workshop's best byproduct operators.
+- **Progress with costs:** what you raised since an earlier day and exactly what it cost (materials, LMD, EXP).
+- **Items to use:** training vouchers with the five operators each is best spent on, potential tokens and whose
+  potential they raise, and items that expire soonest.
 - **Pull planner:** savings, steady income and the banners coming.
 
 ## Privacy
@@ -68,7 +77,7 @@ these services. Thank you to everyone who runs and contributes to them.
 |---|---|---|
 | [ArknightsAssets/ArknightsGamedata](https://github.com/ArknightsAssets/ArknightsGamedata) | Game tables for all servers | Game data © Hypergryph / Yostar |
 | [Penguin Statistics](https://penguin-stats.io/) | Drop rates per server | [CC BY-NC 4.0](https://developer.penguin-stats.io/public-api/) |
-| [Yituliu](https://ark.yituliu.cn/) | Material values; operator investment survey (~100k CN accounts) | Used with credit |
+| [Yituliu](https://ark.yituliu.cn/) | Material values; operator investment survey (~100k CN accounts); CN event shops | Used with credit |
 | [MAA Copilot guide database](https://prts.plus/) | Community clear guides, read only to count usage for Rankings and the Plan (no guide is republished) | Community-submitted |
 | [MAA resource files](https://github.com/MaaAssistantArknights/MaaAssistantArknights) | Base skill values and combinations, IS recruit priorities, as data (Novena doesn't use the MAA program) | AGPL-3.0; processed copies are published with the site |
 | [ArknightsGameResource](https://github.com/yuanyan3060/ArknightsGameResource) | Operator portraits, splash and outfit art, skill, item and base-skill icons (loaded, not bundled) | Art © Hypergryph / Yostar |

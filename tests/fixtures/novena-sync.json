@@ -73,6 +73,20 @@
    "gachaTicket": 5,
    "tenGachaTicket": 1,
    "monthlySubscriptionEndTime": 1900000000
+  },
+  "consumable": {
+   "ap_supply_lt_100": {
+    "1": {
+     "ts": 1900000000,
+     "count": 2
+    }
+   },
+   "voucher_skill_special_6": {
+    "0": {
+     "ts": -1,
+     "count": 1
+    }
+   }
   }
  }
 }

@@ -121,6 +121,8 @@ export interface Item {
   group: "lmd" | "exp" | "material" | "chip" | "skill" | "module" | "other";
   desc: string;
   src?: Server;
+  type?: string; // the game's item type, when it isn't a plain material ("VOUCHER_LEVELMAX_6", "AP_SUPPLY")
+  ap?: number; // sanity a potion restores
 }
 
 export interface Recipe {
@@ -134,6 +136,7 @@ export interface ItemsFile {
   recipes: Record<string, Recipe>;
   values: Record<string, number>;
   corrections: Record<string, { value: number; was: number; why: string }>;
+  potential?: Record<string, Record<string, string>>; // rarity -> class -> potential token
 }
 
 export interface StageRow {
@@ -194,6 +197,18 @@ export interface UpcomingEvent {
   guides: number;
   key_ops: { id: string; share: number }[];
 }
+
+export interface ShopEvent {
+  id: string;
+  name: string; // the server's name when it has the event, else CN's
+  status: "running" | "upcoming";
+  start?: string;
+  end?: string;
+  eta?: string;
+  confirmed?: boolean;
+  offers: [string, number, number, number | null, number][]; // item, price in tokens, quantity per purchase, stock or null, section
+}
+export interface ShopsFile { events: ShopEvent[] }
 
 export interface UpcomingFile {
   server: Server;

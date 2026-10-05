@@ -134,16 +134,20 @@ export function OpLink({ op, sub, size = "sm" }: { op: OpIndex; sub?: ComponentC
   );
 }
 
-export function ItemIcon({ id, count, title }: { id: string; count?: number; title?: string }) {
+/** An item's icon with its name (or count). `bare`: the icon alone, for rows that print the name themselves.
+ *  Items the data doesn't list (an operator's own potential token) still try the mirror's icon by id. */
+export function ItemIcon({ id, count, title, bare = false }: { id: string; count?: number; title?: string; bare?: boolean }) {
   const it = itemsSig.value?.items[id];
   const [failed, setFailed] = useState(false);
   const name = it?.name || id;
   const label = count !== undefined ? `${name} × ${fmt(count)}` : name;
+  const icon = !failed
+    ? <img src={art.item(it?.icon || id)} alt="" loading="lazy" onError={() => setFailed(true)} />
+    : <span class="ph" aria-hidden="true">{name.slice(0, 3)}</span>;
+  if (bare) return <span class="item bare" title={title || label}>{icon}<span class="sr-only">{label}</span></span>;
   return (
     <span class="item" title={title || label}>
-      {it && !failed
-        ? <img src={art.item(it.icon)} alt="" loading="lazy" onError={() => setFailed(true)} />
-        : <span class="ph" aria-hidden="true">{name.slice(0, 3)}</span>}
+      {icon}
       <span class="sr-only">{label}</span>
       <span aria-hidden="true">{count !== undefined ? <b>{count >= 10000 ? compact(count) : fmt(count)}</b> : name}</span>
     </span>

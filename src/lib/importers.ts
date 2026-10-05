@@ -15,6 +15,7 @@ export interface Imported {
   format: string;
   skipped: number;
   server?: string; // the server a file says it's from, when it says
+  consumables?: Account["consumables"];
 }
 
 const clamp = (v: unknown, lo: number, hi: number, fallback: number) => {
@@ -78,8 +79,14 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
     const st = user.status || {};
     const savings = { orundum: Number(st.diamondShard) || 0, prime: (Number(st.freeDiamond) || 0) + (Number(st.payDiamond) || 0),
       permits: (Number(st.gachaTicket) || 0) + 10 * (Number(st.tenGachaTicket) || 0), card: (st.monthlySubscriptionEndTime || 0) * 1000 > Date.now() };
+    const consumables: NonNullable<Account["consumables"]> = {};
+    for (const [id, stacks] of Object.entries((user.consumable || {}) as Record<string, Record<string, any>>)) {
+      const list = Object.values(stacks || {}).map((st: any) => ({ count: Number(st.count) || 0, ts: Number(st.ts) || -1 })).filter((st) => st.count > 0);
+      if (list.length) consumables[id] = list;
+    }
     const fromApp = data.app === "novena-sync";
-    return { ops: out, depot, savings, format: fromApp ? "Novena Sync" : "Game sync data (syncData)", skipped, server: fromApp ? data.server : undefined };
+    return { ops: out, depot, savings, format: fromApp ? "Novena Sync" : "Game sync data (syncData)", skipped, server: fromApp ? data.server : undefined,
+      consumables: Object.keys(consumables).length ? consumables : undefined };
   }
 
   // Krooster: { char_x: { id, owned, promotion, potential, level, skillLevel, mastery: [..], module: {id|letter: n} } }

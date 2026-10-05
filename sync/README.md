@@ -14,7 +14,8 @@ website never asks for a login and never sees one.
 - **Your sign-in stays here.** Your email and the code Yostar emails you are never stored. The session they create is
   kept in your operating system's credential store (Windows Credential Manager, macOS Keychain) until you sign out.
 - **Only what Novena uses leaves the game data.** Operators (level, promotion, potential, skills, masteries, modules),
-  the depot, LMD and your Orundum, Originite Prime and permits. Not your nickname, friends, mail or history.
+  the depot, LMD, your Orundum, Originite Prime and permits, and consumables (training vouchers, sanity potions: how
+  many and when they expire). Not your nickname, friends, mail or history.
 - Entering your roster by hand on the website is the risk-free option.
 - Servers: EN, JP and KR (Yostar accounts).
 

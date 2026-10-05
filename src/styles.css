@@ -296,6 +296,7 @@ th button.sort:focus-visible { outline: 2px solid var(--accent); }
 .item img, .item .ph { width: 30px; height: 30px; border-radius: 2px; object-fit: contain; flex: none; }
 .item .ph { display: inline-grid; place-items: center; font-size: 0.6rem; color: var(--muted); background: var(--surface-3); }
 .item b { font-weight: 700; }
+.item.bare { padding: 2px; }
 .items { display: flex; flex-wrap: wrap; gap: 6px; }
 .rich b { color: var(--accent); font-weight: 700; }
 .rich i[data-t] { font-style: normal; text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; }
@@ -451,6 +452,16 @@ dialog.search::backdrop { background: rgba(0, 0, 0, 0.6); }
 .cmp-head .art { position: relative; height: 150px; overflow: hidden; background: var(--surface-3); }
 .cmp-head .art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 10%; }
 
+.dorm { border: 1px solid var(--border); padding: 10px 12px; background: var(--surface-2); }
+.dorm ul { margin: 6px 0 0; padding-left: 18px; }
+.voucher { border: 1px solid var(--border); padding: 10px 12px; background: var(--surface-2); }
+.voucher .picks { margin: 8px 0 0; padding-left: 22px; display: grid; gap: 6px; }
+.voucher .picks li .op-cell { display: inline-flex; vertical-align: middle; }
+.checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.checklist li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; background: var(--surface-2); border: 1px solid var(--border); }
+.checklist li.done strong { text-decoration: line-through; color: var(--muted); }
+.checklist .check { display: flex; align-items: flex-start; gap: 10px; font-weight: 400; cursor: pointer; }
+.checklist .check input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); }
 .dropzone { display: grid; place-items: center; min-height: 96px; padding: 16px; border: 2px dashed var(--line); background: var(--surface-2); text-align: center; cursor: pointer; color: var(--muted); }
 .dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
 

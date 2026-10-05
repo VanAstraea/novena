@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { BuildControls, CommunityView, CostsView, ModulesView, RiicView, SkillView, specFromQuery, specToQuery, StatsView, TalentsView } from "../components/OpParts";
 import { Art, Await, GIcon, metaSig, Rich, Stars, Tabs, useAsync } from "../components/ui";
-import { art, integrated, operator, operators, recruit as loadRecruit, usage as loadUsage } from "../lib/data";
+import type { BaseFile } from "../lib/base";
+import { art, integrated, load, operator, operators, recruit as loadRecruit, usage as loadUsage } from "../lib/data";
+import { bestTrainers, hm } from "../lib/training";
 import { CLASS_NAMES, OBTAIN_NAMES } from "../lib/format";
 import { href, route, setQuery } from "../lib/router";
-import { account, SERVERS, server } from "../state";
+import { account, hasRoster, SERVERS, server } from "../state";
 import type { OpDetail, OpIndex } from "../types";
 
 type Tab = "overview" | "skills" | "talents" | "modules" | "base" | "costs" | "community";
@@ -22,6 +24,38 @@ export default function Operator({ params }: { params: Record<string, string> })
         return <View d={d} op={op} ops={ops} usageRow={usage.ops[id]} is={is} tags={tags} />;
       }}
     </Await>
+  );
+}
+
+/** Your fastest trainer for each of this operator's masteries, with how long each would take. */
+function Trainers({ d, op, ops }: { d: OpDetail; op: OpIndex; ops: OpIndex[] }) {
+  const s = server.value;
+  const base = useAsync(() => load<BaseFile>(`${s}/base.json`), [s]);
+  const name = (id: string) => ops.find((o) => o.id === id)?.name || id;
+  return (
+    <section class="card" style={{ gridColumn: "1 / -1" }}>
+      <h2>Training Room: your fastest trainers</h2>
+      <Await state={base} what="base skills">
+        {(data) => (
+          <div class="table-wrap">
+            <table class="cards">
+              <thead><tr><th>Skill</th><th>To M1</th><th>To M2</th><th>To M3</th></tr></thead>
+              <tbody>
+                {d.skills.map((sk, i) => sk.mastery.length ? (
+                  <tr key={sk.id}>
+                    <td data-label="Skill">S{i + 1} · {sk.name}</td>
+                    {sk.mastery.map((m, lv) => {
+                      const best = bestTrainers(data, account.value.ops, op, lv + 1, m.hours, 1)[0];
+                      return <td key={lv} data-label={`To M${lv + 1}`}>{best ? <><a href={href(`/operator/${best.id}`)}>{name(best.id)}</a><br /><small class="muted">+{best.speed}% · {hm(best.hours)} (not {hm(m.hours)})</small></> : <small class="muted">{hm(m.hours)}, no trainer</small>}</td>;
+                    })}
+                  </tr>
+                ) : null)}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Await>
+    </section>
   );
 }
 
@@ -124,6 +158,7 @@ function View({ d, op, ops, usageRow, is, tags }: {
             <SkillView key={sk.id} skill={sk} index={i} level={Math.min(skillLevel, sk.levels.length)}
               onLevel={(n) => setQuery({ sl: String(n) })} />
           ))}
+          {hasRoster.value && d.skills.some((sk) => sk.mastery.length) && <Trainers d={d} op={op} ops={ops} />}
         </div>
       )}
       {tab === "talents" && <TalentsView d={d} />}

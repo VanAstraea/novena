@@ -14,6 +14,10 @@ export interface BaseFile {
   rooms: Record<Facility, { skills: Record<string, Eff>; groups: { desc: string; conditions: Record<string, number>; necessary: Part[]; optional: Part[] }[] }>;
   control: Record<string, Partial<Record<Facility, number>>>;
   names: Record<string, string>;
+  morale: Partial<Record<Facility, Record<string, [number, number, number]>>>; // own, room, working (morale per hour)
+  dorm: Record<string, [number, number, number, number]>; // everyone, one, own, per dorm level
+  train: Record<string, [number, string[], string | null, number | null, number]>; // speed %, classes, branch, level, extra %
+  workshop: Record<string, [string, number]>; // materials, byproduct rate %
 }
 
 export interface Room { facility: Facility; product: string; slots: number }

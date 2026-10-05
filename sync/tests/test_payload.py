@@ -18,6 +18,8 @@ RAW = {
                            "char_1001_amiya2": {"skills": [{"specializeLevel": 1}], "equip": {"uniequip_002_amiya2": {"level": 1, "locked": 1}}}}},
         }},
         "inventory": {"30073": 12, "30074": 0, "mod_unlock_token": 3},
+        "consumable": {"ap_supply_lt_100": {"1": {"ts": 1_900_000_000, "count": 2}, "2": {"ts": 1_800_000_000, "count": 0}},
+                       "voucher_skill_special_6": {"0": {"ts": -1, "count": 1, "extra": "x"}}},
         "friend": {"list": ["someone"]},
         "mailbox": {"x": 1},
         "pushFlags": {},
@@ -28,7 +30,9 @@ RAW = {
 def test_keeps_only_what_novena_reads():
     p = payload.minimize(RAW, "en")
     assert p["app"] == "novena-sync" and p["server"] == "en"
-    assert set(p["user"]) == {"troop", "inventory", "status"}
+    assert set(p["user"]) == {"troop", "inventory", "status", "consumable"}
+    assert p["user"]["consumable"] == {"ap_supply_lt_100": {"1": {"ts": 1_900_000_000, "count": 2}},
+                                       "voucher_skill_special_6": {"0": {"ts": -1, "count": 1}}}
     assert "nickName" not in p["user"]["status"] and "uid" not in p["user"]["status"]
     saria = p["user"]["troop"]["chars"]["1"]
     assert set(saria) == {"charId", "evolvePhase", "level", "potentialRank", "mainSkillLvl", "skills", "equip"}

@@ -15,6 +15,8 @@ Writes to NOVENA_OUT (default public/data/v1/). Layout:
     {server}/recruit.json         recruitment tags and pool
     {server}/upcoming.json        CN content not here yet, with estimated dates
     {server}/is.json              Integrated Strategies priorities per theme
+    {server}/base.json            base skills: production, morale, dorms, Training Room and Workshop
+    {server}/shops.json           event shops for events running or coming here
 """
 
 from __future__ import annotations
@@ -28,6 +30,7 @@ from pathlib import Path
 from novena_pipeline import OUT_DIR, SERVERS
 from novena_pipeline import gamedata as gd
 from novena_pipeline import items as items_mod
+from novena_pipeline import shops as shops_mod
 from novena_pipeline import base, guidebook, operators, recruit, roguelike, upcoming, usage
 from novena_pipeline.sources import copilot, penguin, yituliu
 
@@ -80,6 +83,10 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
     write(out / server / "recruit.json", rec)
     log(f"  [{server}] {len(index)} operators ({time.time() - t0:.1f}s)")
 
+    upcoming_data = upcoming.build(server, jobs, usage_data["ops"])
+    shop_data = shops_mod.build(server, upcoming_data)
+    wanted |= shops_mod.items(shop_data) | items_mod.extras(server)
+
     stages, fetched = penguin.load(server)
     recs = items_mod.recipes(server)
     for st in stages:  # furniture and other non-items drop out of the published rates
@@ -93,11 +100,13 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
     wanted |= {i for i in vals["values"] if i != "EXP"}
     item_rows = items_mod.item_rows(server, wanted)
     write(out / server / "items.json", {"items": item_rows, "recipes": {k: v for k, v in recs.items() if k in item_rows},
-                                        **vals})
+                                        **vals, "potential": items_mod.potential_tokens(server)})
     write(out / server / "stages.json", items_mod.stages_file(server, stages, fetched))
     log(f"  [{server}] {len(item_rows)} items, {len(stages)} stages, {len(vals['corrections'])} value corrections")
 
-    write(out / server / "upcoming.json", upcoming.build(server, jobs, usage_data["ops"]))
+    write(out / server / "upcoming.json", upcoming_data)
+    write(out / server / "shops.json", shop_data)
+    log(f"  [{server}] {len(shop_data['events'])} event shops")
     write(out / server / "is.json", roguelike.build(server))
     write(out / server / "base.json", base.build(server))
     log(f"  [{server}] done in {time.time() - t0:.1f}s")

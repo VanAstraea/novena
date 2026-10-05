@@ -43,9 +43,27 @@ def group(item_id: str, e: dict) -> str:
     return "other"
 
 
+VOUCHERS = re.compile(r"^VOUCHER_(LEVELMAX|ELITE_II|SKILL_SPECIALLEVELMAX)_\d$")
+
+
+def extras(server: str) -> set[str]:
+    """Items the "Items to use" view names: training vouchers, class potential tokens and sanity potions."""
+    t = gd.table("item_table", server)
+    out = {iid for iid, e in t["items"].items() if isinstance(e.get("itemType"), str) and VOUCHERS.match(e["itemType"])}
+    out |= {i for tier in (t.get("potentialItems") or {}).values() for i in tier.values()}
+    out |= set(t.get("apSupplies") or {})
+    return out
+
+
+def potential_tokens(server: str) -> dict[str, dict[str, str]]:
+    """Rarity (1-6) -> class -> its potential token ("tier5_sniper")."""
+    return {str(int(r) + 1): tier for r, tier in (gd.table("item_table", server).get("potentialItems") or {}).items()}
+
+
 def item_rows(server: str, wanted: set[str]) -> dict[str, dict[str, Any]]:
     here = gd.table("item_table", server)["items"]
     cn = gd.table("item_table", "cn")["items"]
+    ap = gd.table("item_table", server).get("apSupplies") or {}
     out = {}
     for iid in sorted(wanted):
         e = here.get(iid) or cn.get(iid)
@@ -53,6 +71,10 @@ def item_rows(server: str, wanted: set[str]) -> dict[str, dict[str, Any]]:
             continue
         out[iid] = {"name": e["name"], "rarity": gd.rarity(e), "icon": e.get("iconId") or iid,
                     "sort": e.get("sortId", 0), "group": group(iid, e), "desc": plain(e.get("usage") or e.get("description"))[:300]}
+        if isinstance(e.get("itemType"), str) and e["itemType"] != "MATERIAL":
+            out[iid]["type"] = e["itemType"]
+        if iid in ap:
+            out[iid]["ap"] = ap[iid]["ap"]
         if iid not in here:
             out[iid]["src"] = "cn"
     out["EXP"] = {"name": {"cn": "经验", "jp": "経験値", "kr": "경험치"}.get(server, "EXP"), "rarity": 4, "icon": "sprite_exp_card_t4",

@@ -43,7 +43,12 @@ export interface Snapshot {
   e2: number;
   m3: number;
   mods: number;
+  roster?: Record<string, RosterOp>; // the full roster and depot, kept for the most recent snapshots (progress with costs)
+  depot?: Record<string, number>;
 }
+
+/** Training vouchers, sanity potions and other time-limited items: count and expiry (unix seconds, -1 = never). */
+export type Consumables = Record<string, { count: number; ts: number }[]>;
 
 export interface Account {
   ops: Record<string, RosterOp>;
@@ -52,6 +57,7 @@ export interface Account {
   source?: string; // "manual" | "import" | "novena-sync"
   snapshots: Snapshot[];
   savings?: { orundum: number; prime: number; permits: number; card: boolean };
+  consumables?: Consumables;
 }
 
 export interface PlanTarget {
@@ -105,6 +111,8 @@ export function savePrefs(p: Prefs): void {
 }
 
 /** Add a snapshot of the roster's progress if today has none yet (or replace today's). */
+const FULL = 60;
+
 export function snapshotOf(a: Account): Account {
   const ops = Object.values(a.ops);
   const snap: Snapshot = {
@@ -112,7 +120,11 @@ export function snapshotOf(a: Account): Account {
     m3: ops.reduce((n, o) => n + o.masteries.filter((m) => m >= 3).length, 0),
     mods: ops.reduce((n, o) => n + Object.values(o.modules).filter((m) => m > 0).length, 0),
   };
+  snap.roster = a.ops;
+  snap.depot = a.depot;
   const day = new Date(snap.t).toDateString();
   const rest = a.snapshots.filter((s) => new Date(s.t).toDateString() !== day);
-  return { ...a, snapshots: [...rest, snap].slice(-365) };
+  const all = [...rest, snap].slice(-365);
+  // full copies only for the latest FULL snapshots (a roster is ~40 KB); older ones keep their counts
+  return { ...a, snapshots: all.map((s, i) => (i < all.length - FULL ? { t: s.t, ops: s.ops, e2: s.e2, m3: s.m3, mods: s.mods } : s)) };
 }
