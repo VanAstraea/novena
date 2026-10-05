@@ -389,7 +389,7 @@ th button.sort:focus-visible { outline: 2px solid var(--accent); }
 .lvl button img { width: 22px; height: 22px; }
 /* Tabs: serif labels over a hairline; a fading gold rule with a glowing diamond glides under the chosen one, whose
    label catches a slow glimmer and a breath of cold mist (frost, not fireworks). */
-.tabs { position: relative; display: flex; gap: 0; overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid var(--border); margin-bottom: 16px; scrollbar-width: thin;
+.tabs { position: relative; display: flex; gap: 0; overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid var(--border); margin-bottom: 16px; scrollbar-width: none;
   --ice: #f4f8ff; --ice-glow: rgba(196, 222, 255, 0.34); --ice-mist: rgba(206, 228, 255, 0.16); --glint: #ffffff; }
 .tabs [role="tab"], .tabs a { position: relative; isolation: isolate; border: 0; border-radius: 0; background: none; color: var(--muted); padding: 10px 16px 13px; white-space: nowrap; min-height: 44px;
   font-family: var(--elegant); font-size: 1.12rem; font-weight: 500; letter-spacing: 0.01em; font-variant-numeric: lining-nums; transition: color 0.35s; font-size-adjust: none; }
@@ -403,6 +403,7 @@ th button.sort:focus-visible { outline: 2px solid var(--accent); }
   content: ""; position: absolute; inset: 18% 6% 26%; z-index: -1; border-radius: 50%; pointer-events: none;
   background: radial-gradient(closest-side, var(--ice-mist), transparent); filter: blur(6px); animation: tab-mist 7s ease-in-out infinite alternate;
 }
+.tabs::-webkit-scrollbar { display: none; } /* tabs scroll sideways by touch or wheel on narrow screens, without a bar */
 @keyframes tab-glimmer { 0%, 55% { background-position: 100% 0; } 85%, 100% { background-position: 0 0; } }
 @keyframes tab-mist { from { transform: translateX(-10%) scale(0.95); opacity: 0.55; } to { transform: translateX(10%) scale(1.08); opacity: 1; } }
 .tab-glide { position: absolute; bottom: 0; height: 1px; pointer-events: none; opacity: 0; background: linear-gradient(90deg, transparent, var(--accent) 30%, var(--accent) 70%, transparent);
