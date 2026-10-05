@@ -32,7 +32,7 @@ export function OpPicker({ ops, onPick, label = "Add an operator", placeholder =
           }} />
       </label>
       {results.length > 0 && (
-        <ul id={`${id}-list`} role="listbox" class="search-results card" style={{ position: "absolute", zIndex: 10, left: 0, right: 0, padding: "4px" }}>
+        <ul id={`${id}-list`} role="listbox" class="search-results card" style={{ position: "absolute", zIndex: 10, left: 0, minWidth: "min(340px, 90vw)", width: "100%", padding: "4px" }}>
           {results.map((op, i) => (
             <li key={op.id} id={`${id}-${i}`} role="option" aria-selected={i === sel}>
               <a href="#" onClick={(e) => { e.preventDefault(); pick(op); }} onMouseEnter={() => setSel(i)}>

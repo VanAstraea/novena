@@ -189,6 +189,7 @@ export interface UpcomingEvent {
   id: string;
   name_cn: string;
   name?: string;
+  name_en?: string; // Novena's unofficial English until this server names it
   kind: string;
   cn_start: string;
   eta: string;
@@ -201,7 +202,9 @@ export interface UpcomingEvent {
 
 export interface ShopEvent {
   id: string;
-  name: string; // the server's name when it has the event, else CN's
+  name: string; // the server's name when it has the event, else Novena's unofficial English, else CN's
+  unofficial?: boolean;
+  name_cn?: string;
   status: "running" | "upcoming";
   start?: string;
   end?: string;
@@ -217,12 +220,12 @@ export interface UpcomingFile {
   events: UpcomingEvent[];
   running: { id: string; name: string; start: string; end: string }[];
   operators: string[];
-  modules: { char: string; id: string; letter: string; icon: string; name_cn: string; cn_start: string; eta: string }[];
-  banners: { id: string; name_cn: string; kind: string; cn_open: string; eta: string; featured: string[]; spark?: number }[];
+  modules: { char: string; id: string; letter: string; icon: string; name_cn: string; name_en?: string; cn_start: string; eta: string }[];
+  banners: { id: string; name_cn: string; name_en?: string; kind: string; cn_open: string; eta: string; featured: string[]; spark?: number }[];
   cc: {
     history: { id: string; name: string; start: string; end: string }[];
     current: { id: string; name: string; start: string; end: string } | null;
-    next: { id: string; name_cn: string; cn_start: string; eta: string; overdue: boolean } | null;
+    next: { id: string; name_cn: string; name_en?: string; cn_start: string; eta: string; overdue: boolean } | null;
     lag_days: number | null;
   } | null;
 }

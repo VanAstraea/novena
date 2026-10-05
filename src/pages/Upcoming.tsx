@@ -95,7 +95,7 @@ function ShopCard({ e, values, short }: { e: ShopEvent; values: Record<string, n
   return (
     <details class="card" open={e.status === "running" || undefined}>
       <summary style={{ cursor: "pointer" }}>
-        <strong>{e.name}</strong> <span class="muted">· {e.status === "running" ? `running, ends ${date(e.end!)}` : <>coming <Eta eta={e.eta!} confirmed={e.confirmed} /></>}</span>
+        <strong>{e.name}</strong>{e.unofficial && <> <Unofficial /></>} <span class="muted">· {e.status === "running" ? `running, ends ${date(e.end!)}` : <>coming <Eta eta={e.eta!} confirmed={e.confirmed} /></>}</span>
         {needTokens > 0 && <span class="badge" style={{ marginLeft: "8px" }}>{needTokens.toLocaleString()} tokens for what you need</span>}
       </summary>
       <div class="table-wrap" style={{ marginTop: "10px" }}>
@@ -127,8 +127,8 @@ function Events({ up, byId }: { up: UpcomingFile; byId: Map<string, OpIndex> }) 
         return (
           <details key={e.id} class="card" open={e === up.events.find((x) => new Date(x.eta).getTime() > Date.now())}>
             <summary class="cut" style={{ cursor: "pointer" }}>
-              <span class="cut-title" style={{ fontSize: "1.45rem" }}>{e.name || e.name_cn}</span>
-              <br />{e.name && <span class="muted">{e.name_cn} · </span>}<Eta eta={e.eta} confirmed={e.confirmed} cn={e.cn_start} />
+              <span class="cut-title" style={{ fontSize: "1.45rem" }}>{e.name || e.name_en || e.name_cn}</span>{!e.name && e.name_en && <> <Unofficial /></>}
+              <br />{(e.name || e.name_en) && <span class="muted">{e.name_cn} · </span>}<Eta eta={e.eta} confirmed={e.confirmed} cn={e.cn_start} />
             </summary>
             <p style={{ marginTop: "8px" }}>{e.stages} stages, {e.guided} with community guides ({e.guides} guides).</p>
             {e.key_ops.length > 0 ? (
@@ -208,7 +208,7 @@ function Modules({ up, byId, usage }: { up: UpcomingFile; byId: Map<string, OpIn
               return (
                 <tr key={m.id}>
                   <td data-label="Operator"><OpLink op={op} /></td>
-                  <td data-label="Module">{m.icon} <small class="muted">{m.name_cn}</small></td>
+                  <td data-label="Module">{m.icon}{m.name_en && <> · {m.name_en} <Unofficial /></>} <small class="muted">{m.name_cn}</small></td>
                   <td data-label="CN owners with it" class="num">{rate !== undefined ? pct(rate, 0) : "–"}</td>
                   <td data-label="Expected"><Eta eta={m.eta} cn={m.cn_start} /></td>
                 </tr>
@@ -228,7 +228,7 @@ function Banners({ up, byId, usage }: { up: UpcomingFile; byId: Map<string, OpIn
       {up.banners.map((b) => (
         <div key={b.id} class="card">
           <div class="row" style={{ justifyContent: "space-between" }}>
-            <span><strong>{KIND[b.kind] || b.kind}</strong> <span class="muted">{b.name_cn}</span></span>
+            <span><strong>{KIND[b.kind] || b.kind}</strong>{b.name_en && <> · {b.name_en} <Unofficial /></>} <span class="muted">{b.name_cn}</span></span>
             <Eta eta={b.eta} cn={b.cn_open} />
           </div>
           <div class="row" style={{ marginTop: "8px" }}>
@@ -254,7 +254,7 @@ function CC({ up, ops, usage }: { up: UpcomingFile; ops: OpIndex[]; usage: Usage
       <section class="card">
         <h2>Seasons</h2>
         {cc?.current && <p>Running now: <strong>{cc.current.name}</strong>, until {date(cc.current.end)}.</p>}
-        {cc?.next ? <p>Next: <strong>{cc.next.name_cn}</strong> <Eta eta={cc.next.eta} cn={cc.next.cn_start} /></p> : <p class="muted">No newer CN season known.</p>}
+        {cc?.next ? <p>Next: <strong>{cc.next.name_en || cc.next.name_cn}</strong>{cc.next.name_en && <> <Unofficial /> <span class="muted">{cc.next.name_cn}</span></>} <Eta eta={cc.next.eta} cn={cc.next.cn_start} /></p> : <p class="muted">No newer CN season known.</p>}
         <h3>Recent on this server</h3>
         <ul>{cc?.history.slice(0, 6).map((h) => <li key={h.id}>{h.name} <span class="muted">{date(h.start)}</span></li>)}</ul>
         <Explain>Lag measured over the last three seasons both servers ran ({cc?.lag_days ?? "?"} days).</Explain>
@@ -271,4 +271,9 @@ function CC({ up, ops, usage }: { up: UpcomingFile; ops: OpIndex[]; usage: Usage
       </section>
     </div>
   );
+}
+
+/** Marks Novena's own translation of a CN name, until Global names it officially. */
+function Unofficial() {
+  return <span class="badge unofficial" title="Novena's own translation: Global hasn't named this yet. The official name replaces it when it's announced.">unofficial</span>;
 }

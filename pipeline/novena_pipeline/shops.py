@@ -45,7 +45,8 @@ def build(server: str, upcoming: dict) -> dict:
             events.append({"id": e["id"], "name": e["name"], "status": "running", "start": e["start"], "end": e["end"], "shop": shops[e["id"]]})
     for e in upcoming.get("events", []):
         if e["id"] in shops:
-            events.append({"id": e["id"], "name": e.get("name") or e.get("name_cn"), "status": "upcoming", "eta": e.get("eta"),
+            events.append({"id": e["id"], "name": e.get("name") or e.get("name_en") or e.get("name_cn"), "status": "upcoming", "eta": e.get("eta"),
+                           **({"unofficial": True} if not e.get("name") and e.get("name_en") else {}), "name_cn": e.get("name_cn"),
                            "confirmed": e.get("confirmed", False), "shop": shops[e["id"]]})
     for e in events:
         e["offers"] = [[o.item_id, o.price, o.quantity, o.stock, o.area] for o in e.pop("shop").offers]

@@ -280,6 +280,9 @@ label { font-weight: 600; }
   clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
 }
 .card::after { content: ""; position: absolute; top: var(--cut); right: 0; width: calc(var(--cut) * 1.42); height: 1px; background: var(--line); transform-origin: right top; transform: rotate(45deg); }
+/* a card holding a search box doesn't clip: its dropdown has to reach past the card's edge */
+.card:has(.picker) { clip-path: none; z-index: 5; }
+.card:has(.picker)::after { display: none; }
 .card + .card { margin-top: 12px; }
 .card > h2:first-child, .card > h3:first-child { margin-top: 0; }
 .grid { display: grid; gap: 14px; }
@@ -711,6 +714,8 @@ details[open] > summary.cut { margin-bottom: 12px; border-bottom: 1px solid var(
 @media (max-width: 1000px) { .today-cols { grid-template-columns: 1fr; } .today-side { position: static; grid-column: 1; grid-row: 1; } .today-main { grid-row: 2; } }
 
 .step-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+.badge.unofficial { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-style: dashed; vertical-align: middle; font-family: var(--font); font-size-adjust: 0.53; }
 
 /* --- compare -------------------------------------------------------------------------------------------------- */
 /* equal columns; the mirror's portraits are 180 × 360, so they're shown near that size, never blown up */

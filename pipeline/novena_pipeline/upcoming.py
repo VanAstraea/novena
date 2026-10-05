@@ -16,6 +16,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 
 from novena_pipeline import gamedata as gd
+from novena_pipeline.translations import english
 from novena_pipeline.sources import copilot
 from novena_pipeline.usage import StageIndex, ids_by_cn_name, stage_presence
 
@@ -130,7 +131,23 @@ def build(server: str, jobs: list[copilot.Job], usage_ops: dict, now: float | No
                                **({"spark": 300} if rule == "LIMITED" else {})})
     out["banners"].sort(key=lambda b: b["eta"])
     out["cc"] = cc_schedule(server, now)
+    add_english(out)
     return out
+
+
+def add_english(out: dict) -> list[str]:
+    """Unofficial English (translations.py) where this server has no official name yet; returns what's untranslated."""
+    missing = []
+    items = [e for e in out["events"] if not e.get("name")] + out["banners"] + out["modules"] + ([out["cc"]["next"]] if out["cc"].get("next") else [])
+    for x in items:
+        en = english(x.get("name_cn"))
+        if en:
+            x["name_en"] = en
+        elif x.get("name_cn"):
+            missing.append(x["name_cn"])
+    if missing:
+        print(f"upcoming: no English yet for {len(missing)} names (add them to translations.py): {', '.join(sorted(set(missing)))}")
+    return missing
 
 
 def cc_schedule(server: str, now: float) -> dict:

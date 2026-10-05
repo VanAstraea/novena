@@ -120,6 +120,9 @@ class Builder:
         e, src = self.entry(cid), self.src(cid)
         cn_entry = self.cn.get(cid)
         name = e["name"]
+        cn_only_name = None
+        if src != self.server and re.search(r"[\u4e00-\u9fff]", name) and e.get("appellation", "").strip():
+            cn_only_name, name = name, e["appellation"].strip()  # not on this server yet: the game's own Latin-script name
         if gd.is_patch(cid, src):
             name = f"{name} ({gd.PATCH_PROFESSION.get(e['profession'], e['profession'])})"
         modules = [m for m in gd.table("uniequip_table", src)["charEquip"].get(cid, [])
@@ -138,6 +141,8 @@ class Builder:
             row["src"] = src
         if cn_entry and cn_entry["name"] != name:
             row["cn"] = cn_entry["name"]
+        elif cn_only_name:
+            row["cn"] = cn_only_name
         if e.get("appellation", "").strip() and e["appellation"].strip() != name:
             row["alt"] = e["appellation"].strip()
         if g := gender(cid):
