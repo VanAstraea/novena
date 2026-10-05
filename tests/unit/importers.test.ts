@@ -22,7 +22,7 @@ describe("Novena Sync files", () => {
   });
 
   it("bring operators with masteries and unlocked modules", () => {
-    expect(r.ops.char_202_demkni).toEqual({ id: "char_202_demkni", elite: 2, level: 90, pot: 3, skillLevel: 7, masteries: [0, 3], modules: { X: 3 } });
+    expect(r.ops.char_202_demkni).toEqual({ id: "char_202_demkni", elite: 2, level: 90, pot: 3, skillLevel: 7, masteries: [0, 3], modules: { X: 3 }, skin: "char_202_demkni@test#1" });
   });
 
   it("bring each of an operator's forms, without locked modules", () => {
@@ -34,5 +34,21 @@ describe("Novena Sync files", () => {
   it("bring the depot, LMD and savings", () => {
     expect(r.depot).toEqual({ "30073": 12, mod_unlock_token: 3, "4001": 1_200_000 });
     expect(r.savings).toEqual({ orundum: 6300, prime: 42, permits: 15, card: true });
+  });
+
+  it("bring recruitment slots, the base and sanity (version 2)", () => {
+    expect(r.recruit).toEqual([
+      { slot: 0, state: 2, tags: [11, 14, 2, 10, 23], picked: [11], start: 1_800_000_000, finish: 1_800_032_400 },
+      { slot: 1, state: 1, tags: [1, 4, 9, 12, 17], picked: [], start: -1, finish: -1 },
+    ]);
+    const factory = r.base!.rooms.find((x) => x.room === "MANUFACTURE")!;
+    expect(factory).toMatchObject({ level: 3, formula: "4", made: 7, capacity: 54, done: 1_800_010_000, team: [{ charId: "char_202_demkni", morale: 12 }] });
+    expect(r.base!.drones).toEqual({ value: 120, max: 200, ts: 1_800_000_000, speed: 1.1 });
+    expect(r.sanity).toEqual({ value: 80, cap: 135, at: 1_800_000_000_000 });
+  });
+
+  it("read recruitment slots from the game's own sync data too", () => {
+    const raw = { user: { troop: { chars: {} }, recruit: { normal: { slots: { "2": { state: 1, tags: [1, 2], selectTags: [{ tagId: 2, pick: 1 }], startTs: -1, maxFinishTs: -1 } } } } } };
+    expect(parseRoster(raw, OPS).recruit).toEqual([{ slot: 2, state: 1, tags: [1, 2], picked: [2], start: -1, finish: -1 }]);
   });
 });

@@ -39,7 +39,8 @@ export async function opMap(s: Server): Promise<Map<string, OpIndex>> {
 
 // Images come from community mirrors of the game's art (they belong to Hypergryph/Yostar and aren't bundled here):
 // operator art and item, skill and base-skill icons from ArknightsGameResource; game UI icons (classes, branches,
-// modules, elite, potential, mastery, rarity) and story scenes from the ArknightsAssets dump.
+// modules, elite, potential, mastery, rarity) from the ArknightsAssets dump. Backgrounds are Novena's own drawings, not game
+// scenes.
 const ART = "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main";
 const DYN = "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/cn/assets/dyn";
 const UI = `${DYN}/arts`;
@@ -52,8 +53,10 @@ export const art = {
   splashes: (id: string, elite = 0) => [...(elite >= 2 ? [`${ART}/skin/${e(id)}_2b.png`] : []), `${ART}/skin/${e(id)}_1b.png`],
   /** An outfit's full art, by its skin file name ("char_4193_lemuen_ambienceSynesthesia#7b"). */
   skin: (file: string) => `${ART}/skin/${e(file)}.png`,
-  /** A story-mode scene background (1024 × 576). */
-  scene: (name: string) => `${DYN}/avg/backgrounds/${e(name)}.png`,
+  /** An outfit's avatar, half-body portrait and full art, by the outfit id the game uses ("char_002_amiya@epoque#4"). */
+  outfitAvatar: (skin: string) => `${ART}/avatar/${e(skin.replace("@", "_"))}.png`,
+  outfitPortrait: (skin: string) => `${ART}/portrait/${e(skin.replace("@", "_"))}.png`,
+  outfitSplash: (skin: string) => `${ART}/skin/${e(skin.replace("@", "_"))}b.png`,
   item: (icon: string) => `${ART}/item/${e(icon)}.png`,
   skill: (icon: string) => `${ART}/skill/skill_icon_${e(icon)}.png`,
   riic: (icon: string) => `${ART}/building_skill/${e(icon)}.png`,

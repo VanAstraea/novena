@@ -35,7 +35,23 @@ export interface RosterOp {
   skillLevel: number; // 1-7
   masteries: number[]; // per skill, 0-3
   modules: Record<string, number>; // letter -> stage 0-3
+  skin?: string; // the outfit worn, when it isn't the default art ("char_002_amiya@epoque#4"; from Novena Sync)
 }
+
+/** A recruitment slot, from Novena Sync. Times are the game's (seconds); -1 when not running. */
+export interface RecruitSlot { slot: number; state: number; tags: number[]; picked: number[]; start: number; finish: number }
+
+/** A room in the player's base, from Novena Sync. Morale is 0-24 as of `ts` (seconds). */
+export interface BaseRoom {
+  slot: string; room: string; level: number; team: { charId: string; morale: number; ts: number }[];
+  formula?: string; made?: number; capacity?: number; remain?: number; done?: number; // a factory
+  strategy?: string; orders?: number; limit?: number; // a trading post (done: the next order)
+  comfort?: number; // a dorm's ambience
+}
+export interface BaseState { rooms: BaseRoom[]; drones: { value: number; max: number; ts: number; speed: number } | null; at: number }
+
+/** When the drones are full (ms): one comes back every six minutes, faster with Control Center skills (`speed`). An estimate. */
+export const dronesFullAt = (d: NonNullable<BaseState["drones"]>) => (d.value >= d.max ? 0 : (d.ts + ((d.max - d.value) * 360) / Math.max(0.5, d.speed || 1)) * 1000);
 
 export interface Snapshot {
   t: number;
@@ -58,6 +74,8 @@ export interface Account {
   snapshots: Snapshot[];
   savings?: { orundum: number; prime: number; permits: number; card: boolean };
   consumables?: Consumables;
+  recruit?: RecruitSlot[];
+  base?: BaseState;
 }
 
 export interface PlanTarget {

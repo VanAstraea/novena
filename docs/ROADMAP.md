@@ -12,6 +12,14 @@ Event shop advisor · Training Room and Workshop picks · progress with exact co
 with notifications · morale and dorm plan (default numbers) · daily checklist · items to use (vouchers, potential
 tokens, expiring items).
 
+## Done in this round (UI plan, Phase 4: arrives with the first Novena Sync release)
+
+- **Outfits as worn** on avatars, portraits and the operator page; **recruitment slots** on the Recruitment
+  calculator; **your base now** on Base (rooms, teams, morale, production, drones; the layout picked from yours);
+  **timers** on Today. Each field the app keeps was checked for what it reveals (see `sync/novena_sync/payload.py`).
+  Still to check on a real account: the recruit and base field names (run the app with `NOVENA_SHAPE=1` once: it
+  writes the keys, never the values).
+
 ## Next
 
 - **Operator list from screenshots.** Waiting on sample screenshots.

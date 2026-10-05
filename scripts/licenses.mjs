@@ -37,7 +37,8 @@ for (const dep of Object.keys(pkg.dependencies || {})) walk(dep, root);
 
 const packages = [...seen.values()].sort((a, b) => a.name.localeCompare(b.name));
 const fonts = [
-  { name: "Saira", by: "Omnibus-Type", license: "SIL Open Font License 1.1", url: "https://github.com/Omnibus-Type/Saira", text: readFileSync(join(root, "public/fonts/OFL-Saira.txt"), "utf8").trim() },
+  { name: "Alegreya Sans", by: "Juan Pablo del Peral (Huerta Tipográfica)", license: "SIL Open Font License 1.1", url: "https://github.com/huertatipografica/Alegreya-Sans", text: readFileSync(join(root, "public/fonts/OFL-AlegreyaSans.txt"), "utf8").trim() },
+  { name: "Cinzel", by: "Natanael Gama", license: "SIL Open Font License 1.1", url: "https://github.com/NDISCOVER/Cinzel", text: readFileSync(join(root, "public/fonts/OFL-Cinzel.txt"), "utf8").trim() },
   { name: "Cormorant Garamond", by: "Christian Thalmann (Catharsis Fonts)", license: "SIL Open Font License 1.1", url: "https://github.com/CatharsisFonts/Cormorant", text: readFileSync(join(root, "public/fonts/OFL-CormorantGaramond.txt"), "utf8").trim() },
 ];
 writeFileSync(join(root, "public/licenses.json"), JSON.stringify({ packages, fonts }));

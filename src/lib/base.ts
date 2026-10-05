@@ -10,6 +10,7 @@ type Eff = Record<string, number | string>;
 type Part = [string[], string[], Eff]; // skills needed, allowed char ids (empty = anyone), efficiency
 
 export interface BaseFile {
+  formulas?: Record<string, string>; // factory formula id -> the item it makes
   ops: Record<string, [string, number, number][][]>;
   rooms: Record<Facility, { skills: Record<string, Eff>; groups: { desc: string; conditions: Record<string, number>; necessary: Part[]; optional: Part[] }[] }>;
   control: Record<string, Partial<Record<Facility, number>>>;

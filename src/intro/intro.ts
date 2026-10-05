@@ -21,7 +21,7 @@ const E = {
   out: "cubic-bezier(.16,1,.3,1)",
   soft: "cubic-bezier(.4,0,.2,1)",
 };
-const DARK = "0 2px 18px rgba(6, 8, 15, 0.9), 0 0 2px rgba(6, 8, 15, 0.8)";
+const DARK = "0 2px 18px rgba(13, 12, 11, 0.9), 0 0 2px rgba(13, 12, 11, 0.8)";
 const GLOW = "0 0 18px rgba(255, 236, 180, 0.95), 0 0 3px rgba(255, 255, 255, 0.9)";
 
 type Frame = { t: number; e?: string } & Record<string, string | number | undefined>;
@@ -129,7 +129,7 @@ export function runIntro(root: HTMLElement, opts: IntroOptions): { skip: () => v
     { t: SWAP, transform: camAt(FACE, 2.05, 0.5, 0.46) },
   ]);
   track(art, [{ t: 1150, opacity: 0 }, { t: 2100, opacity: 1 }, { t: SWAP - 1, opacity: 1, e: "step-end" }, { t: SWAP, opacity: 0 }]);
-  track(root, [{ t: SWAP - 1, backgroundColor: "#06080f", e: "step-end" }, { t: SWAP, backgroundColor: "rgba(6,8,15,0)" }]);
+  track(root, [{ t: SWAP - 1, backgroundColor: "#0d0c0b", e: "step-end" }, { t: SWAP, backgroundColor: "rgba(6,8,15,0)" }]);
 
   // Darkness, and the Law.
   track(q(".leak"), [{ t: 200, opacity: 0, transform: "translateX(-4%)" }, { t: 1100, opacity: 1 }, { t: 2100, opacity: 0, transform: "translateX(3%)" }]);
@@ -170,10 +170,10 @@ export function runIntro(root: HTMLElement, opts: IntroOptions): { skip: () => v
   const [l1, l2, l3, l4] = [...root.querySelectorAll(".lines p")];
   const c1 = split(l1), c3 = split(l3);
   letters(c1, 250, 24, 480, 2350, 10, -10);
-  glint(c1, IGNITE, 16, "#f3d993");
+  glint(c1, IGNITE, 16, "#f2d599");
   track(l2, [{ t: 1300, opacity: 0, transform: "translateY(8px)" }, { t: 1900, opacity: 1, transform: "none" }, { t: 2350, opacity: 1 }, { t: 2750, opacity: 0 }]);
   letters(c3, 3300, 55, 520, 4600, 14, -18);
-  glint(c3, 4200, 26, "#f5f0e6");
+  glint(c3, 4200, 26, "#f6f1e8");
   track(l4, [{ t: 3850, opacity: 0, transform: "translateY(8px)" }, { t: 4250, opacity: 1, transform: "none" }, { t: 4550, opacity: 1 }, { t: 4800, opacity: 0 }]);
   track(q(".skip"), [{ t: 300, opacity: 0 }, { t: 900, opacity: 1 }, { t: 4800, opacity: 1 }, { t: 5200, opacity: 0 }]);
 
@@ -197,7 +197,7 @@ export function runIntro(root: HTMLElement, opts: IntroOptions): { skip: () => v
   const hands = [W / 2 + (HANDS[0] - DEVOTEE[0]) * 1.33, H / 2 + (HANDS[1] - DEVOTEE[1]) * 1.33];
   function feather(x: number, y: number, len: number, ang: number, a: number, gold: boolean) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.globalAlpha = a;
-    ctx.fillStyle = gold ? "#f3d993" : "#fffaf0";
+    ctx.fillStyle = gold ? "#f2d599" : "#fffaf0";
     ctx.beginPath(); ctx.ellipse(0, 0, len, len * 0.27, 0, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = a * 0.7; ctx.strokeStyle = gold ? "#b98a33" : "#d9d1bf"; ctx.lineWidth = 0.8;
     ctx.beginPath(); ctx.moveTo(-len * 1.2, 0); ctx.lineTo(len * 0.9, 0); ctx.stroke();

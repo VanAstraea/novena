@@ -10,7 +10,7 @@ from pathlib import Path
 OUT = Path(__file__).parent
 C = 256  # centre of the 512 canvas
 GOLD_HI, GOLD, GOLD_LO = "#f8e3a3", "#d9b25c", "#a8792e"
-IVORY, SHADE, INK = "#fbf8f0", "#d6ccb6", "#0b1020"
+IVORY, SHADE, INK = "#fbf8f0", "#d6ccb6", "#14110e"
 
 
 def f(n):

@@ -1,28 +1,25 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import { Feathers } from "../components/Feathers";
+import { Wings } from "../components/Wings";
 import { searchOpen } from "../components/Search";
-import { Await, Explain, PortraitCard, useAsync } from "../components/ui";
+import { Avatar, Await, Divider, Explain, PortraitCard, useAsync } from "../components/ui";
 import { art, BASE, operators, stages as loadStages, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
-import { date, dayTime, duration, pct, relative } from "../lib/format";
+import { date, dayTime, duration, fmt, pct, relative } from "../lib/format";
 import { href, route } from "../lib/router";
 import { pref, setPref } from "../lib/storage";
 import { gameDay, nextDailyReset, nextWeeklyReset } from "../lib/time";
-import { hasRoster, SERVERS, server } from "../state";
+import { BuildMarks } from "../components/Marks";
+import { lastPlan } from "../lib/account";
+import { importFile } from "../lib/accountImport";
+import { autoPriorities, prioStatus } from "../lib/priorities";
+import { account, hasRoster, SERVERS, server } from "../state";
 import type { OpIndex } from "../types";
 
-const TOOLS = [
-  { path: "/operators", title: "Operators", text: "Stats, skills, modules, base skills and costs." },
-  { path: "/compare", title: "Compare", text: "Two to four operators side by side." },
-  { path: "/planner", title: "Planner", text: "Target builds in, materials and crafting out." },
-  { path: "/farming", title: "Farming", text: "Cheapest stages, scheduled day by day." },
-  { path: "/recruit", title: "Recruitment", text: "Every tag combination and what it guarantees." },
-  { path: "/rankings", title: "Rankings", text: "Who community clears use, per content." },
-  { path: "/upcoming", title: "Upcoming", text: "What's coming from CN, with dates." },
-  { path: "/roster", title: hasRoster.value ? "My account" : "Add your roster", text: "Plans, gaps and a daily Sanity Dump." },
-];
 
-// The hero: Lemuen in her alternate outfit, set like an altarpiece in Laterano's cathedral hall at night.
+// The hero: Lemuen in her alternate outfit, set like an altarpiece in a vaulted nave. The nave and the rose window
+// behind the account panel are Novena's own drawings (docs/design/bg/make_bg.py), not game art.
 const HERO_ART = art.skin("char_4193_lemuen_ambienceSynesthesia#7b");
-const HERO_SCENE = art.scene("26_g2_laterano_cathedralhall");
+const HERO_SCENE = `${BASE}bg/nave.svg`;
 const HALO = [0.491, 0.22]; // the halo above her head, as a share of the art's width and height
 const WORD = "NOVENA";
 const INTRO_KEY = "introSeen";
@@ -60,7 +57,7 @@ function HeroToday() {
   );
 }
 
-function Hero({ stage, altarRef }: { stage: "idle" | "reveal"; altarRef: { current: HTMLDivElement | null } }) {
+function Hero({ stage, altarRef, settled, wings }: { stage: "idle" | "reveal"; altarRef: { current: HTMLDivElement | null }; settled: boolean; wings: boolean }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <section class={`hero${stage === "reveal" ? " reveal" : ""}`} aria-labelledby="hero-h">
@@ -69,6 +66,7 @@ function Hero({ stage, altarRef }: { stage: "idle" | "reveal"; altarRef: { curre
       <div class="hero-shafts" aria-hidden="true"><i /><i /><i /></div>
       <div class="hero-altar" ref={altarRef}>
         <div class="altar-glow" />
+        <Wings open={wings} />
         <div class="altar-rays"><div class="rays" /></div>
         <svg class="altar-ring" viewBox="-100 -20 200 40" aria-hidden="true">
           <ellipse pathLength="1" cx="0" cy="0" rx="100" ry="16" />
@@ -77,6 +75,7 @@ function Hero({ stage, altarRef }: { stage: "idle" | "reveal"; altarRef: { curre
         <img class={`hero-art${loaded ? " loaded" : ""}`} src={HERO_ART} alt="Lemuen in her alternate outfit, seated before a golden pipe organ"
           onLoad={() => setLoaded(true)} />
       </div>
+      {settled && <Feathers />}
       <div class="hero-copy">
         <img class="crest" src={`${BASE}novena-crest.svg`} alt="" width={112} height={112} />
         <p class="eyebrow" data-in style={{ "--d": 0 }}>An Arknights companion</p>
@@ -95,6 +94,91 @@ function Hero({ stage, altarRef }: { stage: "idle" | "reveal"; altarRef: { curre
       </div>
       <HeroToday />
       <p class="hero-credit" data-in style={{ "--d": 7 }}>Art: Lemuen, alternate outfit © Hypergryph, loaded from a community mirror.</p>
+    </section>
+  );
+}
+
+// The account is Novena's main feature, so it gets the first panel under the hero: bring a roster in (sync, a file
+// dropped right here, or by hand), or, once there is one, a summary with the way back in.
+const ACCOUNT_SCENE = `${BASE}bg/rose.svg`;
+
+function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
+  const s = server.value;
+  const [over, setOver] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const a = account.value;
+  const list = Object.values(a.ops);
+  useEffect(() => { if (hasRoster.value) void autoPriorities(); }, [hasRoster.value]);
+  const byId = new Map((ops || []).map((o) => [o.id, o]));
+  const next = (lastPlan.value?.result.steps || []).slice(0, 3);
+  const onFile = async (f: File) => {
+    if (!ops) return;
+    try { setMsg({ ok: true, text: await importFile(f, ops, s, "replace") }); } catch (e) { setMsg({ ok: false, text: (e as Error).message }); }
+  };
+  const drop = (
+    <label class={`acct-drop${over ? " over" : ""}`}
+      onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
+      onDrop={(e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer?.files?.[0]; if (f) void onFile(f); }}>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M5 15v4h14v-4" /></svg>
+      <span><strong>{hasRoster.value ? "Drop a newer file" : "Drop a file here"}</strong><small>or choose one · Novena Sync, game sync data, Krooster or a Novena file</small></span>
+      <input type="file" accept=".json,application/json" class="sr-only" disabled={!ops}
+        onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void onFile(f); }} />
+    </label>
+  );
+  return (
+    <section class="acct" aria-labelledby="acct-h">
+      <img class="acct-bg" src={ACCOUNT_SCENE} alt="" loading="lazy" />
+      <svg class="acct-edge" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="10" x2="100" y2="0" stroke="#c99c50" stroke-opacity="0.7" stroke-width="1" vector-effect="non-scaling-stroke" /></svg>
+      <div class="acct-glass glass">
+        <p class="eyebrow">Your account</p>
+        {hasRoster.value ? (
+          <>
+            <h2 id="acct-h" class="display">Welcome back, Doctor</h2>
+            <p class="motto">Plans · Farming · Progress</p>
+            <p class="meta">Roster {a.source === "novena-sync" ? "synced" : "updated"} {relative(a.updated)}</p>
+            <div class="acct-stats">
+              <div><span>{fmt(list.length)}</span>operators</div>
+              <div><span>{fmt(list.filter((o) => o.elite >= 2).length)}</span>at Elite 2</div>
+              <div><span>{fmt(list.reduce((n, o) => n + o.masteries.filter((m) => m >= 3).length, 0))}</span>M3 skills</div>
+            </div>
+            <div class="acct-next">
+              <p class="eyebrow" style={{ margin: "0 0 8px" }}>Raise next</p>
+              {next.length ? (
+                <ol>
+                  {next.map((st, i) => {
+                    const op = byId.get(st.id);
+                    return op ? (
+                      <li key={i}><a href={href(`/operator/${op.id}`)} data-panel={op.id}><Avatar op={op} size="sm" /><span class="op-name">{op.name}</span></a><BuildMarks s={st.after} from={st.before} op={op} /></li>
+                    ) : null;
+                  })}
+                </ol>
+              ) : <p class="meta" style={{ margin: 0 }}>{prioStatus.value ? "Working out what to raise next…" : "Your priorities appear here."}</p>}
+            </div>
+            <div class="acct-actions">
+              <a class="pill primary" href={href("/today")}>Open my account <span aria-hidden="true">→</span></a>
+              <a class="pill" href={href("/plan")}>All priorities</a>
+              <a class="pill" href={href("/roster", { tab: "import" })}>Sync again</a>
+            </div>
+            {drop}
+          </>
+        ) : (
+          <>
+            <h2 id="acct-h" class="display">Bring your roster</h2>
+            <p class="motto">Plans · gaps · a daily Sanity Dump</p>
+            <p class="acct-lede">Novena plans around what you own: who to raise next, what you're short of, and the cheapest way to farm it. Your roster stays in this browser.</p>
+            <ol class="acct-ways">
+              <li><strong>Novena Sync</strong><span>One click after you play. A small desktop app: your sign-in stays on your computer.</span><a href={href("/roster", { tab: "import" })}>Set it up →</a></li>
+              <li><strong>A file</strong><span>Game sync data, a Krooster export, or a Novena file from another browser.</span>{drop}</li>
+              <li><strong>By hand</strong><span>A quick editor: search, tick, set elite and level in a few clicks.</span><a href={href("/roster")}>Start adding →</a></li>
+            </ol>
+          </>
+        )}
+        {msg && (
+          <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ margin: "10px 0 0" }}>
+            {msg.text} {msg.ok && <a href={href("/today")}>Open my account →</a>}
+          </p>
+        )}
+      </div>
     </section>
   );
 }
@@ -119,6 +203,7 @@ export default function Home() {
   const st = useAsync(() => Promise.all([operators(s), loadUsage(), loadUpcoming(s)]), [s]);
   const [stage, setStage] = useState<"idle" | "cover" | "reveal">(() => (shouldPlayIntro() ? "cover" : "idle"));
   const altar = useRef<HTMLDivElement>(null);
+  const [settled, setSettled] = useState(stage === "idle"); // feathers start once the intro (if any) has finished
 
   // First visit: the intro plays over the page. Its opening beat needs no art, so it starts at once while the art loads.
   useEffect(() => {
@@ -137,6 +222,7 @@ export default function Home() {
         onReveal: () => setStage("reveal"),
         onDone: (how) => {
           root.remove();
+          setSettled(true);
           if (how !== "failed") setPref(INTRO_KEY, "1"); // too slow this time: the art is cached for next visit
           if (how !== "done") setStage("idle");
         },
@@ -148,11 +234,10 @@ export default function Home() {
   return (
     <div class="fade-in">
       {stage === "cover" && <div class="iv-cover" aria-hidden="true" />}
-      <Hero stage={stage === "reveal" ? "reveal" : "idle"} altarRef={altar} />
+      <Hero stage={stage === "reveal" ? "reveal" : "idle"} altarRef={altar} settled={settled} wings={stage !== "cover"} />
+      <AccountPanel ops={st.data ? st.data[0] : null} />
 
-      <div class="tiles">
-        {TOOLS.map((t) => <a key={t.path} class="entry" href={href(t.path)}><strong>{t.title}</strong><span>{t.text}</span></a>)}
-      </div>
+      <Divider />
 
       <Await state={st} what="operators">
         {([ops, usage, up]) => {

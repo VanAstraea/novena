@@ -1,6 +1,7 @@
 // Recruitment calculator: pick the five tags, see every combination and what it guarantees.
 import { useMemo, useState } from "preact/hooks";
 import { Avatar, Await, Explain, Stars, useAsync } from "../components/ui";
+import { duration } from "../lib/format";
 import { opMap, recruit as loadRecruit } from "../lib/data";
 import { href, route, setQuery } from "../lib/router";
 import { combos, TAG, worthPicking, type Combo } from "../lib/recruit";
@@ -40,6 +41,7 @@ function View({ rec, ops }: { rec: RecruitFile; ops: Map<string, OpIndex> }) {
   const shown = all ? found : worth;
   return (
     <>
+      {account.value.recruit?.length ? <Slots rec={rec} name={name} /> : null}
       <section class="card">
         <div class="row" style={{ justifyContent: "space-between" }}>
           <h2 style={{ margin: 0 }}>Your tags <span class="muted">({picked.length} of 5)</span></h2>
@@ -95,5 +97,42 @@ function ComboCard({ c, name, ops }: { c: Combo; name: (id: number) => string; o
         })}
       </div>
     </div>
+  );
+}
+
+/** Your four recruitment slots as of the last Novena Sync: what each offers or is recruiting, and one click to check it. */
+function Slots({ rec, name }: { rec: RecruitFile; name: (id: number) => string }) {
+  const slots = account.value.recruit || [];
+  const now = Date.now() / 1000;
+  return (
+    <section class="card">
+      <h2 class="label">Your recruitment slots</h2>
+      <div class="slots">
+        {slots.map((sl) => {
+          const locked = sl.state === 0 && !sl.tags.length;
+          const running = sl.start > 0 && sl.finish > now, ready = sl.start > 0 && sl.finish > 0 && sl.finish <= now;
+          const best = sl.tags.length ? Math.max(0, ...worthPicking(combos(sl.tags, rec)).map((c) => c.rarity)) : 0;
+          return (
+            <div key={sl.slot} class={`slot${running ? " running" : ready ? " ready" : ""}`}>
+              <div class="slot-head"><strong>Slot {sl.slot + 1}</strong>
+                <span class={ready ? "good-text" : "muted"}>{locked ? "Locked" : running ? `Done in ${duration((sl.finish - now) * 1000)}` : ready ? "Ready to collect" : "Tags waiting"}</span>
+              </div>
+              {!locked && (
+                <>
+                  <div class="chips">{sl.tags.map((t) => <span key={t} class={`chip${sl.picked.includes(t) ? " picked" : ""}`}>{name(t)}</span>)}</div>
+                  {!running && !ready && sl.tags.length > 0 && (
+                    <div class="row" style={{ marginTop: "8px", justifyContent: "space-between" }}>
+                      <span class="muted">{best >= 4 ? <strong class="good-text">{best}★ guaranteed</strong> : best ? `Best: ${best}★` : "Nothing guaranteed"}</span>
+                      <button class="small" onClick={() => setQuery({ tags: sl.tags.join(",") })}>Check these tags</button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <Explain>As of your last Novena Sync. Picked tags are outlined. Times count down from the sync, so they stay right until you change something in the game.</Explain>
+    </section>
   );
 }

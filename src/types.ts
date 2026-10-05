@@ -19,6 +19,7 @@ export interface OpIndex {
   on: Server[];
   mods: string[];
   modIds: string[];
+  modTypes?: string[]; // each module's type icon file name ("mar-y"), same order as mods
   src?: Server;
   cn?: string;
   alt?: string;

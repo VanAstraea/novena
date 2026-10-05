@@ -203,5 +203,6 @@ def build(server: str) -> dict:
             "products": list((f.get("products") or {}).keys()) if isinstance(f.get("products"), dict) else f.get("products") or [],
         }
     train, workshop = training_workshop()
+    formulas = {k: f.get("itemId") for k, f in (b.get("manufactFormulas") or {}).items() if f.get("itemId")}  # what a factory makes
     return {"ops": ops, "rooms": rooms, "control": control_buffs(infrast), "names": names,
-            "morale": morale_effects(infrast), "dorm": dorm_effects(infrast), "train": train, "workshop": workshop}
+            "morale": morale_effects(infrast), "dorm": dorm_effects(infrast), "train": train, "workshop": workshop, "formulas": formulas}

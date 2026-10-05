@@ -28,7 +28,7 @@ const SUBPAGES: [string, string, Record<string, string>, string[]][] = [
 const ACTIONS: { label: string; words: string[]; run: () => void }[] = [
   { label: "Sync with Novena Sync", words: ["sync", "update roster"], run: () => navigate(href("/roster", { tab: "import" })) },
   { label: "Switch between dark and light", words: ["theme", "dark", "light"], run: () => { const order = ["system", "dark", "light"] as const; theme.value = order[(order.indexOf(theme.value) + 1) % 3]; } },
-  { label: "Build my plan", words: ["plan", "what to build"], run: () => navigate(href("/plan")) },
+  { label: "My priorities", words: ["priorities", "plan", "what to build", "what to raise next"], run: () => navigate(href("/plan")) },
 ];
 
 export const searchOpen = signal(false);

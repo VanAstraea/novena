@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import subprocess
 import sys
@@ -20,7 +21,7 @@ from .bridge import COOLDOWN, PORT, Bridge
 from .settings import Settings
 
 NOVENA_URL = "https://vanastraea.github.io/novena/roster?tab=import"
-INK, PANEL, LINE, TEXT, MUTED, GOLD = "#06080f", "#0c1222", "#2f3b5a", "#f5f0e6", "#aab1c0", "#e2bd66"
+INK, PANEL, LINE, TEXT, MUTED, GOLD = "#0d0c0b", "#161412", "#4b3d2f", "#f6f1e8", "#b9afa2", "#dfb768"
 NOTICE = (
     "Novena Sync signs in to your game account on this computer and reads it. It never changes anything in the game, "
     "never plays it for you, and never sends your account anywhere except to Novena in your own browser.\n\n"
@@ -103,17 +104,17 @@ class App:
         s.configure("Head.TLabel", background=PANEL, foreground=GOLD, font=("Segoe UI", 9, "bold"))
         s.configure("Code.TLabel", background=PANEL, foreground=TEXT, font=("Consolas", 22, "bold"))
         s.configure("TButton", background=PANEL, foreground=TEXT, bordercolor=LINE, padding=(12, 6))
-        s.map("TButton", background=[("active", "#1b2540"), ("disabled", INK)], foreground=[("disabled", "#5b6478")])
-        s.configure("Gold.TButton", background=GOLD, foreground="#140f05", bordercolor=GOLD, font=("Segoe UI", 10, "bold"))
-        s.map("Gold.TButton", background=[("active", "#f3d993"), ("disabled", "#5a4d2c")])
+        s.map("TButton", background=[("active", "#2b231b"), ("disabled", INK)], foreground=[("disabled", "#6e6559")])
+        s.configure("Gold.TButton", background=GOLD, foreground="#17110a", bordercolor=GOLD, font=("Segoe UI", 10, "bold"))
+        s.map("Gold.TButton", background=[("active", "#f2d599"), ("disabled", "#5a4d2c")])
         s.configure("TCheckbutton", background=INK, foreground=TEXT)
         s.configure("Panel.TCheckbutton", background=PANEL, foreground=TEXT)
         s.map("TCheckbutton", background=[("active", INK)])
         s.map("Panel.TCheckbutton", background=[("active", PANEL)])
-        s.configure("TEntry", fieldbackground="#121a2e", foreground=TEXT, insertcolor=TEXT, padding=6)
-        s.configure("TCombobox", fieldbackground="#121a2e", foreground=TEXT, background=PANEL, arrowcolor=TEXT)
-        s.map("TCombobox", fieldbackground=[("readonly", "#121a2e")], foreground=[("readonly", TEXT)],
-              selectbackground=[("readonly", "#121a2e")], selectforeground=[("readonly", TEXT)])
+        s.configure("TEntry", fieldbackground="#1e1a16", foreground=TEXT, insertcolor=TEXT, padding=6)
+        s.configure("TCombobox", fieldbackground="#1e1a16", foreground=TEXT, background=PANEL, arrowcolor=TEXT)
+        s.map("TCombobox", fieldbackground=[("readonly", "#1e1a16")], foreground=[("readonly", TEXT)],
+              selectbackground=[("readonly", "#1e1a16")], selectforeground=[("readonly", TEXT)])
         self.root.option_add("*TCombobox*Listbox.background", PANEL)
         self.root.option_add("*TCombobox*Listbox.foreground", TEXT)
 
@@ -278,6 +279,9 @@ class App:
     async def _sync(self, server: str) -> dict[str, Any]:
         raw = await account.read_account(self.vault, server)
         data = payload.minimize(raw, server)
+        if os.environ.get("NOVENA_SHAPE"):  # keys and types only, never values: for checking the parts Novena reads
+            Path(self.settings.folder).mkdir(parents=True, exist_ok=True)
+            (Path(self.settings.folder) / f"novena-sync-{server}-shape.json").write_text(json.dumps(payload.shape(raw), indent=1), encoding="utf-8")
         if self.settings.save_file:
             payload.save(data, Path(self.settings.folder))
         self.last_sync[server] = time.time()

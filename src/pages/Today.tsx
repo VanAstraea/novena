@@ -1,21 +1,22 @@
 // Today, the account's home (after ako's Overview and Today): your account at a glance, what's next, what changed,
 // progress over time, the sanity timer, and the day's routine as a checklist. Ticks are kept per server and per game
 // day (weekly ones per game week) in this browser, and clear themselves at the reset.
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
+import { BuildMarks } from "../components/Marks";
 import { Chart } from "../components/Chart";
 import { SanityTimer } from "../components/SanityTimer";
-import { Await, Explain, itemName, itemsSig, metaSig, OpLink, useAsync } from "../components/ui";
+import { Await, CutHead, Divider, Explain, itemName, itemsSig, metaSig, OpLink, useAsync } from "../components/ui";
 import { costTable, lastPlan } from "../lib/account";
-import { stateLabel } from "../lib/build";
 import { LMD, sanity } from "../lib/costs";
 import { diff } from "../lib/progress";
+import { autoPriorities, prioStatus } from "../lib/priorities";
 import { expiring } from "../lib/consumables";
 import { operators, stages as loadStages, upcoming as loadUpcoming } from "../lib/data";
 import { date, fmt, duration, relative } from "../lib/format";
 import { href } from "../lib/router";
 import { pref, setPref } from "../lib/storage";
 import { gameDay, nextDailyReset, nextWeeklyReset } from "../lib/time";
-import { account, hasRoster, server, targets } from "../state";
+import { account, dronesFullAt, hasRoster, server, targets } from "../state";
 
 interface Task { id: string; label: string; note?: string; link?: [string, string]; weekly?: boolean; custom?: boolean }
 
@@ -98,8 +99,14 @@ export default function Today() {
   return (
     <div class="stack fade-in">
       <h1>Today</h1>
-      {hasRoster.value && <Overview />}
-      <SanityTimer />
+      <WeekBand />
+      {hasRoster.value && <><Overview /><Divider /></>}
+      <div class="today-cols">
+      <aside class="today-side">
+        <SanityTimer />
+        <Timers />
+      </aside>
+      <div class="today-main">
       <section class="card">
         <div class="row" style={{ justifyContent: "space-between" }}>
           <h2 style={{ margin: 0 }}>Checklist</h2>
@@ -123,12 +130,15 @@ export default function Today() {
         </form>
       </section>
       <Explain>Ticks are kept in this browser, per server, and clear at the daily reset (weekly ones at the weekly reset). Novena can't see your game, so it doesn't know what you've done: tick things off as you go.</Explain>
+      </div>
+      </div>
     </div>
   );
 }
 
 /** The account at a glance: totals, what's next, what changed since an earlier day, and progress over time. */
 function Overview() {
+  useEffect(() => { void autoPriorities(); }, []);
   const s = server.value;
   const st = useAsync(() => Promise.all([operators(s), costTable(s), loadStages(s), loadUpcoming(s).catch(() => null)]), [s]);
   const a = account.value;
@@ -160,13 +170,13 @@ function Overview() {
             <>
               <div class="next-grid" style={{ marginTop: "12px" }}>
                 <section class="card">
-                  <h2 class="label">Next in your plan</h2>
+                  <h2 class="label">Next priorities</h2>
                   {steps.length ? (
-                    <ul>{steps.map((x, i) => { const op = byId.get(x.id); return <li key={i}>{op ? <OpLink op={op} sub={stateLabel(x.after)} /> : x.id}</li>; })}</ul>
+                    <ul>{steps.map((x, i) => { const op = byId.get(x.id); return <li key={i}>{op ? <OpLink op={op} sub={<BuildMarks s={x.after} from={x.before} op={op} />} /> : x.id}</li>; })}</ul>
                   ) : targets.value.length ? (
                     <ul>{targets.value.slice(0, 4).map((t) => { const op = byId.get(t.id); return <li key={t.id}>{op ? <OpLink op={op} sub={t.text} /> : t.text}</li>; })}</ul>
-                  ) : <p class="muted">No plan yet. <a href={href("/plan")}>Build your plan</a> or press Make it a goal on an operator.</p>}
-                  {steps.length > 0 && <a class="btn small" href={href("/plan")} style={{ marginTop: "8px" }}>The whole plan</a>}
+                  ) : <p class="muted">{prioStatus.value ? `Working out what to raise next: ${prioStatus.value.toLowerCase()}…` : "Nothing to suggest yet."}</p>}
+                  {steps.length > 0 && <a class="btn small" href={href("/plan")} style={{ marginTop: "8px" }}>All priorities</a>}
                 </section>
                 <section class="card">
                   <h2 class="label">Open today</h2>
@@ -179,7 +189,6 @@ function Overview() {
                   {change && raised ? (
                     <p style={{ margin: 0 }}><strong>{raised}</strong> operator{raised === 1 ? "" : "s"} raised, worth about <strong>{fmt(sanity(change.spent, items!.values))}</strong> sanity of materials, {fmt(change.spent[LMD] || 0)} LMD.</p>
                   ) : <p class="muted" style={{ margin: 0 }}>{base ? "Nothing raised since then." : "From tomorrow, what you raise shows here."}</p>}
-                  <p class="muted" style={{ margin: "8px 0 0" }}>Roster {a.source === "novena-sync" ? "synced" : "updated"} {relative(a.updated)}.</p>
                   <a class="btn small" href={href("/roster", { tab: "progress" })} style={{ marginTop: "8px" }}>What changed</a>
                 </section>
               </div>
@@ -197,3 +206,48 @@ function Overview() {
   );
 }
 
+
+const WEEKDAYS = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]; // gameDay: 1 = Monday
+
+/** The day and the week at a glance, on a diagonal-cut band. */
+function WeekBand() {
+  const s = server.value, now = Date.now();
+  return (
+    <CutHead eyebrow="This week" art="nave" title={`${WEEKDAYS[gameDay(s).weekday] || "Today"} on ${s.toUpperCase()}`}
+      sub={<>Daily reset in {duration(nextDailyReset(s, now) - now)} · weekly reset {relative(nextWeeklyReset(s, now), now)}</>} />
+  );
+}
+
+/** Everything with a clock, from the last Novena Sync and the sanity timer, soonest first. */
+function Timers() {
+  const a = account.value, s = server.value;
+  if (!a.recruit?.length && !a.base) return null;
+  const now = Date.now();
+  const rows: { at: number; what: string; note?: string }[] = [];
+  for (const sl of a.recruit || []) if (sl.start > 0 && sl.finish > 0) rows.push({ at: sl.finish * 1000, what: `Recruitment, slot ${sl.slot + 1}` });
+  for (const r of a.base?.rooms || []) {
+    if (r.room === "MANUFACTURE" && r.done && r.done > 0) rows.push({ at: r.done * 1000, what: "Factory stops", note: r.capacity ? `${r.made ?? 0} / ${r.capacity} made at sync` : undefined });
+    if (r.room === "TRADING" && r.limit && (r.orders ?? 0) >= r.limit) rows.push({ at: 0, what: "Trading Post is full", note: "deliver its orders" });
+  }
+  const d = a.base?.drones;
+  if (d && d.max) rows.push({ at: dronesFullAt(d), what: "Drones full", note: d.value < d.max ? "about" : undefined });
+  try {
+    const sv = JSON.parse(pref(`sanity.${s}`, "{}"));
+    if (sv.at && sv.cap) rows.push({ at: sv.value >= sv.cap ? 0 : sv.at + (sv.cap - sv.value) * 360_000, what: "Sanity full" });
+  } catch { /* no sanity saved */ }
+  rows.sort((x, y) => x.at - y.at);
+  return (
+    <section class="card">
+      <h2 style={{ margin: "0 0 8px" }}>Timers</h2>
+      <ul class="timers">
+        {rows.map((r, i) => (
+          <li key={i} class={r.at <= now ? "due" : ""}>
+            <span>{r.what}{r.note && <small class="muted"> · {r.note}</small>}</span>
+            <strong>{r.at <= now ? "Ready" : `in ${duration(r.at - now)}`}</strong>
+          </li>
+        ))}
+      </ul>
+      <Explain>From your last Novena Sync ({relative(a.base?.at || a.updated)}) and the sanity timer. They count from the sync, so they stay right until you change something in the game.</Explain>
+    </section>
+  );
+}

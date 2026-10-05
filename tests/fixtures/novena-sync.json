@@ -1,8 +1,8 @@
 {
  "app": "novena-sync",
- "version": 1,
+ "version": 2,
  "server": "en",
- "synced": "2026-10-05T00:00:00+00:00",
+ "synced": "2026-10-05T12:59:56+00:00",
  "user": {
   "troop": {
    "chars": {
@@ -25,7 +25,8 @@
        "level": 3,
        "locked": 0
       }
-     }
+     },
+     "skin": "char_202_demkni@test#1"
     },
     "2": {
      "charId": "char_002_amiya",
@@ -72,7 +73,10 @@
    "payDiamond": 2,
    "gachaTicket": 5,
    "tenGachaTicket": 1,
-   "monthlySubscriptionEndTime": 1900000000
+   "monthlySubscriptionEndTime": 1900000000,
+   "ap": 80,
+   "maxAp": 135,
+   "lastApAddTime": 1800000000
   },
   "consumable": {
    "ap_supply_lt_100": {
@@ -86,6 +90,78 @@
      "ts": -1,
      "count": 1
     }
+   }
+  },
+  "recruit": [
+   {
+    "slot": 0,
+    "state": 2,
+    "tags": [
+     11,
+     14,
+     2,
+     10,
+     23
+    ],
+    "picked": [
+     11
+    ],
+    "start": 1800000000,
+    "finish": 1800032400
+   },
+   {
+    "slot": 1,
+    "state": 1,
+    "tags": [
+     1,
+     4,
+     9,
+     12,
+     17
+    ],
+    "picked": [],
+    "start": -1,
+    "finish": -1
+   }
+  ],
+  "building": {
+   "rooms": [
+    {
+     "slot": "slot_34",
+     "room": "MANUFACTURE",
+     "level": 3,
+     "team": [
+      {
+       "charId": "char_202_demkni",
+       "morale": 12.0,
+       "ts": 1800000000
+      }
+     ],
+     "formula": "4",
+     "made": 7,
+     "capacity": 54,
+     "remain": 3,
+     "done": 1800010000
+    },
+    {
+     "slot": "slot_1",
+     "room": "DORMITORY",
+     "level": 5,
+     "team": [
+      {
+       "charId": "char_002_amiya",
+       "morale": 24.0,
+       "ts": 1800000000
+      }
+     ],
+     "comfort": 5000
+    }
+   ],
+   "drones": {
+    "value": 120,
+    "max": 200,
+    "ts": 1800000000,
+    "speed": 1.1
    }
   }
  }

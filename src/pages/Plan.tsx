@@ -1,18 +1,20 @@
-// Plan: the upgrades that unlock the most followable community clears per sanity, goals first, with a
-// "doable now" depot check counted all together.
-import { useState } from "preact/hooks";
+// Priorities: the upgrades that unlock the most followable community clears per sanity, goals first, with a
+// "doable now" depot check counted all together. It builds by itself (lib/priorities.ts); the button rebuilds.
+import { useEffect } from "preact/hooks";
+import { BuildMarks } from "../components/Marks";
+import { toast } from "../components/Toast";
+import { parse } from "../lib/build";
 import { WeightsControl } from "../components/Weights";
-import { contentLevels, effectiveWeights } from "../lib/weights";
 import { Avatar, Await, Explain, Items, itemsSig, metaSig, useAsync } from "../components/ui";
-import { costTable, goalStates, guidebook, lastPlan, rosterStates, runPlan } from "../lib/account";
-import { stateLabel } from "../lib/build";
+import { lastPlan } from "../lib/account";
+import { autoPriorities, buildPriorities, freshPriorities, prioError, prioStatus, prioSupport, prioTop, setPrioSettings } from "../lib/priorities";
 import { EXP, LMD } from "../lib/costs";
 import { Stock } from "../lib/crafting";
 import { operators, usage as loadUsage } from "../lib/data";
 import { fmt, pct } from "../lib/format";
-import { SUPPORT_SLOTS, totalOf, type PlanResult, type PlanStep } from "../lib/planner";
+import { totalOf, type PlanResult, type PlanStep } from "../lib/planner";
 import { href } from "../lib/router";
-import { account, hasRoster, server, targets } from "../state";
+import { account, hasRoster, saveTargets, server, targets } from "../state";
 import type { OpIndex } from "../types";
 
 
@@ -21,9 +23,10 @@ export default function Plan() {
   const st = useAsync(() => Promise.all([operators(s), loadUsage()]), [s]);
   return (
     <div class="stack fade-in">
-      <h1>Plan: what to build next</h1>
+      <h1>Priorities</h1>
+      <p class="muted" style={{ marginTop: "-6px" }}>What to raise next across your whole roster, for the content you play.</p>
       {!hasRoster.value ? (
-        <div class="card"><p>The plan scores your roster against community clear guides, so it needs your roster first. <a href={href("/roster")}>Add it under My roster</a>.</p></div>
+        <div class="card"><p>Priorities score your roster against community clear guides, so they need your roster first. <a href={href("/roster", { tab: "import" })}>Add it under My roster</a>.</p></div>
       ) : (
         <Await state={st} what="operators">{([ops]) => <PlanView ops={new Map(ops.map((o) => [o.id, o]))} />}</Await>
       )}
@@ -32,53 +35,28 @@ export default function Plan() {
 }
 
 function PlanView({ ops }: { ops: Map<string, OpIndex> }) {
-  const s = server.value;
-  const [top, setTop] = useState(20);
-  const [support, setSupport] = useState(true);
-  const [progress, setProgress] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const key = JSON.stringify([s, account.value.ops, targets.value, top, support, contentLevels.value]);
-  const plan = lastPlan.value?.key === key ? lastPlan.value.result : null;
-  const items = itemsSig.value;
-  const meta = metaSig.value;
-
-  const build = async () => {
-    if (!items || !meta) return;
-    setError("");
-    setProgress("Loading the guidebook");
-    try {
-      const [book, costs, opsList] = await Promise.all([guidebook(), costTable(s), operators(s)]);
-      const states = rosterStates(account.value, costs);
-      const result = await runPlan({
-        book, costs, constTable: meta.const, values: items.values, roster: states,
-        available: opsList.filter((o) => o.on.includes(s)).map((o) => o.id),
-        shared: opsList.filter((o) => o.patch).map((o) => o.id),
-        fixed: opsList.filter((o) => o.obtain === "is").map((o) => o.id),
-        weights: effectiveWeights(),
-        top, support: support ? SUPPORT_SLOTS : 0, goals: goalStates(targets.value, states, costs, ops),
-      }, (phase, done, total) => setProgress(total > 1 ? `${phase} (${done}/${total})` : phase));
-      lastPlan.value = { key, result };
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setProgress(null);
-    }
-  };
+  useEffect(() => { void autoPriorities(); }, [account.value.ops, targets.value, prioTop.value, prioSupport.value]);
+  const fresh = freshPriorities();
+  const plan = fresh || lastPlan.value?.result || null; // an older result stays on screen while the new one builds
+  const progress = prioStatus.value, error = prioError.value;
+  const top = prioTop.value, support = prioSupport.value;
+  const items = itemsSig.value, meta = metaSig.value;
+  const build = () => void buildPriorities();
 
   return (
     <>
       <section class="card">
         <div class="row" style={{ alignItems: "flex-end" }}>
           <label class="field"><span>Steps</span>
-            <select value={top} onChange={(e) => setTop(+(e.target as HTMLSelectElement).value)}>{[10, 20, 40].map((n) => <option key={n} value={n}>{n}</option>)}</select>
+            <select value={top} onChange={(e) => setPrioSettings(+(e.target as HTMLSelectElement).value, support)}>{[10, 20, 40].map((n) => <option key={n} value={n}>{n}</option>)}</select>
           </label>
-          <label class="row tight"><input type="checkbox" checked={support} onChange={(e) => setSupport((e.target as HTMLInputElement).checked)} /> Count on borrowing one support operator</label>
-          <button class="primary" onClick={build} disabled={!!progress || !items || !meta}>{progress ? "Working…" : plan ? "Rebuild plan" : "Build my plan"}</button>
+          <label class="row tight"><input type="checkbox" checked={support} onChange={(e) => setPrioSettings(top, (e.target as HTMLInputElement).checked)} /> Count on borrowing one support operator</label>
+          <button class="primary" onClick={build} disabled={!!progress || !items || !meta}>{progress ? "Working…" : "Rebuild"}</button>
         </div>
         <WeightsControl compact />
-        {progress && <p role="status" class="muted" style={{ marginTop: "8px" }}>{progress}…</p>}
+        {progress && <p role="status" class="muted" style={{ marginTop: "8px" }}>{plan ? "Updating for your latest roster: " : ""}{progress}…</p>}
         {error && <p role="alert" class="bad-text">{error}</p>}
-        <Explain>Each upgrade is scored by how many more community clear guides (MAA Copilot) your roster could follow, per sanity it costs. Unstated parts of a guide's usual build (E2, M3, module) count as soft: missing M3 on a skill 98% of owners mastered leaves a 2% chance. Your Planner targets are applied first as goals. Runs in your browser; the first run downloads the guidebook (a few MB).</Explain>
+        <Explain>Each upgrade is scored by how many more community clear guides (MAA Copilot) your roster could follow, per sanity it costs. Unstated parts of a guide's usual build (E2, M3, module) count as soft: missing M3 on a skill 98% of owners mastered leaves a 2% chance. Your Planner targets are applied first as goals. Runs in your browser by itself after an import or sync and whenever your roster has changed; the first run downloads the guidebook (a few MB).</Explain>
       </section>
       {plan && <Result plan={plan} ops={ops} />}
     </>
@@ -138,26 +116,42 @@ function Result({ plan, ops }: { plan: PlanResult; ops: Map<string, OpIndex> }) 
 
 const totalSanity = (steps: PlanStep[]) => steps.reduce((s, x) => s + x.sanity, 0);
 
-function describe(st: PlanStep): string {
-  const b = st.before, a = st.after;
-  const parts: string[] = [];
-  if (a.elite !== b.elite || a.level !== b.level) parts.push(`E${a.elite} L${a.level}`);
-  if (a.skillLevel !== b.skillLevel) parts.push(`SL${a.skillLevel}`);
-  a.masteries.forEach((m, i) => { if (m !== b.masteries[i]) parts.push(`S${i + 1} M${m}`); });
-  for (const [k, v] of Object.entries(a.modules)) if (v !== (b.modules[k] || 0)) parts.push(`Mod ${k}${v}`);
-  return parts.join(", ") || stateLabel(a);
-}
 
 function StepRow({ st, i, goal, op, ready }: { st: PlanStep; i: number; goal: boolean; op?: OpIndex; ready: { ok: boolean; short: Record<string, number> } }) {
   return (
     <tr>
       <td data-label="#">{goal ? <span class="badge">goal</span> : i + 1}</td>
       <td data-label="Operator">{op ? <a class="op-cell" href={href(`/operator/${op.id}`)}><Avatar op={op} size="sm" /><span class="op-name">{op.name}</span></a> : st.id}</td>
-      <td data-label="Upgrade">{describe(st)}{st.stageGains.length > 0 && <><br /><small class="muted">helps on {st.stageGains.length} stage{st.stageGains.length > 1 ? "s" : ""}</small></>}</td>
+      <td data-label="Upgrade"><BuildMarks s={st.after} from={st.before} op={op} />{st.stageGains.length > 0 && <><br /><small class="muted">helps on {st.stageGains.length} stage{st.stageGains.length > 1 ? "s" : ""}</small></>}</td>
       <td data-label="Coverage" class="num">+{(st.gain * 100).toFixed(2)}%</td>
       <td data-label="Sanity" class="num">{fmt(st.sanity)}</td>
       <td data-label="Cost"><Items cost={st.cost} /></td>
-      <td data-label="Depot">{ready.ok ? <span class="good-text">✓ covered</span> : <span class="warn-text">short {Object.keys(ready.short).length} item{Object.keys(ready.short).length > 1 ? "s" : ""}</span>}</td>
+      <td data-label="Depot">
+        {ready.ok ? <span class="good-text">✓ covered</span> : <span class="warn-text">short {Object.keys(ready.short).length} item{Object.keys(ready.short).length > 1 ? "s" : ""}</span>}
+        <div class="step-actions">
+          {!goal && op && <button class="small" onClick={() => makeGoal(st, op)}>Make it a goal</button>}
+          {!ready.ok && farmable(ready.short) && <a class="btn small" href={href("/farming", { items: farmable(ready.short) })}>Farm what's short</a>}
+        </div>
+      </td>
     </tr>
   );
+}
+
+/** What's short, as the Farming planner's item list (LMD and EXP come from their own stages). */
+const farmable = (short: Record<string, number>) => Object.entries(short).filter(([k]) => k !== LMD && k !== EXP).map(([k, n]) => `${k}:${n}`).join(",");
+
+/** A step as Planner goal text ("E2 L90, SL7, S2 M3, Mod X2"), added to the operator's goal if there is one. */
+function makeGoal(st: PlanStep, op: OpIndex) {
+  const b = st.before, a = st.after, parts: string[] = [];
+  if (a.elite !== b.elite || a.level !== b.level) parts.push(`E${a.elite} L${a.level}`);
+  if (a.skillLevel !== b.skillLevel) parts.push(`SL${a.skillLevel}`);
+  a.masteries.forEach((m, i) => { if (m !== b.masteries[i]) parts.push(`S${i + 1} M${m}`); });
+  for (const [k, v] of Object.entries(a.modules)) if (v !== (b.modules[k] || 0)) parts.push(`Mod ${k}${v}`);
+  const step = parts.join(", ");
+  if (!step) return;
+  const had = targets.value.find((t) => t.id === op.id);
+  const text = had ? `${had.text}, ${step}` : step;
+  try { parse(`${op.name} ${text}`); } catch (e) { toast((e as Error).message, { kind: "bad" }); return; }
+  saveTargets([...targets.value.filter((t) => t.id !== op.id), { id: op.id, text }]);
+  toast(`${op.name}: ${step} is a goal now.`, { link: { href: href("/planner"), label: "Open the planner" } });
 }

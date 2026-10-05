@@ -1,5 +1,6 @@
 // Upcoming content, with CN as the preview: events, operators, modules, banners and Contingency Contract.
 import { Avatar, Await, Explain, ItemIcon, itemName, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
+import { CommunityMarks } from "../components/Marks";
 import { costTable } from "../lib/account";
 import { planNeeds } from "../lib/needs";
 import { operators, shops as loadShops, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
@@ -125,9 +126,9 @@ function Events({ up, byId }: { up: UpcomingFile; byId: Map<string, OpIndex> }) 
         const owned = e.key_ops.filter((k) => account.value.ops[k.id]);
         return (
           <details key={e.id} class="card" open={e === up.events.find((x) => new Date(x.eta).getTime() > Date.now())}>
-            <summary style={{ cursor: "pointer" }}>
-              <strong>{e.name || e.name_cn}</strong> {e.name && <span class="muted">{e.name_cn}</span>}
-              <span class="muted"> · </span><Eta eta={e.eta} confirmed={e.confirmed} cn={e.cn_start} />
+            <summary class="cut" style={{ cursor: "pointer" }}>
+              <span class="cut-title" style={{ fontSize: "1.45rem" }}>{e.name || e.name_cn}</span>
+              <br />{e.name && <span class="muted">{e.name_cn} · </span>}<Eta eta={e.eta} confirmed={e.confirmed} cn={e.cn_start} />
             </summary>
             <p style={{ marginTop: "8px" }}>{e.stages} stages, {e.guided} with community guides ({e.guides} guides).</p>
             {e.key_ops.length > 0 ? (
@@ -176,7 +177,7 @@ function Operators({ up, byId, usage }: { up: UpcomingFile; byId: Map<string, Op
                 <tr key={id}>
                   <td data-label="Operator"><OpLink op={op} sub={<Stars n={op.rarity} />} /></td>
                   <td data-label="Usage on CN" class="num">{u?.score ? pct(u.score) : "–"}</td>
-                  <td data-label="Community build">{[b.elite ? `E${b.elite}` : "", b.skill ? `S${b.skill}${b.mastery ? ` M${b.mastery}` : ""}` : "", b.module ? `Mod ${b.module}` : ""].filter(Boolean).join(", ") || "–"}</td>
+                  <td data-label="Community build"><CommunityMarks b={b} op={op} /></td>
                   <td data-label="Banner">{banner ? <><Eta eta={banner.eta} /><br /><small>{KIND[banner.kind]}</small></> : <span class="muted">Not in a listed banner</span>}</td>
                 </tr>
               );

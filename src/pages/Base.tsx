@@ -1,13 +1,13 @@
 import { useMemo, useState } from "preact/hooks";
-import { Avatar, Await, Explain, Tabs, useAsync } from "../components/ui";
+import { Avatar, Await, CutHead, Explain, ItemIcon, itemName, Tabs, useAsync } from "../components/ui";
 import { Evaluator, LAYOUTS, production, PRODUCT_LABEL, ROOM_LABEL, rotation, skillsAt, standardLayout, type BaseFile, type Room, type Team } from "../lib/base";
 import { load, operators } from "../lib/data";
 import { DEFAULT_DORMS, dormPlan, dormRate, drains, lasts, MAX_MORALE, type DormSettings } from "../lib/morale";
 import { pref, setPref } from "../lib/storage";
 import { CLASSES, hm, trainersByClass, workshopPicks } from "../lib/training";
-import { fmt } from "../lib/format";
+import { duration, fmt, relative } from "../lib/format";
 import { href } from "../lib/router";
-import { account, hasRoster, server } from "../state";
+import { account, dronesFullAt, hasRoster, server } from "../state";
 import type { OpIndex } from "../types";
 
 export default function Base() {
@@ -26,11 +26,17 @@ export default function Base() {
 }
 
 function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
-  const [layout, setLayout] = useState("243");
+  const synced = account.value.base;
+  const [layout, setLayout] = useState(() => {
+    // start from the layout you actually have, when Novena Sync has seen your base
+    const n = (k: string) => synced?.rooms.filter((r) => r.room === k).length || 0;
+    const mine = `${n("TRADING")}${n("MANUFACTURE")}${n("POWER")}`;
+    return LAYOUTS[mine] ? mine : "243";
+  });
   const [shifts, setShifts] = useState(2);
   const [tab, setTab] = useState("A");
   const [copied, setCopied] = useState(false);
-  const [view, setView] = useState(() => pref("baseView", "teams"));
+  const [view, setView] = useState(() => pref("baseView", synced ? "now" : "teams"));
   const pick = (v: string) => { setView(v); setPref("baseView", v); };
   const roster = account.value.ops;
   const [dorms, setDorms] = useState<DormSettings>(() => { try { return { ...DEFAULT_DORMS, ...JSON.parse(pref("dorms", "{}")) }; } catch { return DEFAULT_DORMS; } });
@@ -67,13 +73,16 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
           </label>
           <button onClick={() => { navigator.clipboard?.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>{copied ? "Copied" : "Copy as text"}</button>
         </div>
-        <p style={{ marginTop: "10px" }}>Average production bonus: <strong>+{fmt(avg)}%</strong> <span class="muted">(rooms' percent bonuses added up, over the rotation)</span></p>
       </section>
+      <CutHead eyebrow="Your rotation" art="nave" title={<>+{fmt(avg)}% production</>}
+        sub={<>{shifts === 1 ? "One shift" : `${shifts} shifts of ${24 / shifts} h`} on {layout.split("").join("-")} · rooms' percent bonuses added up, over the rotation</>} />
       <Tabs label="Base sections" value={view} onChange={pick} tabs={[
-        { key: "teams", label: "Teams" }, { key: "dorms", label: "Dorms and morale" }, { key: "training", label: "Training and Workshop" },
+        ...(synced ? [{ key: "now", label: "Your base now" }] : []),
+        { key: "teams", label: "Suggested teams" }, { key: "dorms", label: "Dorms and morale" }, { key: "training", label: "Training and Workshop" },
         { key: "unlocks", label: `Skills to unlock${unlocks.length ? ` (${unlocks.length})` : ""}` },
       ]} />
       {(view === "teams" || view === "dorms") && plan.length > 1 && <Tabs label="Shifts" value={tab} onChange={setTab} tabs={plan.map((_, i) => ({ key: "ABC"[i], label: `Shift ${"ABC"[i]}` }))} />}
+      {view === "now" && synced && <BaseNow data={data} ops={ops} />}
       {view === "teams" && <>
       <div class="table-wrap">
         <table class="cards">
@@ -209,4 +218,61 @@ function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite:
     }
   }
   return out.sort((a, b) => b.gain - a.gain);
+}
+
+const ROOM_NAME: Record<string, string> = {
+  CONTROL: "Control Center", TRADING: "Trading Post", MANUFACTURE: "Factory", POWER: "Power Plant", MEETING: "Reception Room",
+  HIRE: "Office", WORKSHOP: "Workshop", TRAINING: "Training Room", DORMITORY: "Dormitory",
+};
+const ROOM_ORDER = ["CONTROL", "TRADING", "MANUFACTURE", "POWER", "MEETING", "HIRE", "TRAINING", "WORKSHOP", "DORMITORY"];
+const STRATEGY: Record<string, string> = { O_GOLD: "LMD orders", O_DIAMOND: "Orundum orders" };
+
+/** Your base as Novena Sync last saw it: every room, its team and their morale, what it's making and when it's done. */
+function BaseNow({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
+  const b = account.value.base!;
+  const now = Date.now() / 1000;
+  const rooms = [...b.rooms].sort((x, y) => ROOM_ORDER.indexOf(x.room) - ROOM_ORDER.indexOf(y.room) || x.slot.localeCompare(y.slot));
+  const until = (t?: number) => (t && t > now ? `in ${duration((t - now) * 1000)}` : t && t > 0 ? "done" : "");
+  const d = b.drones;
+  const dronesFull = d ? dronesFullAt(d) / 1000 : 0;
+  return (
+    <>
+      <div class="row" style={{ justifyContent: "space-between" }}>
+        <p class="muted" style={{ margin: 0 }}>As of your last sync, {relative(b.at)}. Morale is as the game counted it then.</p>
+        {d && <p style={{ margin: 0 }}>Drones <strong>{d.value}</strong> / {d.max}{dronesFull > now ? <span class="muted"> · full in about {duration((dronesFull - now) * 1000)}</span> : d.value >= d.max ? <span class="warn-text"> · full: use them</span> : null}</p>}
+      </div>
+      <div class="rooms">
+        {rooms.map((r) => {
+          const product = r.room === "MANUFACTURE" && r.formula ? data.formulas?.[r.formula] : undefined;
+          return (
+            <section key={r.slot} class="room card">
+              <div class="room-head"><strong>{ROOM_NAME[r.room] || r.room}</strong><span class="muted">Level {r.level}</span></div>
+              {product && (
+                <p class="room-line"><ItemIcon id={product} bare /> {itemName(product)}<span class="muted"> · {r.made ?? 0}{r.capacity ? ` / ${r.capacity}` : ""} made</span>
+                  {until(r.done) && <span class={until(r.done) === "done" ? "warn-text" : "muted"}> · {until(r.done) === "done" ? "stopped: collect and restart" : `keeps running ${until(r.done).replace("in ", "for ")}`}</span>}</p>
+              )}
+              {r.room === "TRADING" && (
+                <p class="room-line">{STRATEGY[r.strategy || ""] || "Orders"}<span class="muted"> · {r.orders ?? 0}{r.limit ? ` / ${r.limit}` : ""} ready{until(r.done) && until(r.done) !== "done" ? ` · next ${until(r.done)}` : ""}</span>
+                  {r.limit && (r.orders ?? 0) >= r.limit ? <span class="warn-text"> · full</span> : null}</p>
+              )}
+              {r.room === "DORMITORY" && r.comfort !== undefined && <p class="room-line muted">Ambience {fmt(r.comfort)}</p>}
+              {r.team.length ? (
+                <ul class="room-team">
+                  {r.team.map((t) => {
+                    const op = ops.get(t.charId);
+                    return (
+                      <li key={t.charId} title={`${op?.name || t.charId}: morale ${t.morale.toFixed(1)} of 24`}>
+                        {op ? <Avatar op={op} size="sm" /> : null}
+                        <span class="morale"><i style={{ width: `${Math.min(100, (t.morale / 24) * 100)}%` }} class={t.morale < 6 ? "low" : ""} /></span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : <p class="muted" style={{ margin: 0 }}>Nobody assigned.</p>}
+            </section>
+          );
+        })}
+      </div>
+    </>
+  );
 }

@@ -1,5 +1,6 @@
 // Usage rankings from community clears, per content type and archetype; archetype gaps once a roster is in.
 import { useMemo, useState } from "preact/hooks";
+import { CommunityMarks } from "../components/Marks";
 import { WeightsControl } from "../components/Weights";
 import { contentLevels, customised, weightedScore } from "../lib/weights";
 import { Await, Explain, metaSig, OpLink, SortTh, Stars, Tabs, useAsync } from "../components/ui";
@@ -94,7 +95,7 @@ function Ops({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
                   <td data-label="Usage" class="num">{pct(r.u)}</td>
                   <td data-label="Owned by" class="num">{r.own ? pct(r.own, 0) : "–"}</td>
                   <td data-label="Lift" class="num">{r.lift ? `${r.lift.toFixed(2)}×` : "–"}</td>
-                  <td data-label="Community build">{[b.elite ? `E${b.elite}` : "", b.skill ? `S${b.skill}${b.mastery ? ` M${b.mastery}` : ""}` : "", b.module ? `Mod ${b.module}` : ""].filter(Boolean).join(", ") || "–"}</td>
+                  <td data-label="Community build"><CommunityMarks b={b} op={r.o} /></td>
                 </tr>
               );
             })}

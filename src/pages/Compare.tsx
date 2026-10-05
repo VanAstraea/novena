@@ -2,6 +2,7 @@
 //   /compare?ops=char_a,char_b&e=2&lv=90       defaults for every column
 //   &c1e=1&c1m=X2                              column 2's own choices (c0 = first column)
 import { Fragment, type ComponentChildren } from "preact";
+import { CommunityMarks } from "../components/Marks";
 import { useMemo } from "preact/hooks";
 import { BuildControls, specFromQuery, specToQuery } from "../components/OpParts";
 import { OpPicker } from "../components/OpPicker";
@@ -250,8 +251,7 @@ function Table({ cols, usage, is, ids }: { cols: Col[]; usage: UsageFile; is: IS
               title="Usage ÷ ownership: above 1, clears pick it more than its ownership suggests" />
             <TextRow label="Community build" cells={cols.map((c) => {
               const b = usage.ops[c.op.id]?.build || {};
-              const t = [b.elite ? `E${b.elite}` : "", b.skill ? `S${b.skill}${b.mastery ? ` M${b.mastery}` : ""}` : "", b.module ? `Mod ${b.module}` : ""].filter(Boolean).join(", ");
-              return t || <span class="muted">No consensus</span>;
+              return b.elite || b.skill || b.module ? <CommunityMarks b={b} op={c.op} /> : <span class="muted">No consensus</span>;
             })} />
           </tbody>
         </table>

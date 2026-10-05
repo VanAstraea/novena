@@ -4,12 +4,12 @@ import { effect } from "@preact/signals";
 import { OperatorPanel } from "./components/OperatorPanel";
 import { SearchDialog, searchOpen } from "./components/Search";
 import { Toasts } from "./components/Toast";
-import { loadShared, useAsync } from "./components/ui";
+import { loadShared, useAsync, useTabGlide } from "./components/ui";
 import { BASE, manifest } from "./lib/data";
 import { date, relative } from "./lib/format";
 import { pref, setPref } from "./lib/storage";
 import { href, route } from "./lib/router";
-import { match, PAGES } from "./pages/registry";
+import { match, PAGES, SECTIONS } from "./pages/registry";
 import { account, hasRoster, SERVERS, server, targets, theme, type Theme } from "./state";
 import type { Server } from "./types";
 import { SUPPORT } from "./config";
@@ -28,8 +28,7 @@ export function Logo({ size = 30 }: { size?: number }) {
 
 function Header() {
   const path = route.value.path;
-  const accountPaths = PAGES.filter((p) => p.nav === "account").map((p) => p.path);
-  const inAccount = accountPaths.includes(path);
+  const section = match(path)?.page.group;
   const cycleTheme = () => {
     const order: Theme[] = ["system", "dark", "light"];
     theme.value = order[(order.indexOf(theme.value) + 1) % order.length];
@@ -39,12 +38,9 @@ function Header() {
       <div class="top-row">
         <a class="brand" href={href("/")} aria-label="Novena home"><Logo /><span class="brand-name">Novena</span></a>
         <nav class="nav" aria-label="Main">
-          {PAGES.filter((p) => p.nav === "main").map((p) => (
-            <a key={p.path} href={href(p.path)} aria-current={path === p.path || (p.path === "/operators" && path.startsWith("/operator/")) ? "page" : undefined}>
-              {p.short || p.title}
-            </a>
+          {SECTIONS.map((g) => (
+            <a key={g.id} class={g.id === "account" ? "nav-account" : undefined} href={href(g.home)} aria-current={section === g.id ? "page" : undefined}>{g.label}</a>
           ))}
-          <a href={href("/today")} aria-current={inAccount ? "page" : undefined}>My account</a>
         </nav>
         <div class="top-actions">
           <button class="searchpill" onClick={() => (searchOpen.value = true)} aria-label="Search (Ctrl+K)" title="Search (Ctrl+K)">
@@ -66,30 +62,35 @@ function Header() {
   );
 }
 
-function AccountStrip() {
+/** The strip under the header: the current section's pages (My account also shows when the roster last changed). */
+function SectionStrip() {
   const path = route.value.path;
-  const pages = PAGES.filter((p) => p.nav === "account");
-  if (!pages.some((p) => p.path === path)) return null;
+  const section = match(path)?.page.group;
+  const pages = PAGES.filter((p) => p.group && p.group === section && p.nav);
+  const bar = useTabGlide(path);
+  if (pages.length < 2) return null;
+  const account_ = section === "account";
   return (
     <div class="account-strip">
-      <nav class="tabs" aria-label="My account pages">
+      <nav class="tabs" aria-label={`${SECTIONS.find((g) => g.id === section)?.label} pages`} ref={bar as never}>
         {pages.map((p) => (
-          <a key={p.path} href={href(p.path)} aria-current={p.path === path ? "page" : undefined}>{p.short || p.title}</a>
+          <a key={p.path} href={href(p.path)} aria-current={p.path === path || (p.path === "/operators" && path.startsWith("/operator/")) ? "page" : undefined}>{p.short || p.title}</a>
         ))}
-        {hasRoster.value && (
-          <span class={`updated${Date.now() - account.value.updated > 2 * DAY ? " warn-text" : ""}`} title="When your roster last changed here">
-            Roster {account.value.source === "novena-sync" ? "synced" : "updated"} {relative(account.value.updated)}
-          </span>
+        <span class="tab-glide" aria-hidden="true" />
+        {account_ && hasRoster.value && (
+          <a class={`updated${Date.now() - account.value.updated > 2 * DAY ? " warn-text" : ""}`} href={href("/roster", { tab: "import" })} title="Sync again or import a newer file">
+            Roster {account.value.source === "novena-sync" ? "synced" : "updated"} {relative(account.value.updated)} · <span class="u">Sync</span>
+          </a>
         )}
       </nav>
-      <GetStarted />
+      {account_ && (path === "/today" || path === "/roster") && <GetStarted />}
     </div>
   );
 }
 
 const DAY = 86400_000;
 
-/** First visit to the account pages: three steps to a first plan, ticked off as they're done. */
+/** On Today and Roster until it's done: three steps to a first plan, ticked off as they're done; gone once all three are. */
 function GetStarted() {
   const [hidden, setHidden] = useState(() => pref("getStartedHidden", "") === "1");
   const steps: [boolean, string, string, string][] = [
@@ -101,7 +102,7 @@ function GetStarted() {
   return (
     <section class="card get-started">
       <div class="row" style={{ justifyContent: "space-between" }}>
-        <h2 style={{ margin: 0 }}>Three steps to your first plan</h2>
+        <h2 style={{ margin: 0 }}>Three steps to get started</h2>
         <button class="ghost small" onClick={() => { setPref("getStartedHidden", "1"); setHidden(true); }}>Hide</button>
       </div>
       <ol>
@@ -135,15 +136,9 @@ function Footer() {
   return (
     <footer class="footer">
       <div class="footer-inner">
-        <p><strong>Your data stays in this browser.</strong> No accounts, no tracking, no analytics. <a href={href("/settings")}>Back up or delete it</a>.</p>
-        <p>
-          Data: game tables via <a href="https://github.com/ArknightsAssets/ArknightsGamedata" rel="noopener">ArknightsAssets</a>,
-          drop rates from <a href="https://penguin-stats.io/" rel="noopener">Penguin Statistics</a> (CC BY-NC 4.0),
-          material values and operator statistics from <a href="https://ark.yituliu.cn/" rel="noopener">Yituliu</a>,
-          clear guides from the <a href="https://prts.plus/" rel="noopener">MAA Copilot</a> guide database, base and IS data from <a href="https://github.com/MaaAssistantArknights/MaaAssistantArknights" rel="noopener">MAA</a>'s resource files.
-          Images from <a href="https://github.com/yuanyan3060/ArknightsGameResource" rel="noopener">ArknightsGameResource</a> and <a href="https://github.com/ArknightsAssets/ArknightsAssets2" rel="noopener">ArknightsAssets2</a>. <a href={href("/credits")}>Full credits and licenses</a>.
-        </p>
-        <p>Unofficial fan tool. Not affiliated with Hypergryph, Yostar or Gryphline. Arknights and all game assets belong to their owners. Code: MIT.
+        <p><strong>Your data stays in this browser.</strong> No accounts, no tracking. <a href={href("/settings")}>Back up or delete it</a>.
+          {" "}Data from ArknightsAssets, Penguin Statistics, Yituliu and MAA; art from community mirrors. <a href={href("/credits")}>Credits and licenses</a>.</p>
+        <p class="muted">Unofficial fan tool. Not affiliated with Hypergryph, Yostar or Gryphline. Arknights and its assets belong to their owners. Code: MIT.
           {SUPPORT.length > 0 && <> · <a href={href("/about") + "#support"}>Support the project</a></>}</p>
       </div>
     </footer>
@@ -179,7 +174,7 @@ export function App() {
     <>
       <a class="skip" href="#main">Skip to content</a>
       <Header />
-      <AccountStrip />
+      <SectionStrip />
       <StaleBanner />
       <main id="main" tabIndex={-1}>
         <Page key={server.value} />

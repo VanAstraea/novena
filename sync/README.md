@@ -16,9 +16,12 @@ website never asks for a login and never sees one.
   automation.
 - **Your sign-in stays here.** Your email and the code Yostar emails you are never stored. The session they create is
   kept in your operating system's credential store (Windows Credential Manager, macOS Keychain) until you sign out.
-- **Only what Novena uses leaves the game data.** Operators (level, promotion, potential, skills, masteries, modules),
-  the depot, LMD, your Orundum, Originite Prime and permits, and consumables (training vouchers, sanity potions: how
-  many and when they expire). Not your nickname, friends, mail or history.
+- **Only what Novena uses leaves the game data.** Operators (level, promotion, potential, skills, masteries, modules,
+  and the outfit each one wears), the depot, LMD, your Orundum, Originite Prime and permits, consumables (training
+  vouchers, sanity potions: how many and when they expire), your recruitment slots (tags offered and picked, when
+  they finish), your base (each room's type, level, team and their morale, what it makes and when it's done, the
+  drones) and your sanity (amount, cap, when it was counted). Not your nickname, ids, friends, the base's visitors or
+  clues, mail, purchases or history. See `novena_sync/payload.py` for the exact list.
 - Entering your roster by hand on the website is the risk-free option.
 - Servers: EN, JP and KR (Yostar accounts).
 

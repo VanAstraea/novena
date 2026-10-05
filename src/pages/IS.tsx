@@ -1,5 +1,6 @@
 // Integrated Strategies: per theme, the operators that carry runs (MAA's public IS data), with your builds.
 import { useState } from "preact/hooks";
+import { BuildMarks } from "../components/Marks";
 import { Await, Explain, OpLink, Stars, useAsync } from "../components/ui";
 import { integrated, operators } from "../lib/data";
 import { CLASS_NAMES, CLASS_ORDER } from "../lib/format";
@@ -52,7 +53,7 @@ export default function IS() {
                           <td data-label="Recruit priority" class="num">{p.recruit}</td>
                           <td data-label="Skill">{p.skill ? `S${p.skill}` : "–"}</td>
                           <td data-label="Role">{[p.key && "Key operator", p.start && "Good opener"].filter(Boolean).join(", ") || "–"}</td>
-                          {hasRoster.value && <td data-label="Yours">{mine ? `E${mine.elite} Lv ${mine.level}${p.skill && mine.masteries[p.skill - 1] ? `, S${p.skill} M${mine.masteries[p.skill - 1]}` : ""}` : <span class="muted">not owned</span>}</td>}
+                          {hasRoster.value && <td data-label="Yours">{mine ? <BuildMarks s={{ ...mine, masteries: mine.masteries.map((m, j) => (p.skill && j === p.skill - 1 ? m : 0)), modules: {} }} op={op} /> : <span class="muted">not owned</span>}</td>}
                         </tr>
                       );
                     })}

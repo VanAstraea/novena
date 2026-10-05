@@ -14,7 +14,7 @@ const PAGES: [string, RegExp][] = [
   ["/is", /Integrated Strategies/],
   ["/today", /Today/],
   ["/roster", /My roster/],
-  ["/plan", /Plan/],
+  ["/plan", /Priorities/],
   ["/dump", /Sanity Dump/],
   ["/base", /Base/],
   ["/pulls", /Pull planner/],

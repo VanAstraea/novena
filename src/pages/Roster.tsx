@@ -1,25 +1,28 @@
 // My roster: quick bulk entry, depot, import/export and progress over time. Saved in this browser only.
 import { useMemo, useState } from "preact/hooks";
 import { Chart } from "../components/Chart";
+import { MasteryMark, ModuleMark } from "../components/Marks";
 import { DepotImport } from "../components/DepotImport";
 import { OpPicker } from "../components/OpPicker";
-import { Avatar, Await, Explain, ItemIcon, itemName, Items, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
+import { Avatar, Await, Divider, Explain, GIcon, ItemIcon, itemName, Items, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
+import { CLASS_NAMES } from "../lib/format";
 import { costTable } from "../lib/account";
 import { expiring, held, tokenUse, voucherIds, voucherPicks } from "../lib/consumables";
-import { usage as loadUsage } from "../lib/data";
+import { art, usage as loadUsage } from "../lib/data";
 import { planNeeds } from "../lib/needs";
 import { CLASSES } from "../lib/training";
 import { EXP, LMD, sanity } from "../lib/costs";
 import { diff, type Change } from "../lib/progress";
 import { operators } from "../lib/data";
 import { date, fmt } from "../lib/format";
-import { exportRoster, parseRoster, type Imported } from "../lib/importers";
+import { applyImport, importFile, updateAccount } from "../lib/accountImport";
+import { exportRoster, parseRoster } from "../lib/importers";
 import { pref, setPref } from "../lib/storage";
 import { BridgeError, forget, hello, isPaired, pair, SYNC_SERVERS, syncNow } from "../lib/syncBridge";
 import { REPO_URL } from "../config";
 import { best } from "../lib/search";
-import { href, route, setQuery } from "../lib/router";
-import { account, loaded, saveAccount, server, snapshotOf, type Account, type RosterOp } from "../state";
+import { href, openPanel, route, setQuery } from "../lib/router";
+import { account, loaded, server, type RosterOp } from "../state";
 import type { OpIndex } from "../types";
 
 type Tab = "operators" | "depot" | "use" | "import" | "progress";
@@ -31,8 +34,13 @@ export default function Roster() {
   const a = account.value;
   return (
     <div class="stack fade-in">
-      <h1>My roster</h1>
-      <p class="muted">Saved in this browser only, separately for each server. <a href={href("/settings")}>Back it up</a>.</p>
+      <div class="page-head">
+        <div>
+          <h1>My roster</h1>
+          <p class="muted">Saved in this browser only, separately for each server. <a href={href("/settings")}>Back it up</a>.</p>
+        </div>
+        {tab !== "import" && <a class="pill primary" href={href("/roster", { tab: "import" })}>Sync / Import <span aria-hidden="true">→</span></a>}
+      </div>
       <Tabs label="Roster sections" value={tab} onChange={(t) => setQuery({ tab: t === "operators" ? "" : t })} tabs={[
         { key: "operators", label: `Operators (${Object.keys(a.ops).length})` }, { key: "depot", label: "Depot" }, { key: "use", label: "To use" },
         { key: "import", label: "Import / export" }, { key: "progress", label: "Progress" },
@@ -45,9 +53,7 @@ export default function Roster() {
   );
 }
 
-function update(fn: (a: Account) => Account) {
-  saveAccount(snapshotOf({ ...fn(account.value), updated: Date.now() }));
-}
+const update = updateAccount;
 
 function maxElite(op: OpIndex) {
   return op.rarity >= 4 ? 2 : op.rarity === 3 ? 1 : 0;
@@ -55,13 +61,19 @@ function maxElite(op: OpIndex) {
 
 const newOp = (op: OpIndex): RosterOp => ({ id: op.id, elite: 0, level: 1, pot: 1, skillLevel: 1, masteries: [0, 0, 0].slice(0, op.rarity >= 4 ? (op.rarity >= 6 ? 3 : 2) : op.rarity === 3 ? 1 : 0), modules: {} });
 
+type Row = { r: RosterOp; op: OpIndex };
+
 function Ops({ ops }: { ops: OpIndex[] }) {
   const a = account.value;
+  const meta = metaSig.value;
   const [filter, setFilter] = useState("");
+  const [cls, setCls] = useState("");
+  const [rarity, setRarity] = useState(0);
+  const [editing, setEditing] = useState(() => pref("rosterEdit", "") === "1");
   const byId = useMemo(() => new Map(ops.map((o) => [o.id, o])), [ops]);
-  const rows = Object.values(a.ops).map((r) => ({ r, op: byId.get(r.id) })).filter((x) => x.op) as { r: RosterOp; op: OpIndex }[];
+  const rows = Object.values(a.ops).map((r) => ({ r, op: byId.get(r.id) })).filter((x) => x.op) as Row[];
   const [sort, setSort] = useState(() => pref("rosterSort", "rarity"));
-  const by: Record<string, (x: { r: RosterOp; op: OpIndex }, y: { r: RosterOp; op: OpIndex }) => number> = {
+  const by: Record<string, (x: Row, y: Row) => number> = {
     rarity: (x, y) => y.op.rarity - x.op.rarity || x.op.name.localeCompare(y.op.name),
     name: (x, y) => x.op.name.localeCompare(y.op.name),
     level: (x, y) => y.r.elite - x.r.elite || y.r.level - x.r.level || x.op.name.localeCompare(y.op.name),
@@ -69,7 +81,9 @@ function Ops({ ops }: { ops: OpIndex[] }) {
     modules: (x, y) => Object.values(y.r.modules).reduce((a, b) => a + b, 0) - Object.values(x.r.modules).reduce((a, b) => a + b, 0) || y.op.rarity - x.op.rarity,
     class: (x, y) => x.op.cls.localeCompare(y.op.cls) || y.op.rarity - x.op.rarity,
   };
-  const shown = filter.trim() ? best(filter, rows, (x) => [x.op.name], 500) : rows.sort(by[sort] || by.rarity);
+  const pick = (v: string) => { setSort(v); setPref("rosterSort", v); };
+  const filtered = rows.filter((x) => (!cls || x.op.cls === cls) && (!rarity || x.op.rarity === rarity));
+  const shown = filter.trim() ? best(filter, filtered, (x) => [x.op.name], 500) : filtered.sort(by[sort] || by.rarity);
   const set = (id: string, patch: Partial<RosterOp>) => update((acc) => ({ ...acc, ops: { ...acc.ops, [id]: { ...acc.ops[id], ...patch } } }));
   const addMany = (list: OpIndex[]) => update((acc) => {
     const next = { ...acc.ops };
@@ -77,81 +91,129 @@ function Ops({ ops }: { ops: OpIndex[] }) {
     return { ...acc, ops: next, source: acc.source || "manual" };
   });
   const here = ops.filter((o) => !o.src && !o.patch);
+  const edit = editing || rows.length === 0; // an empty roster opens straight into adding
+  const toggle = () => { setEditing(!editing); setPref("rosterEdit", editing ? "" : "1"); };
+  const classes = [...new Set(rows.map((x) => x.op.cls))].sort();
+  const Th = ({ k, label, c }: { k?: string; label: string; c?: string }) => (
+    <th class={c} aria-sort={k && sort === k && !filter ? "descending" : undefined}>{k ? <button class="sort" onClick={() => pick(k)}>{label}{sort === k && !filter ? " ▾" : ""}</button> : label}</th>
+  );
   return (
     <>
       <section class="card">
         <div class="row" style={{ alignItems: "flex-end" }}>
-          <OpPicker ops={here} exclude={Object.keys(a.ops)} onPick={(op) => addMany([op])} />
-          <button onClick={() => addMany(here.filter((o) => o.rarity <= 3))} title="Most accounts have every 1-3★ operator">Add all 1–3★</button>
-          {rows.length > 0 && <label class="field"><span>Find in roster</span><input type="search" value={filter} onInput={(e) => setFilter((e.target as HTMLInputElement).value)} /></label>}
-          {rows.length > 0 && <label class="field"><span>Sort</span>
-            <select value={sort} onChange={(e) => { const v = (e.target as HTMLSelectElement).value; setSort(v); setPref("rosterSort", v); }}>
-              <option value="rarity">Rarity</option><option value="name">Name</option><option value="level">Promotion and level</option>
-              <option value="masteries">Masteries</option><option value="modules">Modules</option><option value="class">Class</option>
+          {rows.length > 0 && <label class="field"><span>Find</span><input type="search" value={filter} placeholder="Operator name" onInput={(e) => setFilter((e.target as HTMLInputElement).value)} /></label>}
+          {rows.length > 0 && <label class="field"><span>Rarity</span>
+            <select value={rarity} onChange={(e) => setRarity(+(e.target as HTMLSelectElement).value)}>
+              <option value={0}>All</option>{[6, 5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n}★</option>)}
             </select></label>}
+          {rows.length > 0 && <span class="muted" style={{ marginLeft: "auto" }}>{shown.length} of {rows.length}</span>}
+          {rows.length > 0 && <button class={edit ? "primary" : ""} aria-pressed={edit} onClick={toggle}>{edit ? "Done editing" : "Edit roster"}</button>}
         </div>
-        <Explain>Change any value and it's saved straight away. Skill level is shared by all skills; masteries and modules are per skill and per module. Or import a file under Import / export.</Explain>
+        {classes.length > 1 && (
+          <div class="chips" role="group" aria-label="Class" style={{ marginTop: "10px" }}>
+            <button class="chip" aria-pressed={!cls} onClick={() => setCls("")}>All classes</button>
+            {classes.map((c) => <button key={c} class="chip cls-chip" aria-pressed={cls === c} onClick={() => setCls(cls === c ? "" : c)}><GIcon src={art.classIcon(c)} alt="" size={16} />{CLASS_NAMES[c] || c}</button>)}
+          </div>
+        )}
+        {edit && (
+          <div class="row" style={{ alignItems: "flex-end", marginTop: "12px" }}>
+            <OpPicker ops={here} exclude={Object.keys(a.ops)} onPick={(op) => addMany([op])} />
+            <button onClick={() => addMany(here.filter((o) => o.rarity <= 3))} title="Most accounts have every 1-3★ operator">Add all 1–3★</button>
+          </div>
+        )}
+        <Explain>{edit
+          ? "Change any value and it's saved straight away. Masteries and modules: click an icon to raise it, Shift+click or right-click to lower it. Or import a file under Import / export."
+          : "Your roster as the game shows it. Click an operator for their build, next upgrades and costs. Edit roster to change it by hand, or sync again under Import / export."}</Explain>
       </section>
       {rows.length > 0 ? (
         <div class="table-wrap">
-          <table class="cards">
-            <thead><tr><th>Operator</th><th>Elite</th><th>Level</th><th>Pot</th><th>Skill lv</th><th>Masteries</th><th>Modules</th><th><span class="sr-only">Remove</span></th></tr></thead>
+          <table class={`cards roster${edit ? " editing" : ""}`}>
+            <thead><tr>
+              <Th k="name" label="Operator" /><Th k="class" label="Class" /><Th k="level" label="Elite" c="c" /><th class="c">Level</th><th class="c">Potential</th><th class="c">Skill</th>
+              <Th k="masteries" label="Masteries" /><Th k="modules" label="Modules" />{edit && <th><span class="sr-only">Remove</span></th>}
+            </tr></thead>
             <tbody>
-              {shown.slice(0, 400).map(({ r, op }) => (
-                <tr key={r.id}>
-                  <td data-label="Operator"><a class="op-cell" href={href(`/operator/${op.id}`)} data-panel={op.id}><Avatar op={op} size="sm" /><span><span class="op-name">{op.name}</span><br /><Stars n={op.rarity} /></span></a></td>
-                  <td data-label="Elite">
-                    <select aria-label={`${op.name} elite`} value={r.elite} onChange={(e) => set(r.id, { elite: +(e.target as HTMLSelectElement).value })}>
-                      {Array.from({ length: maxElite(op) + 1 }, (_, i) => <option key={i} value={i}>E{i}</option>)}
-                    </select>
-                  </td>
-                  <td data-label="Level"><input aria-label={`${op.name} level`} type="number" min={1} max={90} value={r.level} style={{ width: "4.5em" }}
-                    onChange={(e) => set(r.id, { level: Math.min(90, Math.max(1, +(e.target as HTMLInputElement).value || 1)) })} /></td>
-                  <td data-label="Pot">
-                    <select aria-label={`${op.name} potential`} value={r.pot} onChange={(e) => set(r.id, { pot: +(e.target as HTMLSelectElement).value })}>
-                      {[1, 2, 3, 4, 5, 6].map((p) => <option key={p} value={p}>P{p}</option>)}
-                    </select>
-                  </td>
-                  <td data-label="Skill lv">
-                    {op.rarity >= 3 ? (
-                      <select aria-label={`${op.name} skill level`} value={r.skillLevel} onChange={(e) => set(r.id, { skillLevel: +(e.target as HTMLSelectElement).value })}>
-                        {Array.from({ length: r.elite >= 1 ? 7 : 4 }, (_, i) => <option key={i} value={i + 1}>SL{i + 1}</option>)}
-                      </select>
-                    ) : "–"}
-                  </td>
-                  <td data-label="Masteries">
-                    {op.rarity >= 4 ? (
-                      <span class="row tight">
-                        {r.masteries.map((m, i) => (
-                          <select key={i} aria-label={`${op.name} S${i + 1} mastery`} value={m} disabled={r.elite < 2 || r.skillLevel < 7}
-                            title={r.elite < 2 || r.skillLevel < 7 ? "Masteries need E2 and SL7" : ""}
-                            onChange={(e) => { const ms = [...r.masteries]; ms[i] = +(e.target as HTMLSelectElement).value; set(r.id, { masteries: ms }); }}>
-                            {[0, 1, 2, 3].map((n) => <option key={n} value={n}>S{i + 1} {n ? `M${n}` : "–"}</option>)}
-                          </select>
-                        ))}
-                      </span>
-                    ) : "–"}
-                  </td>
-                  <td data-label="Modules">
-                    {op.mods.length ? (
-                      <span class="row tight">
-                        {op.mods.map((k) => (
-                          <select key={k} aria-label={`${op.name} module ${k}`} value={r.modules[k] || 0} disabled={r.elite < 2}
-                            onChange={(e) => set(r.id, { modules: { ...r.modules, [k]: +(e.target as HTMLSelectElement).value } })}>
-                            {[0, 1, 2, 3].map((n) => <option key={n} value={n}>{k} {n || "–"}</option>)}
-                          </select>
-                        ))}
-                      </span>
-                    ) : "–"}
-                  </td>
-                  <td data-label=""><button class="small ghost" aria-label={`Remove ${op.name}`} onClick={() => update((acc) => { const o = { ...acc.ops }; delete o[r.id]; return { ...acc, ops: o }; })}>✕</button></td>
+              {shown.slice(0, 400).map(({ r, op }) => edit ? <EditRow key={r.id} r={r} op={op} set={set} /> : (
+                <tr key={r.id} class="click" onClick={(e) => { if (!(e.target as HTMLElement).closest("a")) openPanel(op.id); }}>
+                  <td data-label="Operator"><a class="op-cell" href={href(`/operator/${op.id}`)} data-panel={op.id}><Avatar op={op} size="sm" /><span><span class="op-name">{op.name}</span><br /><Stars n={op.rarity} img /></span></a></td>
+                  <td data-label="Class"><span class="row tight"><GIcon src={art.classIcon(op.cls)} alt={CLASS_NAMES[op.cls] || op.cls} size={20} /><small>{meta?.branches[op.branch] || CLASS_NAMES[op.cls]}</small></span></td>
+                  <td data-label="Elite" class="c"><GIcon src={art.elite(r.elite)} alt={`Elite ${r.elite}`} size={28} /></td>
+                  <td data-label="Level" class="c"><span class="lv">{r.level}</span></td>
+                  <td data-label="Potential" class="c"><GIcon src={art.potential(r.pot)} alt={`Potential ${r.pot}`} size={26} /></td>
+                  <td data-label="Skill" class="c">{op.rarity >= 3 ? <span class="lv small">{r.skillLevel}</span> : <span class="muted">–</span>}</td>
+                  <td data-label="Masteries">{r.masteries.length ? <span class="marks">{r.masteries.map((m, i) => <MasteryMark key={i} m={m} i={i} />)}</span> : <span class="muted">–</span>}</td>
+                  <td data-label="Modules">{op.mods.length ? <span class="marks">{op.mods.map((k) => <ModuleMark key={k} op={op} k={k} stage={r.modules[k] || 0} />)}</span> : <span class="muted">–</span>}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      ) : <p class="muted">No operators yet. Add them above, or import a file.</p>}
+      ) : <p class="muted">No operators yet. Add them above, or sync or import under Import / export.</p>}
     </>
+  );
+}
+
+/** One operator in edit mode: dropdowns for promotion and levels, the game's icons as click-to-raise buttons. */
+function EditRow({ r, op, set }: { r: RosterOp; op: OpIndex; set: (id: string, patch: Partial<RosterOp>) => void }) {
+  return (
+    <tr>
+      <td data-label="Operator"><a class="op-cell" href={href(`/operator/${op.id}`)} data-panel={op.id}><Avatar op={op} size="sm" /><span><span class="op-name">{op.name}</span><br /><Stars n={op.rarity} img /></span></a></td>
+      <td data-label="Class"><GIcon src={art.classIcon(op.cls)} alt={CLASS_NAMES[op.cls] || op.cls} size={20} /></td>
+      <td data-label="Elite" class="c">
+        <select aria-label={`${op.name} elite`} value={r.elite} onChange={(e) => set(r.id, { elite: +(e.target as HTMLSelectElement).value })}>
+          {Array.from({ length: maxElite(op) + 1 }, (_, i) => <option key={i} value={i}>E{i}</option>)}
+        </select>
+      </td>
+      <td data-label="Level" class="c"><input aria-label={`${op.name} level`} type="number" min={1} max={90} value={r.level} style={{ width: "4.5em" }}
+        onChange={(e) => set(r.id, { level: Math.min(90, Math.max(1, +(e.target as HTMLInputElement).value || 1)) })} /></td>
+      <td data-label="Potential" class="c">
+        <select aria-label={`${op.name} potential`} value={r.pot} onChange={(e) => set(r.id, { pot: +(e.target as HTMLSelectElement).value })}>
+          {[1, 2, 3, 4, 5, 6].map((p) => <option key={p} value={p}>P{p}</option>)}
+        </select>
+      </td>
+      <td data-label="Skill" class="c">
+        {op.rarity >= 3 ? (
+          <select aria-label={`${op.name} skill level`} value={r.skillLevel} onChange={(e) => set(r.id, { skillLevel: +(e.target as HTMLSelectElement).value })}>
+            {Array.from({ length: r.elite >= 1 ? 7 : 4 }, (_, i) => <option key={i} value={i + 1}>SL{i + 1}</option>)}
+          </select>
+        ) : "–"}
+      </td>
+      <td data-label="Masteries">
+        {r.masteries.length ? (
+          <span class="marks">
+            {r.masteries.map((m, i) => {
+              const locked = r.elite < 2 || r.skillLevel < 7;
+              const to = (n: number) => { const ms = [...r.masteries]; ms[i] = (n + 4) % 4; set(r.id, { masteries: ms }); };
+              return (
+                <button key={i} type="button" class="mark-btn" disabled={locked} aria-label={`${op.name} skill ${i + 1}: ${m ? `Mastery ${m}` : "no mastery"}`}
+                  title={locked ? "Masteries need E2 and SL7" : `S${i + 1} M${m}. Click to raise, Shift+click or right-click to lower`}
+                  onClick={(e) => to(e.shiftKey ? m - 1 : m + 1)} onContextMenu={(e) => { e.preventDefault(); if (!locked) to(m - 1); }}>
+                  <MasteryMark m={m} i={i} />
+                </button>
+              );
+            })}
+          </span>
+        ) : "–"}
+      </td>
+      <td data-label="Modules">
+        {op.mods.length ? (
+          <span class="marks">
+            {op.mods.map((k) => {
+              const stage = r.modules[k] || 0, locked = r.elite < 2;
+              const to = (n: number) => set(r.id, { modules: { ...r.modules, [k]: (n + 4) % 4 } });
+              return (
+                <button key={k} type="button" class="mark-btn" disabled={locked} aria-label={`${op.name} module ${k}: ${stage ? `stage ${stage}` : "not unlocked"}`}
+                  title={locked ? "Modules need E2" : `Module ${k} stage ${stage}. Click to raise, Shift+click or right-click to lower`}
+                  onClick={(e) => to(e.shiftKey ? stage - 1 : stage + 1)} onContextMenu={(e) => { e.preventDefault(); if (!locked) to(stage - 1); }}>
+                  <ModuleMark op={op} k={k} stage={stage} />
+                </button>
+              );
+            })}
+          </span>
+        ) : "–"}
+      </td>
+      <td data-label=""><button class="small ghost" aria-label={`Remove ${op.name}`} onClick={() => update((acc) => { const o = { ...acc.ops }; delete o[r.id]; return { ...acc, ops: o }; })}>✕</button></td>
+    </tr>
   );
 }
 
@@ -189,15 +251,7 @@ function Depot() {
 
 type Msg = { ok: boolean; text: string } | null;
 
-/** Put an import into the account; returns the sentence that says what happened. */
-function apply(r: Imported, mode: "replace" | "merge"): string {
-  update((acc) => ({
-    ...acc, ops: mode === "replace" ? r.ops : { ...acc.ops, ...r.ops },
-    depot: r.depot ? (mode === "replace" ? r.depot : { ...acc.depot, ...r.depot }) : acc.depot,
-    savings: r.savings || acc.savings, consumables: r.consumables || acc.consumables, source: r.format === "Novena Sync" ? "novena-sync" : "import",
-  }));
-  return `Imported ${Object.keys(r.ops).length} operators${r.depot ? ` and ${Object.keys(r.depot).length} depot items` : ""} from ${r.format}${r.skipped ? ` (${r.skipped} entries skipped: unknown on this server)` : ""}.`;
-}
+const apply = applyImport;
 
 function Import({ ops }: { ops: OpIndex[] }) {
   const [msg, setMsg] = useState<Msg>(null);
@@ -206,9 +260,7 @@ function Import({ ops }: { ops: OpIndex[] }) {
   const s = server.value;
   const onFile = async (f: File) => {
     try {
-      const r = parseRoster(JSON.parse(await f.text()), ops);
-      if (r.server && r.server !== s) throw new Error(`This file is from the ${r.server.toUpperCase()} server; switch to it first (top right).`);
-      setMsg({ ok: true, text: apply(r, mode) });
+      setMsg({ ok: true, text: await importFile(f, ops, s, mode) });
     } catch (e) {
       setMsg({ ok: false, text: (e as Error).message });
     }
@@ -432,6 +484,7 @@ function Progress({ ops }: { ops: OpIndex[] }) {
   const series: [keyof (typeof snaps)[0], string][] = [["ops", "Operators"], ["e2", "E2"], ["m3", "M3 skills"], ["mods", "Modules"]];
   return (
     <div class="grid two">
+      <Divider />
       <Changes ops={ops} />
       {series.map(([k, label]) => <Chart key={k} label={label} points={snaps.map((s) => [s.t, s[k] as number])} />)}
       <section class="card" style={{ gridColumn: "1 / -1" }}>

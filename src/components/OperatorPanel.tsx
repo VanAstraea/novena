@@ -3,6 +3,7 @@
 // against your depot), one-click "Make it a goal" and "Farm what's short", the comparison list, and what other pages
 // know about the operator. It lives in the address (?op=char_x), so Back closes it and a link reopens it.
 import { useEffect } from "preact/hooks";
+import { BuildMarks } from "./Marks";
 import { costTable, lastPlan } from "../lib/account";
 import type { BaseFile } from "../lib/base";
 import { parse } from "../lib/build";
@@ -16,7 +17,7 @@ import { bestTrainers, hm } from "../lib/training";
 import { account, prefs, saveTargets, server, targets } from "../state";
 import type { ItemsFile, OpIndex, UsageRow } from "../types";
 import { toast } from "./Toast";
-import { Art, Await, GIcon, Items, itemsSig, metaSig, Stars, useAsync } from "./ui";
+import { Art, Await, GIcon, Items, itemsSig, metaSig, Stars, useAsync, wornPortraits } from "./ui";
 
 const MAX_COMPARE = 4;
 export const compareList = (): string[] => { try { return JSON.parse(pref("compare", "[]")); } catch { return []; } };
@@ -141,7 +142,7 @@ function Body({ id }: { id: string }) {
         return (
           <>
             <div class="drawer-head">
-              <Art srcs={art.portraits(id, r?.elite || 0)} class="portrait" alt="" />
+              <Art srcs={wornPortraits(id, r?.elite || 0)} class="portrait" alt="" />
               <div class="who">
                 <div class="row" style={{ justifyContent: "flex-end" }}>
                   <button class="small" onClick={toggleCompare}>{inCompare ? "In comparison ✓" : "Compare"}</button>
@@ -150,7 +151,7 @@ function Body({ id }: { id: string }) {
                 </div>
                 <h2 class="drawer-name">{op.name}</h2>
                 <div class="row tight"><Stars n={op.rarity} img /> <GIcon src={art.classIcon(op.cls)} alt={op.cls} size={20} /> <small class="muted">{op.branch}</small></div>
-                <p class="muted" style={{ margin: "8px 0 0" }}>{r ? `Yours: E${r.elite} Lv ${r.level} · P${r.pot} · SL${r.skillLevel}${r.masteries.some(Boolean) ? ` · ${r.masteries.map((m, i) => m ? `S${i + 1}M${m}` : "").filter(Boolean).join(" ")}` : ""}${Object.entries(r.modules).filter(([, v]) => v).map(([k, v]) => ` · Mod ${k}${v}`).join("")}` : "Not in your roster."}</p>
+                <p class="muted" style={{ margin: "8px 0 0" }}>{r ? <>Yours: <BuildMarks s={r} op={op} /> <GIcon src={art.potential(r.pot)} alt={`Potential ${r.pot}`} size={20} /></> : "Not in your roster."}</p>
               </div>
             </div>
 

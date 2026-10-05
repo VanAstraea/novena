@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
+import { BuildMarks } from "../components/Marks";
 import { BuildControls, CommunityView, CostsView, ModulesView, RiicView, SkillView, specFromQuery, specToQuery, StatsView, TalentsView } from "../components/OpParts";
-import { Art, Await, GIcon, metaSig, Rich, Stars, Tabs, useAsync } from "../components/ui";
+import { Art, Await, Divider, GIcon, metaSig, Rich, Stars, Tabs, useAsync } from "../components/ui";
 import type { BaseFile } from "../lib/base";
 import { art, integrated, load, operator, operators, recruit as loadRecruit, usage as loadUsage } from "../lib/data";
 import { bestTrainers, hm } from "../lib/training";
@@ -80,11 +81,12 @@ function View({ d, op, ops, usageRow, is, tags }: {
     const t = setTimeout(() => (document.title = `${op.name} · Novena`), 0);
     return () => clearTimeout(t);
   }, [op.id]);
-  const artElite = artChoice ?? (spec.elite >= 2 && d.phases.length > 2 ? 2 : 0);
+  const worn = account.value.ops[op.id]?.skin;
+  const artElite = artChoice ?? (worn ? 9 : spec.elite >= 2 && d.phases.length > 2 ? 2 : 0); // 9: your outfit
   return (
     <div class="fade-in">
       <section class="ophero" aria-label={`${op.name}`}>
-        <Art srcs={art.splashes(op.id, artElite)} class="splash" alt="" eager />
+        <Art srcs={artElite === 9 && worn ? [art.outfitSplash(worn), ...art.splashes(op.id, 2)] : art.splashes(op.id, artElite)} class="splash" alt="" eager />
         <div class="halo" aria-hidden="true" />
         <div class="left">
           <div class="ident">
@@ -118,10 +120,12 @@ function View({ d, op, ops, usageRow, is, tags }: {
           <div class="artsw seg" role="group" aria-label="Art">
             <button type="button" aria-pressed={artElite === 0} onClick={() => setArtChoice(0)}>Base art</button>
             <button type="button" aria-pressed={artElite === 2} onClick={() => setArtChoice(2)}>Elite 2 art</button>
+            {worn && <button type="button" aria-pressed={artElite === 9} onClick={() => setArtChoice(9)} title="The outfit you wear, from Novena Sync">Your outfit</button>}
           </div>
         )}
       </section>
-      {owned && <p class="note">In your roster: E{owned.elite} Lv {owned.level}, SL{owned.skillLevel}{owned.masteries.some((m) => m) ? `, ${owned.masteries.map((m, i) => m ? `S${i + 1}M${m}` : "").filter(Boolean).join(" ")}` : ""}{Object.entries(owned.modules).filter(([, v]) => v).map(([k, v]) => `, Mod ${k}${v}`).join("")}.</p>}
+      {owned && <p class="note">In your roster: <BuildMarks s={owned} op={op} /> <GIcon src={art.potential(owned.pot)} alt={`Potential ${owned.pot}`} size={20} /></p>}
+      <Divider />
       <Tabs label="Operator sections" tabs={tabs} value={tab} onChange={(t) => setQuery({ tab: t === "overview" ? "" : t })} />
       {tab === "overview" && (
         <div class="stack">

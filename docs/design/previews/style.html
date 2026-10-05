@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novena style study</title>
+<!-- Served by the dev server (npm run dev, then /docs/design/previews/style.html) so it uses the site's real stylesheet. -->
+<link rel="stylesheet" href="/src/styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Alegreya+Sans:wght@400;500;700&family=Josefin+Sans:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+  body { background: var(--bg); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; display: grid; gap: 34px; }
+  .study-h { display: flex; align-items: baseline; gap: 14px; margin: 0 0 14px; }
+  .study-h b { font-family: var(--serif); font-size: 1.5rem; font-weight: 600; letter-spacing: 0.04em; }
+  .study-h span { color: var(--muted); font-size: 0.9rem; }
+  .opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .opt { border: 1px solid var(--border); background: var(--surface); padding: 18px 20px 20px; }
+  .opt > .tag { display: inline-block; margin-bottom: 14px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-stretch: 125%; }
+  .opt p.note2 { color: var(--muted); font-size: 0.84rem; margin: 14px 0 0; }
+
+  /* ---- tabs ---- */
+  .t-under { display: flex; gap: 22px; border-bottom: 1px solid var(--border); }
+  .t-under a { padding: 0 0 10px; color: var(--muted); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-stretch: 125%; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; }
+  .t-under a.on { color: var(--text); border-color: var(--accent); }
+
+  .t-slide { position: relative; display: inline-flex; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255, 246, 225, 0.03); }
+  .t-slide a { position: relative; z-index: 1; padding: 7px 18px; font-size: 0.84rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: color 0.3s; }
+  .t-slide a.on { color: var(--accent-ink); }
+  .t-slide .pill-bg { position: absolute; top: 4px; bottom: 4px; border-radius: 999px; background: var(--accent); transition: left 0.45s cubic-bezier(.16, 1, .3, 1), width 0.45s cubic-bezier(.16, 1, .3, 1); }
+
+  .t-glide { position: relative; display: flex; gap: 26px; }
+  .t-glide a { padding: 4px 0 12px; color: var(--muted); font-family: var(--elegant); font-size: 1.2rem; font-weight: 500; cursor: pointer; transition: color 0.3s; }
+  .t-glide a.on { color: var(--text); }
+  .t-glide .bar { position: absolute; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); transition: left 0.5s cubic-bezier(.16, 1, .3, 1), width 0.5s cubic-bezier(.16, 1, .3, 1); }
+  .t-glide .bar::after { content: ""; position: absolute; left: 50%; top: -3px; width: 7px; height: 7px; margin-left: -3.5px; transform: rotate(45deg); background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+  .t-dots { display: flex; gap: 18px; align-items: center; }
+  .t-dots a { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; font-stretch: 125%; cursor: pointer; }
+  .t-dots a i { width: 8px; height: 8px; transform: rotate(45deg); border: 1px solid var(--line); transition: all 0.3s; }
+  .t-dots a.on { color: var(--text); }
+  .t-dots a.on i { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(223, 183, 104, 0.6); width: 10px; height: 10px; }
+  .t-dots .rail { flex: 1; height: 1px; background: var(--border); }
+
+  /* ---- dividers ---- */
+  .d-orn { display: flex; align-items: center; gap: 14px; color: var(--accent); }
+  .d-orn::before, .d-orn::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--line) 30%, var(--accent)); }
+  .d-orn::after { transform: scaleX(-1); }
+  .d-orn span { font-size: 0.9rem; letter-spacing: 0.6em; padding-left: 0.6em; }
+
+  .d-diag { position: relative; height: 120px; overflow: hidden; background: var(--surface-2); }
+  .d-diag::before { content: ""; position: absolute; inset: 0; background: url(/bg/rose.svg) 70% 40% / cover; opacity: 0.8; clip-path: polygon(46% 0, 100% 0, 100% 100%, 34% 100%); }
+  .d-diag::after { content: ""; position: absolute; top: 0; bottom: 0; left: 34%; width: 1px; background: var(--accent); transform-origin: bottom; transform: skewX(-12.2deg) translateX(-1px); opacity: 0.7; }
+  .d-diag b { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-family: var(--elegant); font-weight: 500; font-size: 1.6rem; }
+
+  .d-quote { display: grid; grid-template-columns: 1fr auto; gap: 26px; align-items: center; }
+  .d-quote blockquote { margin: 0; padding-left: 18px; border-left: 1px solid var(--accent); font-family: var(--italic); font-style: italic; font-size: 1.3rem; line-height: 1.35; color: var(--text); }
+  .d-quote blockquote small { display: block; margin-top: 8px; font-family: var(--font); font-style: normal; font-size: 0.74rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .d-quote .vert { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 0.66rem; letter-spacing: 0.5em; color: var(--muted); text-transform: uppercase; font-stretch: 125%; }
+
+  .d-fil svg { display: block; width: 100%; height: 26px; }
+
+  /* ---- glass ---- */
+  .g-stage { position: relative; padding: 26px; min-height: 230px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: center; background: url(/bg/nave.svg) center / cover; border: 1px solid var(--border); }
+  .g { padding: 18px; color: var(--text); }
+  .g h4 { margin: 0 0 6px; font-family: var(--elegant); font-size: 1.3rem; font-weight: 500; }
+  .g p { margin: 0; font-size: 0.84rem; color: #cfc6b8; }
+  .g1 { background: rgba(22, 20, 18, 0.25); border: 1px solid rgba(255, 246, 225, 0.12); border-radius: 14px; backdrop-filter: blur(8px); }
+  .g2 { border-radius: 18px; }
+  .g3 { background: linear-gradient(160deg, rgba(242, 213, 153, 0.16), rgba(242, 213, 153, 0.02) 60%), rgba(22, 20, 18, 0.5); border: 1px solid rgba(242, 213, 153, 0.35); border-radius: 4px; backdrop-filter: blur(22px) saturate(1.2); clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%); }
+
+  /* ---- type roles ---- */
+  .roles { display: grid; gap: 0; border: 1px solid var(--border); }
+  .role { display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: center; padding: 16px 20px; border-top: 1px solid var(--border); background: var(--surface); }
+  .role:first-child { border-top: 0; }
+  .role .who { font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); font-stretch: 125%; }
+  .role .who b { display: block; color: var(--accent); font-size: 0.74rem; margin-bottom: 4px; }
+  .r-display { font-family: var(--serif); font-weight: 600; font-size: 2.6rem; letter-spacing: 0.05em; line-height: 1; }
+  .r-elegant { font-family: var(--elegant); font-weight: 400; font-size: 2.4rem; line-height: 1.05; }
+  .r-section { font-family: var(--elegant); font-weight: 600; font-size: 1.45rem; }
+  .r-eyebrow { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.4em; text-transform: uppercase; font-stretch: 115%; }
+  .r-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; font-stretch: 125%; color: var(--accent); }
+  .r-motto { font-family: var(--italic); font-style: italic; font-size: 1.1rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent-strong); }
+  .r-body { font-size: 0.95rem; line-height: 1.6; max-width: 62ch; }
+  .r-num { display: flex; gap: 30px; align-items: baseline; }
+  .r-num span { font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .r-num span.el { font-family: var(--elegant); font-size: 2.2rem; font-weight: 500; font-variant-numeric: lining-nums; }
+  .r-num small { color: var(--muted); font-size: 0.74rem; }
+
+  /* ---- UI font candidates ---- */
+  .fonts { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .fc { border: 1px solid var(--border); background: var(--surface); padding: 18px 20px; }
+  .fc .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .fc .head b { font-size: 1.05rem; }
+  .fc .why { color: var(--muted); font-size: 0.82rem; margin: 0 0 14px; line-height: 1.45; }
+  .fc .t { font-family: var(--elegant); font-size: 1.9rem; font-weight: 400; margin: 2px 0 10px; line-height: 1.05; }
+  .fc .ey { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; color: var(--muted); }
+  .fc table { font-size: 0.9rem; margin: 6px 0 12px; font-variant-numeric: tabular-nums; }
+  .fc th { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-weight: 600; background: none; position: static; padding: 6px 8px; }
+  .fc td { padding: 6px 8px; }
+  .fc p.b { font-size: 0.92rem; line-height: 1.6; margin: 0 0 12px; }
+  .fc .btns { display: flex; gap: 8px; }
+  .fc .btns span { padding: 7px 16px; border: 1px solid var(--line); border-radius: 999px; font-size: 0.84rem; font-weight: 500; }
+  .fc .btns span.p { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .verdict { margin-top: 10px; font-size: 0.78rem; }
+  @media (max-width: 900px) { .opts, .g-stage { grid-template-columns: 1fr; } .role { grid-template-columns: 1fr; gap: 8px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <p class="eyebrow">Novena · style study</p>
+    <h1 style="margin:0">Tabs, dividers, glass and type</h1>
+    <p class="muted" style="margin-top:12px">Click the tabs: they move. Each block is one option; tell me which ones to use across the site (or mix them per section).</p>
+  </div>
+
+  <section>
+    <div class="study-h"><b>Tabs</b><span>for page sections (Roster, Base, Operator…)</span></div>
+    <div class="opts">
+      <div class="opt"><span class="tag">A · Underline (now)</span>
+        <nav class="t-under" data-tabs><a class="on">Operators</a><a>Depot</a><a>To use</a><a>Progress</a></nav>
+        <p class="note2">Plain and dense; what the site does today.</p></div>
+      <div class="opt"><span class="tag">B · Gold slider pill</span>
+        <nav class="t-slide" data-tabs data-move="pill-bg"><span class="pill-bg"></span><a class="on">Operators</a><a>Depot</a><a>To use</a><a>Progress</a></nav>
+        <p class="note2">A gold pill glides to the chosen tab. Friendly, very clear; less "game UI".</p></div>
+      <div class="opt"><span class="tag">C · Gliding rule with a diamond · chosen</span>
+        <nav class="t-glide" data-tabs data-move="bar"><a class="on">Operators</a><a>Depot</a><a>To use</a><a>Progress</a><span class="bar"></span></nav>
+        <p class="note2">Serif labels; a fading gold rule with a glowing diamond slides under the choice. Most "Laterano".</p></div>
+      <div class="opt"><span class="tag">D · Diamond pager</span>
+        <nav class="t-dots" data-tabs><a class="on"><i></i>Operators</a><span class="rail"></span><a><i></i>Depot</a><span class="rail"></span><a><i></i>To use</a><span class="rail"></span><a><i></i>Progress</a></nav>
+        <p class="note2">Like the reference's dot pager, as steps on a line. Best for few, ordered sections.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="study-h"><b>Dividers</b><span>between sections of a page</span></div>
+    <div class="opts">
+      <div class="opt"><span class="tag">A · Ornament rule</span><div class="d-orn"><span>✦</span></div><p class="note2">Quiet, works anywhere.</p></div>
+      <div class="opt"><span class="tag">B · Filigree</span>
+        <div class="d-fil"><svg viewBox="0 0 600 26" preserveAspectRatio="xMidYMid meet" fill="none" stroke="#c99c50" stroke-width="1">
+          <path d="M20 13 H250" stroke-opacity=".5"/><path d="M350 13 H580" stroke-opacity=".5"/>
+          <path d="M250 13 C262 2 276 2 284 13 C276 24 262 24 250 13 Z" stroke-opacity=".8"/><path d="M350 13 C338 2 324 2 316 13 C324 24 338 24 350 13 Z" stroke-opacity=".8"/>
+          <path d="M300 3 L308 13 L300 23 L292 13 Z" fill="#c99c50" fill-opacity=".8"/><circle cx="240" cy="13" r="2" fill="#c99c50"/><circle cx="360" cy="13" r="2" fill="#c99c50"/>
+        </svg></div><p class="note2">Drawn gold scrollwork with a centre diamond. More decorative.</p></div>
+      <div class="opt"><span class="tag">C · Diagonal cut</span><div class="d-diag"><b>Event shops</b></div><p class="note2">A slanted edge with a gold line, like the reference's third panel. For section headers on big pages.</p></div>
+      <div class="opt"><span class="tag">D · Gold rule with a quote</span>
+        <div class="d-quote"><blockquote>"Raise who you'll field, not who you'll admire."<small>A thought for the day</small></blockquote><span class="vert">Arknights</span></div>
+        <p class="note2">The reference's vertical gold rule and side text. Good on Home and Today; too much on data pages.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="study-h"><b>Glass</b><span>over the drawn backgrounds</span></div>
+    <div class="g-stage">
+      <div class="g g1"><h4>Light glass</h4><p>Thin tint, little blur. The background stays readable.</p></div>
+      <div class="g g2 glass"><h4>Frosted (now)</h4><p>The home account panel: soft blur, hairline edge, rounded.</p></div>
+      <div class="g g3"><h4>Gilded</h4><p>Gold-tinted edge and a cut corner, like the site's cards. Most "Arknights".</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="study-h"><b>UI font</b><span>the sans for everything you read and click, beside Cormorant</span></div>
+    <p class="muted" style="margin:-6px 0 14px; max-width: 80ch">Pairing theory: a serif like Cormorant pairs either with a <em>humanist</em> sans (same pen-drawn roots, so they agree) or a <em>geometric</em> sans (opposite construction, so they contrast cleanly). Avoid two fonts that are similar but not the same. All of these are free (SIL Open Font License) and can be hosted with the site.</p>
+    <div class="fonts">
+      <div class="fc" style='font-family: "Saira", system-ui, sans-serif'>
+        <div class="head"><b>Saira</b><span class="ey">Your account</span></div>
+        <p class="why">Now. Technical, slightly squared: closest to Arknights' own UI. Contrasts Cormorant by era (sci-fi vs. Renaissance) rather than by form.</p>
+        <div class="t">Priorities</div>
+        <table><thead><tr><th>Operator</th><th>Upgrade</th><th class="num">Sanity</th><th class="num">Coverage</th></tr></thead>
+          <tbody><tr><td>Lemuen</td><td>S3 Mastery 3</td><td class="num">1,240</td><td class="num">+0.81%</td></tr><tr><td>Mostima</td><td>Module X 3</td><td class="num">860</td><td class="num">+0.47%</td></tr></tbody></table>
+        <p class="b">Each upgrade is scored by how many more community clears your roster could follow, per sanity it costs.</p>
+        <div class="btns"><span class="p">Open my account →</span><span>Sync again</span></div>
+        <p class="verdict muted">Game feel; least elegant beside Cormorant.</p>
+      </div>
+      <div class="fc" style='font-family: "Jost", system-ui, sans-serif'>
+        <div class="head"><b>Jost</b><span class="ey">Your account</span></div>
+        <p class="why">Geometric, after Futura. The classic luxury pairing: Cormorant's calligraphic curves against pure circles and straight lines. Contrast of structure, matched refinement.</p>
+        <div class="t">Priorities</div>
+        <table><thead><tr><th>Operator</th><th>Upgrade</th><th class="num">Sanity</th><th class="num">Coverage</th></tr></thead>
+          <tbody><tr><td>Lemuen</td><td>S3 Mastery 3</td><td class="num">1,240</td><td class="num">+0.81%</td></tr><tr><td>Mostima</td><td>Module X 3</td><td class="num">860</td><td class="num">+0.47%</td></tr></tbody></table>
+        <p class="b">Each upgrade is scored by how many more community clears your roster could follow, per sanity it costs.</p>
+        <div class="btns"><span class="p">Open my account →</span><span>Sync again</span></div>
+        <p class="verdict muted">Most premium; fine for tables.</p>
+      </div>
+      <div class="fc" style='font-family: "Alegreya Sans", system-ui, sans-serif'>
+        <div class="head"><b>Alegreya Sans</b><span class="ey">Your account</span></div>
+        <p class="why">Humanist: drawn from the same pen-made letters as Garamond, so it agrees with Cormorant in rhythm and shape. Warm, very readable in long text and dense tables.</p>
+        <div class="t">Priorities</div>
+        <table><thead><tr><th>Operator</th><th>Upgrade</th><th class="num">Sanity</th><th class="num">Coverage</th></tr></thead>
+          <tbody><tr><td>Lemuen</td><td>S3 Mastery 3</td><td class="num">1,240</td><td class="num">+0.81%</td></tr><tr><td>Mostima</td><td>Module X 3</td><td class="num">860</td><td class="num">+0.47%</td></tr></tbody></table>
+        <p class="b">Each upgrade is scored by how many more community clears your roster could follow, per sanity it costs.</p>
+        <div class="btns"><span class="p">Open my account →</span><span>Sync again</span></div>
+        <p class="verdict muted">Most harmonious; calm.</p>
+      </div>
+      <div class="fc" style='font-family: "Josefin Sans", system-ui, sans-serif'>
+        <div class="head"><b>Josefin Sans</b><span class="ey">Your account</span></div>
+        <p class="why">Geometric with a low waist and tall capitals, echoing Cormorant's small x-height and long ascenders. Beautiful tracked capitals.</p>
+        <div class="t">Priorities</div>
+        <table><thead><tr><th>Operator</th><th>Upgrade</th><th class="num">Sanity</th><th class="num">Coverage</th></tr></thead>
+          <tbody><tr><td>Lemuen</td><td>S3 Mastery 3</td><td class="num">1,240</td><td class="num">+0.81%</td></tr><tr><td>Mostima</td><td>Module X 3</td><td class="num">860</td><td class="num">+0.47%</td></tr></tbody></table>
+        <p class="b">Each upgrade is scored by how many more community clears your roster could follow, per sanity it costs.</p>
+        <div class="btns"><span class="p">Open my account →</span><span>Sync again</span></div>
+        <p class="verdict muted">Best for labels and titles; weak in dense data.</p>
+      </div>
+      <div class="fc" style='font-family: "Manrope", system-ui, sans-serif'>
+        <div class="head"><b>Manrope</b><span class="ey">Your account</span></div>
+        <p class="why">Modern semi-geometric, open shapes, excellent numerals. Neutral, so Cormorant carries all the character.</p>
+        <div class="t">Priorities</div>
+        <table><thead><tr><th>Operator</th><th>Upgrade</th><th class="num">Sanity</th><th class="num">Coverage</th></tr></thead>
+          <tbody><tr><td>Lemuen</td><td>S3 Mastery 3</td><td class="num">1,240</td><td class="num">+0.81%</td></tr><tr><td>Mostima</td><td>Module X 3</td><td class="num">860</td><td class="num">+0.47%</td></tr></tbody></table>
+        <p class="b">Each upgrade is scored by how many more community clears your roster could follow, per sanity it costs.</p>
+        <div class="btns"><span class="p">Open my account →</span><span>Sync again</span></div>
+        <p class="verdict muted">Cleanest data; least distinctive.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="study-h"><b>Type roles</b><span>one job per style, used the same way on every page</span></div>
+    <div class="roles">
+      <div class="role"><div class="who"><b>Display</b>Wordmark, page titles · Cinzel</div><div class="r-display">PRIORITIES</div></div>
+      <div class="role"><div class="who"><b>Elegant title</b>Panels on Home and Today · Cormorant</div><div class="r-elegant">Welcome back, Doctor</div></div>
+      <div class="role"><div class="who"><b>Section heading</b>Cards ("Sanity", "Checklist") · Cormorant semibold</div><div class="r-section">What changed since Monday</div></div>
+      <div class="role"><div class="who"><b>Eyebrow</b>Above titles · Saira wide, tracked</div><div class="r-eyebrow">Your account</div></div>
+      <div class="role"><div class="who"><b>Label</b>Small section labels, table heads · Saira wide, gold</div><div class="r-label">— Next priorities</div></div>
+      <div class="role"><div class="who"><b>Motto</b>Short phrases only · Cormorant italic</div><div class="r-motto">Plans · Farming · Progress</div></div>
+      <div class="role"><div class="who"><b>Body</b>Everything you read · Saira</div><div class="r-body">Each upgrade is scored by how many more community clear guides your roster could follow, per sanity it costs.</div></div>
+      <div class="role"><div class="who"><b>Numbers</b>Data in Saira; hero numbers in Cormorant</div><div class="r-num"><span>1,240</span><small>table</small><span class="el">342</span><small>hero stat</small></div></div>
+    </div>
+  </section>
+</div>
+<script>
+  // tabs that move: the indicator glides to the clicked tab
+  document.querySelectorAll("[data-tabs]").forEach((nav) => {
+    const tabs = [...nav.querySelectorAll("a")], mover = nav.dataset.move && nav.querySelector("." + nav.dataset.move);
+    const place = (a) => { if (mover) { mover.style.left = a.offsetLeft + "px"; mover.style.width = a.offsetWidth + "px"; } };
+    tabs.forEach((a) => a.addEventListener("click", () => { tabs.forEach((t) => t.classList.toggle("on", t === a)); place(a); }));
+    requestAnimationFrame(() => place(nav.querySelector("a.on")));
+  });
+</script>
+</body>
+</html>

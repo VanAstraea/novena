@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novena colour and type study</title>
+<!-- Served by the dev server (npm run dev, then /docs/design/previews/palette.html) so it uses the site's real stylesheet. -->
+<link rel="stylesheet" href="/src/styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Marcellus&display=swap">
+<style>
+  /* ---------- directions: each overrides the site's tokens ---------- */
+  [data-mode="dark"] { --r6: #ff9b3d; --r5: #f6d04d; --r4: #c9a7ff; --r3: #6cb8ff; --r2: #b9e07a; --r1: #c8cdd3; --icon-filter: none; }
+  /* Every direction keeps to white, grey, black, brown and gold. Neutrals lean slightly warm so they sit with the
+     gold; colour for states (ready, short, expiring) is kept but softened. */
+  /* Basilica: black and stone grey, white text, gold. The cathedral at night. Light mode is Marble. */
+  [data-dir="basilica"][data-mode="dark"], [data-dir="marble"][data-mode="dark"] {
+    --bg: #0c0b0a; --bar: rgba(12, 11, 10, 0.92); --surface: #151412; --surface-2: #1c1b18; --surface-3: #262420;
+    --border: #2b2925; --line: #403c36; --text: #f6f2ea; --muted: #b3ada3;
+    --accent: #dcb46a; --accent-strong: #f0d496; --accent-ink: #17110a; --accent-soft: rgba(220, 180, 106, 0.12);
+    --glass: rgba(21, 20, 18, 0.55); --ornament: #d2aa5e;
+    --info: #b7c0c6; --good: #9ccf8f; --warn: #e8a961; --bad: #f08a7c; color-scheme: dark;
+  }
+  /* Marble: White and Monumental. Marble white, warm stone greys, near-black brown ink, bronze gold. */
+  [data-dir="marble"][data-mode="light"], [data-dir="basilica"][data-mode="light"], [data-dir="reliquary"][data-mode="light"] {
+    --bg: #eeece7; --bar: rgba(252, 251, 248, 0.94); --surface: #fcfbf8; --surface-2: #f4f2ed; --surface-3: #e7e3db;
+    --border: #dcd7cd; --line: #c2bbae; --text: #1c1712; --muted: #5c554b;
+    --accent: #87580f; --accent-strong: #6a4409; --accent-ink: #ffffff; --accent-soft: rgba(176, 133, 48, 0.13);
+    --glass: rgba(252, 251, 248, 0.74); --ornament: #b08530;
+    --info: #4f5d66; --good: #2d6a3e; --warn: #8a5b00; --bad: #a8322a;
+    --r6: #b85600; --r5: #8a6d00; --r4: #6b46c1; --r3: #1f62b5; --r2: #4a7a00; --r1: #59616b; --icon-filter: invert(1); color-scheme: light;
+  }
+  /* Reliquary: black and grey panels with brown in the mid-tones (borders, raised panels, hover) and gold on top:
+     all five colours at once. Like a gilded case in a dark chapel. */
+  [data-dir="reliquary"][data-mode="dark"] {
+    --bg: #0d0c0b; --bar: rgba(13, 12, 11, 0.92); --surface: #161412; --surface-2: #1e1a16; --surface-3: #2b231b;
+    --border: #30281f; --line: #4b3d2f; --text: #f6f1e8; --muted: #b9afa2;
+    --accent: #dfb768; --accent-strong: #f2d599; --accent-ink: #17110a; --accent-soft: rgba(223, 183, 104, 0.12);
+    --glass: rgba(22, 20, 18, 0.55); --ornament: #c99c50;
+    --info: #b9b2a6; --good: #9ccf8f; --warn: #e8a961; --bad: #f08a7c; color-scheme: dark;
+  }
+  /* Chapel: candlelit interior, from the chapel scene. Umber wood, warm gold, parchment; sage from the hall's glass. */
+  [data-dir="chapel"][data-mode="dark"] {
+    --bg: #110d08; --bar: rgba(16, 12, 7, 0.92); --surface: #19130c; --surface-2: #211910; --surface-3: #2c2216;
+    --border: #33281a; --line: #4a3b27; --text: #f5ead3; --muted: #c0b49c;
+    --accent: #e8b960; --accent-strong: #f5d79a; --accent-ink: #1a1206; --accent-soft: rgba(232, 185, 96, 0.12);
+    --glass: rgba(25, 19, 12, 0.55); --ornament: #e8b960;
+    --info: #c2b8a3; --good: #9fd18a; --warn: #f0a860; --bad: #f28b7d; color-scheme: dark;
+  }
+  [data-dir="chapel"][data-mode="light"] {
+    --bg: #f1e8d6; --bar: rgba(255, 250, 240, 0.94); --surface: #fffaf0; --surface-2: #f7efdf; --surface-3: #ebdfc8;
+    --border: #e0d2b6; --line: #c9b693; --text: #271c10; --muted: #5d4e37;
+    --accent: #7d4f0b; --accent-strong: #603b05; --accent-ink: #ffffff; --accent-soft: rgba(125, 79, 11, 0.10);
+    --glass: rgba(255, 250, 240, 0.74); --ornament: #9a6a1c;
+    --info: #5d5444; --good: #2d6a3e; --warn: #8a5b00; --bad: #a8322a;
+    --r6: #b85600; --r5: #8a6d00; --r4: #6b46c1; --r3: #1f62b5; --r2: #4a7a00; --r1: #59616b; --icon-filter: invert(1); color-scheme: light;
+  }
+  [data-dir="current"][data-mode="light"] {
+    --bg: #f3efe6; --bar: rgba(255, 253, 248, 0.94); --surface: #fffdf8; --surface-2: #f6f1e6; --surface-3: #ebe4d5;
+    --border: #ddd4c2; --line: #c6bba5; --text: #17150f; --muted: #57513f;
+    --accent: #8a5b00; --accent-strong: #6e4800; --accent-ink: #ffffff; --accent-soft: rgba(201, 150, 40, 0.14);
+    --glass: rgba(255, 253, 248, 0.72); --info: #0b6f80; --good: #19733a; --warn: #8a5b00; --bad: #b3261e;
+    --r6: #b85600; --r5: #8a6d00; --r4: #6b46c1; --r3: #1f62b5; --r2: #4a7a00; --r1: #59616b; --icon-filter: invert(1); color-scheme: light;
+  }
+  [data-dir="current"][data-mode="dark"] { color-scheme: dark; }
+  [data-dir="current"] { --ornament: var(--accent); }
+
+  /* ---------- type ---------- */
+  [data-display="cinzel"] { --serif: "Cinzel", Georgia, serif; }
+  [data-display="marcellus"] { --serif: "Marcellus", Georgia, serif; }
+  [data-display="cinzel"] h1, [data-display="cinzel"] .brand-name { font-weight: 600; letter-spacing: 0.04em; }
+  [data-display="cinzel"] .stat .v { font-weight: 600; }
+  /* Arknights' English UI labels are wide, tracked capitals; Saira can stretch to that. */
+  [data-labels="wide"] thead th, [data-labels="wide"] .k, [data-labels="wide"] .label, [data-labels="wide"] button.primary,
+  [data-labels="wide"] .nav a { font-stretch: 125%; letter-spacing: 0.14em; }
+
+  /* ---------- study chrome ---------- */
+  body { margin: 0; }
+  .study { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+  .ctl { position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto; padding: 18px; border-right: 1px solid var(--border); background: var(--surface); }
+  .ctl h2 { font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; }
+  .ctl .opt { display: grid; gap: 4px; }
+  .ctl label { display: flex; gap: 8px; align-items: baseline; cursor: pointer; padding: 6px 8px; border: 1px solid transparent; border-radius: 3px; }
+  .ctl label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  .ctl small { display: block; color: var(--muted); font-size: 0.78rem; line-height: 1.35; }
+  .page { min-width: 0; }
+  .study { background: var(--bg); color: var(--text); }
+  /* ---------- text accents: the "eye-candy" over the neutral base ---------- */
+  /* --ink-1 marks what you can act on or scan for (links, section labels, active tab); --ink-2 gives emphasis
+     (stat values, the tagline). Gold stays on buttons and ornament in every option. */
+  .study { --ink-1: var(--accent); --ink-2: var(--ornament); }
+  [data-mode="dark"][data-ink="lapis"] { --ink-1: #9dbdf0; --ink-2: #9dbdf0; }
+  [data-mode="light"][data-ink="lapis"] { --ink-1: #2b4f8a; --ink-2: #2b4f8a; }
+  [data-mode="dark"][data-ink="lapisgold"] { --ink-1: #9dbdf0; }
+  [data-mode="light"][data-ink="lapisgold"] { --ink-1: #2b4f8a; }
+  [data-mode="dark"][data-ink="garnet"] { --ink-1: #f0959c; --ink-2: #f0959c; }
+  [data-mode="light"][data-ink="garnet"] { --ink-1: #9b2335; --ink-2: #9b2335; }
+  [data-mode="dark"][data-ink="triad"] { --ink-1: #9dbdf0; --ink-2: #f0959c; }
+  [data-mode="light"][data-ink="triad"] { --ink-1: #2b4f8a; --ink-2: #9b2335; }
+  .page a { color: var(--ink-1); }
+  .page .card h2.label { color: var(--ink-1); }
+  .page .nav a.on { color: var(--ink-1); }
+  .page .seg button[aria-pressed="true"] { box-shadow: inset 0 -3px 0 var(--ink-1); }
+  .page .stat .v { color: var(--ink-2); }
+  .page .hero-strip .t { color: var(--ink-2) !important; }
+  .page .content strong { color: var(--ink-2); }
+  .bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 22px; padding: 12px 24px; background: var(--bar); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+  .brand-name { color: var(--ornament); }
+  .nav { display: flex; gap: 16px; font-size: 0.84rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .nav a { color: var(--muted); padding-bottom: 4px; }
+  .nav a.on { color: var(--text); box-shadow: inset 0 -2px 0 var(--ornament); }
+  .hero-strip { position: relative; height: 230px; overflow: hidden; }
+  .hero-strip img.scene { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero-strip::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--bg) 18%, color-mix(in srgb, var(--bg) 55%, transparent) 55%, transparent), linear-gradient(0deg, var(--bg), transparent 45%); }
+  .hero-strip .copy { position: absolute; z-index: 1; left: 24px; bottom: 26px; }
+  .hero-strip .w { font-family: var(--serif); font-size: 64px; line-height: 0.9; letter-spacing: 0.05em; color: var(--text); margin: 0; font-weight: 600; }
+  .hero-strip .t { font-family: var(--serif); font-style: italic; font-size: 1.4rem; color: var(--ornament); margin: 8px 0 0; }
+  [data-display="cinzel"] .hero-strip .t, [data-display="marcellus"] .hero-strip .t { font-style: normal; letter-spacing: 0.12em; font-size: 1.1rem; }
+  .content { padding: 22px 24px 40px; display: grid; gap: 14px; max-width: 1100px; }
+  h1.rule::after { content: ""; display: block; width: 56px; height: 2px; margin-top: 10px; background: var(--ornament); }
+  .card::after { background: var(--ornament); opacity: 0.6; }
+  .tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .two { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; align-items: start; }
+  .ops td img { width: 34px; height: 34px; vertical-align: middle; margin-right: 8px; background: var(--surface-2); }
+  .stars { letter-spacing: 1px; }
+  .pill { display: inline-block; padding: 1px 8px; border: 1px solid currentColor; border-radius: 99px; font-size: 0.76rem; font-weight: 600; }
+  .sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+  .sw div { height: 46px; border-radius: 2px; display: flex; align-items: end; padding: 3px 5px; font: 600 10px/1 ui-monospace, monospace; }
+  .art-row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .art-row img { width: 120px; height: 68px; object-fit: cover; border-radius: 2px; }
+  .cx td, .cx th { padding: 5px 10px; }
+  .cx .ok { color: var(--good); font-weight: 700; } .cx .no { color: var(--bad); font-weight: 700; }
+  .chip-demo { display: flex; gap: 6px; flex-wrap: wrap; }
+  @media (max-width: 900px) { .study { grid-template-columns: 1fr; } .ctl { position: static; height: auto; } .tiles { grid-template-columns: repeat(3, 1fr); } .two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="study" id="root" data-dir="basilica" data-mode="dark" data-ink="gold" data-display="cormorant" data-labels="normal">
+  <aside class="ctl">
+    <strong style="font-family: var(--serif); font-size: 1.4rem; letter-spacing: 0.14em; color: var(--ornament)">STUDY</strong>
+    <h2>Direction</h2>
+    <div class="opt" data-k="dir">
+      <label><input type="radio" name="dir" value="current"><span>Current<small>Near-black navy and a yellow gold.</small></span></label>
+      <label><input type="radio" name="dir" value="basilica" checked><span>Basilica<small>Black and stone grey, white text, gold. Light mode is Marble.</small></span></label>
+      <label><input type="radio" name="dir" value="reliquary"><span>Reliquary<small>Black and grey with brown in the mid-tones and gold on top: all five colours.</small></span></label>
+      <label><input type="radio" name="dir" value="marble"><span>Marble<small>White and Monumental: marble white, stone grey, brown-black ink, bronze gold. Dark mode is Basilica.</small></span></label>
+      <label><input type="radio" name="dir" value="chapel"><span>Chapel<small>Brown first: umber wood, warm gold, parchment. Light mode is parchment.</small></span></label>
+    </div>
+    <h2>Mode</h2>
+    <div class="opt" data-k="mode">
+      <label><input type="radio" name="mode" value="dark" checked><span>Dark</span></label>
+      <label><input type="radio" name="mode" value="light"><span>Light</span></label>
+    </div>
+    <h2>Text accent</h2>
+    <div class="opt" data-k="ink">
+      <label><input type="radio" name="ink" value="gold" checked><span>Gold only<small>One colour: calm and unified, but nothing stands out from the ornament.</small></span></label>
+      <label><input type="radio" name="ink" value="lapis"><span>Lapis<small>Gold's opposite on the wheel. Links and labels pop most against the warm base.</small></span></label>
+      <label><input type="radio" name="ink" value="lapisgold"><span>Lapis and gold<small>Lapis for what you click or scan, gold for numbers and emphasis. Cool against warm, nothing clashes with the state colours.</small></span></label>
+      <label><input type="radio" name="ink" value="garnet"><span>Garnet<small>Gold's warm neighbour, the red of Sankta halos. Rich, but red also means "short" and errors.</small></span></label>
+      <label><input type="radio" name="ink" value="triad"><span>Lapis and garnet<small>The gold, blue and red of sacred art: lapis to act, garnet to emphasise.</small></span></label>
+    </div>
+    <h2>Display type</h2>
+    <div class="opt" data-k="display">
+      <label><input type="radio" name="display" value="cormorant" checked><span>Cormorant Garamond<small>Current. Calligraphic, elegant, best large.</small></span></label>
+      <label><input type="radio" name="display" value="cinzel"><span>Cinzel<small>Roman inscription capitals: carved stone, cathedral façades.</small></span></label>
+      <label><input type="radio" name="display" value="marcellus"><span>Marcellus<small>Flared Roman letters, softer than Cinzel, has lower case.</small></span></label>
+    </div>
+    <h2>Labels</h2>
+    <div class="opt" data-k="labels">
+      <label><input type="radio" name="labels" value="normal" checked><span>Saira, as now</span></label>
+      <label><input type="radio" name="labels" value="wide"><span>Saira, wide<small>Stretched, tracked capitals for labels, like the game's English UI.</small></span></label>
+    </div>
+  </aside>
+
+  <main class="page">
+    <header class="bar">
+      <span class="brand-name">Novena</span>
+      <nav class="nav"><a class="on" href="#">My account</a><a href="#">Operators</a><a href="#">Farming</a><a href="#">Base</a><a href="#">Upcoming</a></nav>
+      <span style="margin-left:auto" class="muted">CN ▾</span>
+    </header>
+
+    <div class="hero-strip">
+      <img class="scene" alt="" src="/bg/nave.svg">
+      <div class="copy"><p class="w">NOVENA</p><p class="t">Ora et labora</p></div>
+    </div>
+
+    <div class="content">
+      <div>
+        <h1 class="rule">Today</h1>
+        <p class="muted" style="margin:0">Roster synced 12 minutes ago. Game day resets in 6h 40m.</p>
+      </div>
+
+      <div class="tiles">
+        <div class="stat"><div class="k">Operators</div><div class="v">340</div></div>
+        <div class="stat"><div class="k">Elite 2</div><div class="v">105</div></div>
+        <div class="stat"><div class="k">Masteries</div><div class="v">612</div></div>
+        <div class="stat"><div class="k">M3 skills</div><div class="v">168</div></div>
+        <div class="stat"><div class="k">Modules</div><div class="v">143</div></div>
+        <div class="stat"><div class="k">LMD held</div><div class="v">4.2M</div></div>
+      </div>
+
+      <div class="two">
+        <section class="card">
+          <h2 class="label">Next in your plan</h2>
+          <table class="ops">
+            <thead><tr><th>Operator</th><th>Rarity</th><th>Step</th><th class="num">Sanity</th></tr></thead>
+            <tbody>
+              <tr><td><img alt="" src="https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/avatar/char_4193_lemuen.png"><a href="#">Lemuen</a></td><td class="stars" style="color:var(--r6)">★★★★★★</td><td>S3 Mastery 3</td><td class="num">1,240</td></tr>
+              <tr><td><img alt="" src="https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/avatar/char_213_mostma.png"><a href="#">Mostima</a></td><td class="stars" style="color:var(--r6)">★★★★★★</td><td>Module X stage 3</td><td class="num">860</td></tr>
+              <tr><td><img alt="" src="https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/avatar/char_332_archet.png"><a href="#">Archetto</a></td><td class="stars" style="color:var(--r6)">★★★★★★</td><td>Elite 2</td><td class="num">720</td></tr>
+              <tr><td><img alt="" src="https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/avatar/char_4194_rmixer.png"><a href="#">Insider</a></td><td class="stars" style="color:var(--r5)">★★★★★</td><td>S2 Mastery 3</td><td class="num">540</td></tr>
+            </tbody>
+          </table>
+          <div class="row" style="margin-top:12px; gap:8px; display:flex; flex-wrap:wrap">
+            <button class="primary">Build my plan</button><button>The whole plan</button><button class="ghost">Hide</button>
+          </div>
+        </section>
+        <div style="display:grid; gap:14px">
+          <section class="card">
+            <h2 class="label">Open today</h2>
+            <div class="seg" style="margin-bottom:10px"><button aria-pressed="true">Today</button><button>Tomorrow</button><button>Week</button></div>
+            <p style="margin:0">CE-6 · LMD, CA-5 · Skill summaries, PR-B · Casters and Supporters</p>
+            <p style="margin:8px 0 0"><strong>Sanctuary of the Saints</strong> <span class="muted">ends 19 Oct</span></p>
+          </section>
+          <section class="card">
+            <h2 class="label">States</h2>
+            <div class="chip-demo">
+              <span class="pill" style="color:var(--good)">Ready</span><span class="pill" style="color:var(--bad)">Short 3</span>
+              <span class="pill" style="color:var(--warn)">Expires in 2 days</span><span class="pill" style="color:var(--info)">New</span>
+            </div>
+            <div class="chips" style="margin-top:10px"><button class="chip" aria-pressed="true">Guard</button><button class="chip">Caster</button><button class="chip">Medic</button></div>
+            <p class="note" style="margin:10px 0 0">Each sync signs you out of the game on your other devices. Play, close the game, then sync.</p>
+          </section>
+        </div>
+      </div>
+
+      <section class="card">
+        <h2 class="label">Where the colours come from</h2>
+        <div id="art"></div>
+      </section>
+      <section class="card">
+        <h2 class="label">This direction's palette and contrast</h2>
+        <div class="sw" id="sw"></div>
+        <table class="cx" style="margin-top:12px"><thead><tr><th>Text</th><th>On</th><th class="num">Ratio</th><th>Reads as</th></tr></thead><tbody id="cx"></tbody></table>
+        <p class="muted" style="margin:8px 0 0; font-size:0.84rem">4.5:1 is the minimum for body text, 3:1 for large text and icons (WCAG AA).</p>
+      </section>
+    </div>
+  </main>
+</div>
+<script>
+  const root = document.getElementById("root");
+  document.querySelectorAll(".opt input").forEach((i) => i.addEventListener("change", () => { root.dataset[i.name] = i.value; paint(); }));
+
+  // Dominant colours measured once from the game's Laterano scenes and the hero art (median cut). Only the colours are kept here.
+  const ART = [
+    ["Cathedral hall", "", ["#f2f4ec", "#e3ede7", "#e0e0ce", "#d0c8aa", "#c7b895", "#a99d7e", "#a5ba9f", "#7e6a59"]],
+    ["Cathedral front", "", ["#f2f1ec", "#e8e6e0", "#dfdcd3", "#ccc7bb", "#c8bdab", "#8b979d", "#506887"]],
+    ["Chapel", "", ["#b4b3ac", "#878276", "#6b6151", "#5f4a36", "#4d3725", "#3e2e1e", "#2f2517"]],
+    ["Lemuen (hero)", "", ["#faf3da", "#fac692", "#c4b7aa", "#99806a", "#684c35", "#603825", "#1f3149", "#0e1321"]],
+  ];
+  document.getElementById("art").innerHTML = ART.map(([n, src, cs]) =>
+    `<div class="art-row" style="grid-template-columns: 1fr"><div><div class="muted" style="font-size:.8rem;margin-bottom:4px">${n}</div><div class="sw">${cs.map((c) => `<div style="background:${c};color:${lum(c) > 0.4 ? "#000" : "#fff"}">${c}</div>`).join("")}</div></div></div>`).join("");
+
+  function rgb(c) {
+    const s = getComputedStyle(document.body); const el = document.createElement("i"); el.style.color = c; document.body.appendChild(el);
+    const m = getComputedStyle(el).color.match(/[\d.]+/g).map(Number); el.remove(); return m;
+  }
+  function lum(c) {
+    const [r, g, b] = (c.startsWith("#") ? [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16)) : rgb(c)).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const PAIRS = [["text", "bg"], ["text", "surface"], ["muted", "surface"], ["muted", "surface-2"], ["ink-1", "surface", "links and labels"], ["ink-2", "surface", "emphasis"],
+    ["accent-ink", "accent", "button"], ["ornament", "surface", "ornament (decor)"], ["good", "surface"], ["bad", "surface"], ["warn", "surface"], ["info", "surface"], ["r6", "surface", "6★"]];
+  function paint() {
+    const cs = getComputedStyle(root); const v = (k) => cs.getPropertyValue("--" + k).trim();
+    const keys = ["bg", "surface", "surface-2", "surface-3", "border", "line", "text", "muted", "accent", "accent-strong", "ornament", "ink-1", "ink-2", "info", "good", "warn", "bad"];
+    document.getElementById("sw").innerHTML = keys.map((k) => `<div style="background:${v(k)};color:${lum(v(k)) > 0.3 ? "#000" : "#fff"};outline:1px solid var(--border)">${k}<br>${v(k)}</div>`).join("");
+    document.getElementById("cx").innerHTML = PAIRS.map(([a, b, n]) => {
+      const r = ratio(v(a), v(b)); const min = n && n.includes("decor") ? 3 : 4.5;
+      return `<tr><td><span style="color:${v(a)};background:${v(b)};padding:2px 8px">${n || a}</span></td><td>${b}</td><td class="num">${r.toFixed(1)}:1</td><td class="${r >= min ? "ok" : "no"}">${r >= min ? "Passes" : "Too faint"}</td></tr>`;
+    }).join("");
+  }
+  paint();
+</script>
+</body>
+</html>

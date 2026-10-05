@@ -1,8 +1,9 @@
 // Upgrade and material planner: target builds in, total materials / LMD / EXP and crafting out.
 import { useEffect, useMemo, useState } from "preact/hooks";
+import { BuildMarks } from "../components/Marks";
 import { OpPicker } from "../components/OpPicker";
 import { Avatar, Await, Explain, ItemIcon, Items, itemsSig, metaSig, useAsync } from "../components/ui";
-import { label, parse, stateLabel } from "../lib/build";
+import { label, parse } from "../lib/build";
 import { EXP, LMD, sanity, type Cost } from "../lib/costs";
 import { breakdown, Stock } from "../lib/crafting";
 import { operator, operators } from "../lib/data";
@@ -165,8 +166,8 @@ function Totals({ rows, list, onChange }: { rows: PlannedTarget[]; list: PlanTar
               {rows.map((r, i) => (
                 <tr key={`${r.op.id}${i}`}>
                   <td data-label="Operator"><a class="op-cell" href={href(`/operator/${r.op.id}`)}><Avatar op={r.op} size="sm" /><span class="op-name">{r.op.name}</span></a></td>
-                  <td data-label="From">{account.value.ops[r.op.id] ? stateLabel(r.from) || "E0 L1" : <span class="muted">new copy</span>}</td>
-                  <td data-label="To">{r.error ? <span class="bad-text">{r.error}</span> : r.done ? <span class="good-text">Already there</span> : stateLabel(r.to!)}
+                  <td data-label="From">{account.value.ops[r.op.id] ? <BuildMarks s={r.from} op={r.op} /> : <span class="muted">new copy</span>}</td>
+                  <td data-label="To">{r.error ? <span class="bad-text">{r.error}</span> : r.done ? <span class="good-text">Already there</span> : <BuildMarks s={r.to!} op={r.op} />}
                     <br /><small class="muted">asked: {r.t.text}</small></td>
                   <td data-label="Cost"><Items cost={r.cost} empty="–" /></td>
                   <td data-label="Sanity value" class="num">{fmt(sanity(r.cost, values))}</td>

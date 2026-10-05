@@ -132,6 +132,7 @@ class Builder:
             "recruit": cid in self.recruitable, "on": [s for s in SERVERS if cid in self.on[s]],
             "mods": [gd.table("uniequip_table", src)["equipDict"][m]["typeIcon"].rsplit("-", 1)[-1].upper() for m in modules],
             "modIds": modules,
+            "modTypes": [gd.table("uniequip_table", src)["equipDict"][m]["typeIcon"].lower() for m in modules],  # the type icon's file name
         }
         if src != self.server:
             row["src"] = src

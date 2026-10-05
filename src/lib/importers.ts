@@ -16,6 +16,9 @@ export interface Imported {
   skipped: number;
   server?: string; // the server a file says it's from, when it says
   consumables?: Account["consumables"];
+  recruit?: Account["recruit"];
+  base?: Account["base"];
+  sanity?: { value: number; cap: number; at: number }; // at: ms
 }
 
 const clamp = (v: unknown, lo: number, hi: number, fallback: number) => {
@@ -38,6 +41,7 @@ function sanitize(r: Partial<RosterOp> & { id: string }, known: Map<string, OpIn
   return {
     id: r.id, elite, level: clamp(r.level, 1, 90, 1), pot: clamp(r.pot, 1, 6, 1), skillLevel: clamp(r.skillLevel, 1, 7, 1),
     masteries: (Array.isArray(r.masteries) ? r.masteries : []).slice(0, 3).map((m) => clamp(m, 0, 3, 0)), modules,
+    ...(typeof r.skin === "string" && /^char_\w+@[\w#.-]+$/.test(r.skin) ? { skin: r.skin } : {}),
   };
 }
 
@@ -69,7 +73,7 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
           if (letter && !st.locked) modules[letter] = Number(st.level) || 0;
         }
         put({ id: f.id, elite: c.evolvePhase, level: c.level, pot: (c.potentialRank || 0) + 1, skillLevel: c.mainSkillLvl,
-          masteries: (f.skills || []).map((s: any) => s.specializeLevel || 0), modules });
+          masteries: (f.skills || []).map((s: any) => s.specializeLevel || 0), modules, skin: c.skin });
       }
     }
     const user = data.user ?? data;
@@ -85,8 +89,9 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
       if (list.length) consumables[id] = list;
     }
     const fromApp = data.app === "novena-sync";
+    const sanity = Number(st.maxAp) > 0 && Number(st.lastApAddTime) > 0 ? { value: Number(st.ap) || 0, cap: Number(st.maxAp), at: Number(st.lastApAddTime) * 1000 } : undefined;
     return { ops: out, depot, savings, format: fromApp ? "Novena Sync" : "Game sync data (syncData)", skipped, server: fromApp ? data.server : undefined,
-      consumables: Object.keys(consumables).length ? consumables : undefined };
+      consumables: Object.keys(consumables).length ? consumables : undefined, recruit: recruitSlots(user.recruit), base: baseState(user.building, data.synced), sanity };
   }
 
   // Krooster: { char_x: { id, owned, promotion, potential, level, skillLevel, mastery: [..], module: {id|letter: n} } }
@@ -110,4 +115,31 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
 
 export function exportRoster(a: Account, server: string) {
   return { app: ROSTER_APP, version: 1, server, exported: new Date().toISOString(), ops: Object.values(a.ops), depot: a.depot, savings: a.savings };
+}
+
+/** Recruitment slots: Novena Sync's list, or the game's own `recruit.normal.slots`. */
+function recruitSlots(r: any): Account["recruit"] {
+  const raw = Array.isArray(r) ? r : r?.normal?.slots ? Object.entries(r.normal.slots).map(([k, v]: [string, any]) => ({
+    slot: Number(k), state: v.state, tags: v.tags, picked: (v.selectTags || []).filter((t: any) => t.pick).map((t: any) => t.tagId), start: v.startTs, finish: v.maxFinishTs,
+  })) : null;
+  if (!raw?.length) return undefined;
+  return raw.map((x: any) => ({
+    slot: Number(x.slot) || 0, state: Number(x.state) || 0, tags: (x.tags || []).map(Number).filter(Number.isFinite),
+    picked: (x.picked || []).map(Number).filter(Number.isFinite), start: Number(x.start) || -1, finish: Number(x.finish) || -1,
+  })).sort((a: { slot: number }, b: { slot: number }) => a.slot - b.slot);
+}
+
+/** The base as Novena Sync lists it (rooms with teams, production and timers; the drones). */
+function baseState(b: any, synced?: string): Account["base"] {
+  if (!b || !Array.isArray(b.rooms) || !b.rooms.length) return undefined;
+  const n = (v: any) => (Number.isFinite(Number(v)) ? Number(v) : undefined);
+  const rooms = b.rooms.filter((r: any) => typeof r?.room === "string").map((r: any) => ({
+    slot: String(r.slot), room: r.room, level: Number(r.level) || 0,
+    team: (r.team || []).filter((t: any) => typeof t?.charId === "string").map((t: any) => ({ charId: t.charId, morale: Number(t.morale) || 0, ts: Number(t.ts) || 0 })),
+    formula: r.formula || undefined, made: n(r.made), capacity: n(r.capacity), remain: n(r.remain), done: n(r.done),
+    strategy: r.strategy || undefined, orders: n(r.orders), limit: n(r.limit), comfort: n(r.comfort),
+  }));
+  const d = b.drones;
+  return { rooms, drones: d ? { value: Number(d.value) || 0, max: Number(d.max) || 0, ts: Number(d.ts) || 0, speed: Number(d.speed) || 1 } : null,
+    at: synced ? Date.parse(synced) || Date.now() : Date.now() };
 }

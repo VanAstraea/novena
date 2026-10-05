@@ -85,8 +85,8 @@ these services. Thank you to everyone who runs and contributes to them.
 | [Arknights Toolbox depot recognition](https://github.com/arkntools/depot-recognition) | Reading depot screenshots in the browser (bundled library) | MIT |
 
 Every bundled package and font with its license is listed on the site's **Credits** page, generated at build time by
-[`scripts/licenses.mjs`](scripts/licenses.mjs) (also as [`public/THIRD_PARTY_NOTICES.txt`](public/THIRD_PARTY_NOTICES.txt)). Fonts: Saira and
-Cormorant Garamond, both SIL Open Font License.
+[`scripts/licenses.mjs`](scripts/licenses.mjs) (also as [`public/THIRD_PARTY_NOTICES.txt`](public/THIRD_PARTY_NOTICES.txt)). Fonts: Alegreya Sans,
+Cinzel and Cormorant Garamond, all SIL Open Font License.
 
 Both usage sources are CN, which runs months ahead: rankings hold, but percentages read lower than they will once
 your server catches up. Derived numbers are labelled as estimates where they appear.

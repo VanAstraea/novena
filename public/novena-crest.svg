@@ -66,5 +66,5 @@
   <path d="M338 150 A82 21 0 0 1 174 150" fill="none" stroke="url(#gold)" stroke-width="7" stroke-linecap="round"/>
   <path d="M352 150 A96 25 0 0 1 160 150" fill="none" stroke="#f8e3a3" stroke-width="1.4" opacity=".7"/>
   <path d="M256 250 L272 274 L256 298 L240 274 Z" fill="url(#core)" stroke="#a8792e" stroke-width="1.5"/>
-  <path d="M256 262 L263 274 L256 286 L249 274 Z" fill="#0b1020"/>
+  <path d="M256 262 L263 274 L256 286 L249 274 Z" fill="#14110e"/>
 </svg>

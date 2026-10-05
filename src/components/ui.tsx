@@ -1,10 +1,10 @@
 // Shared building blocks: async loading, icons, items, rich text, ranges, tabs.
 import type { ComponentChildren, JSX } from "preact";
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { signal } from "@preact/signals";
 import { art, items as loadItems, meta as loadMeta, ranges as loadRanges } from "../lib/data";
 import { compact, fmt } from "../lib/format";
-import { server } from "../state";
+import { account, server } from "../state";
 import type { ItemsFile, Meta, OpIndex } from "../types";
 
 // --- async data ------------------------------------------------------------------------------------------------
@@ -75,11 +75,20 @@ function initials(name: string) {
   return (parts.length > 1 ? parts[0][0] + parts[1][0] : name.slice(0, 2)).toUpperCase();
 }
 
+/** The operator's avatar, in the outfit you wear when Novena Sync says so (the default art if that one won't load). */
 export function Avatar({ op, size = "" }: { op: Pick<OpIndex, "id" | "name" | "rarity">; size?: "" | "sm" | "lg" }) {
-  const [failed, setFailed] = useState(false);
+  const skin = account.value.ops[op.id]?.skin;
+  const srcs = skin ? [art.outfitAvatar(skin), art.avatar(op.id)] : [art.avatar(op.id)];
+  const [tries, setTries] = useState(0);
   const cls = `avatar ${size} r${op.rarity}`;
-  if (failed) return <span class={cls} aria-hidden="true">{initials(op.name)}</span>;
-  return <img class={cls} src={art.avatar(op.id)} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
+  if (tries >= srcs.length) return <span class={cls} aria-hidden="true">{initials(op.name)}</span>;
+  return <img key={srcs[tries]} class={cls} src={srcs[tries]} alt="" loading="lazy" decoding="async" onError={() => setTries(tries + 1)} />;
+}
+
+/** Half-body portraits to try: the outfit you wear first (from Novena Sync), then the E2 or base art. */
+export function wornPortraits(id: string, elite = 0): string[] {
+  const skin = account.value.ops[id]?.skin;
+  return [...(skin ? [art.outfitPortrait(skin)] : []), ...art.portraits(id, elite)];
 }
 
 export function Stars({ n, img = false }: { n: number; img?: boolean }) {
@@ -110,7 +119,7 @@ export function GIcon({ src, alt, size = 22, title }: { src: string; alt: string
 export function PortraitCard({ op, sub, href, elite = 0 }: { op: OpIndex; sub?: ComponentChildren; href: string; elite?: number }) {
   return (
     <a class={`pcard r${op.rarity}`} href={href} title={op.name} data-morph>
-      <Art srcs={art.portraits(op.id, elite)} class="portrait" fallback={<span class="ph" aria-hidden="true">{initials(op.name)}</span>} />
+      <Art srcs={wornPortraits(op.id, elite)} class="portrait" fallback={<span class="ph" aria-hidden="true">{initials(op.name)}</span>} />
       <span class="cls"><img src={art.classIcon(op.cls)} alt="" loading="lazy" /></span>
       {op.src && <span class="flag badge cn" title="Not on this server yet">CN</span>}
       <span class="foot">
@@ -210,10 +219,30 @@ export function Range({ id, size = 12 }: { id?: string | null; size?: number }) 
 
 // --- tabs ------------------------------------------------------------------------------------------------------
 
+/** Slides a tab bar's gold rule (its `.tab-glide` child) under the selected tab, and keeps it there on resize. */
+export function useTabGlide(dep: unknown) {
+  const ref = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    const bar = ref.current, glide = bar?.querySelector<HTMLElement>(".tab-glide");
+    if (!bar || !glide) return;
+    const place = () => {
+      const on = bar.querySelector<HTMLElement>('[aria-selected="true"], [aria-current="page"]');
+      glide.style.opacity = on ? "1" : "0";
+      if (on) { glide.style.left = `${on.offsetLeft}px`; glide.style.width = `${on.offsetWidth}px`; }
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(bar);
+    return () => ro.disconnect();
+  }, [dep]);
+  return ref;
+}
+
 export function Tabs<K extends string>({ tabs, value, onChange, label }: {
   tabs: { key: K; label: ComponentChildren }[]; value: K; onChange: (k: K) => void; label: string;
 }) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const bar = useTabGlide(value);
   const onKey = (e: KeyboardEvent, i: number) => {
     const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
     if (!d) return;
@@ -223,19 +252,35 @@ export function Tabs<K extends string>({ tabs, value, onChange, label }: {
     refs.current[j]?.focus();
   };
   return (
-    <div class="tabs" role="tablist" aria-label={label}>
+    <div class="tabs" role="tablist" aria-label={label} ref={bar as never}>
       {tabs.map((t, i) => (
         <button key={t.key} role="tab" ref={(el) => { refs.current[i] = el; }} aria-selected={t.key === value}
           tabIndex={t.key === value ? 0 : -1} onClick={() => onChange(t.key)} onKeyDown={(e) => onKey(e, i)}>
           {t.label}
         </button>
       ))}
+      <span class="tab-glide" aria-hidden="true" />
     </div>
   );
 }
 
+/** How many characters of text a piece of JSX holds. */
+function textLength(n: ComponentChildren): number {
+  if (n === null || n === undefined || typeof n === "boolean") return 0;
+  if (typeof n === "string" || typeof n === "number") return String(n).length;
+  if (Array.isArray(n)) return n.reduce((t: number, x) => t + textLength(x), 0);
+  return textLength((n as { props?: { children?: ComponentChildren } }).props?.children);
+}
+
+/** A note on how something works. Short ones show as a line; long ones fold into "How this works" to keep pages calm. */
 export function Explain({ children }: { children: ComponentChildren }) {
-  return <p class="explain">{children}</p>;
+  if (textLength(children) <= 170) return <p class="explain">{children}</p>;
+  return (
+    <details class="explain-fold">
+      <summary>How this works</summary>
+      <p class="explain">{children}</p>
+    </details>
+  );
 }
 
 /** Table header cell that sorts. */
@@ -250,5 +295,25 @@ export function SortTh({ label, k, sort, setSort, num = false, title }: {
         {label}{active ? (sort.dir === 1 ? " ↑" : " ↓") : ""}
       </button>
     </th>
+  );
+}
+
+/** Divider A: a thin gold rule with a star in the middle, between the sections of a page. */
+export function Divider() {
+  return <div class="divider" role="separator"><span aria-hidden="true">✦</span></div>;
+}
+
+/** Diagonal cut: a header band with the title on the left and a slanted panel of Novena's drawn art on the right,
+ *  edged with a gold line. For the few big sections of Home, Today, Base and Upcoming; not for dense data pages. */
+export function CutHead({ eyebrow, title, sub, art = "rose", children }: { eyebrow?: string; title: ComponentChildren; sub?: ComponentChildren; art?: "rose" | "nave"; children?: ComponentChildren }) {
+  return (
+    <section class={`cut cut-${art}`}>
+      <div class="cut-copy">
+        {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+        <h2 class="cut-title">{title}</h2>
+        {sub && <p class="cut-sub">{sub}</p>}
+        {children}
+      </div>
+    </section>
   );
 }
