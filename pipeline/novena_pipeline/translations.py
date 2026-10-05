@@ -7,6 +7,8 @@ To add one: the Chinese name exactly as the CN tables give it, then the English.
 
 from __future__ import annotations
 
+import re
+
 TRANSLATIONS: dict[str, str] = {
     # events
     "黑色博士坠落": "Black Doctor Down",  # April Fools, after 黑鹰坠落 (Black Hawk Down)
@@ -17,6 +19,7 @@ TRANSLATIONS: dict[str, str] = {
     "奇象巡展": "Marvels on Tour",
     "月行水上": "The Moon Walks on Water",
     "逐影集趣": "Chasing Shadows",
+    "拟生态": "Simulated Ecosystem",
     # banners
     "适合多种场合的强力干员": "Strong Operators for Every Occasion",
     "定向甄选": "Targeted Selection",
@@ -49,6 +52,8 @@ def english(name_cn: str | None) -> str | None:
         return None
     if name_cn in TRANSLATIONS:
         return TRANSLATIONS[name_cn]
+    if m := re.match(r"^矢量突破#(\d+)\s*(.*)$", name_cn):  # Vector Breakthrough, an official series name on Global
+        return f"Vector Breakthrough #{m[1]}" + (f": {english(m[2]) or m[2]}" if m[2] else "")
     for cn, en in PREFIXES.items():
         if name_cn.startswith(cn) and (rest := english(name_cn[len(cn):])):
             return en + rest

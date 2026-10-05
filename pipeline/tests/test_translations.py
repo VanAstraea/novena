@@ -7,6 +7,7 @@ def test_unofficial_english():
     assert english("Rhodes Island Epic 黑色博士坠落") == "Rhodes Island Epic: Black Doctor Down"
     assert english("菲亚梅塔特限证章") == "Exclusive Badge"
     assert english("月行水上复刻") == "The Moon Walks on Water (Rerun)"
+    assert english("矢量突破#3 拟生态") == "Vector Breakthrough #3: Simulated Ecosystem"
     assert english("没有翻译") is None and english(None) is None
 
 
