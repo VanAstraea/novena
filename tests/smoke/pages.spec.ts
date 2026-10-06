@@ -21,6 +21,7 @@ const PAGES: [string, RegExp][] = [
   ["/pulls", /Pull planner/],
   ["/guide", /Import guide/],
   ["/guide?m=krooster", /Import guide/],
+  ["/story", /Story & events/],
   ["/settings", /Settings/],
   ["/about", /About/],
   ["/credits", /Credits/],

@@ -30,6 +30,7 @@ export const PAGES: PageDef[] = [
   { path: "/dump", group: "account", title: "Sanity Dump", short: "Sanity Dump", nav: "account", keywords: ["today", "what to farm"], load: () => import("./Dump") },
   { path: "/base", group: "account", title: "Base (RIIC) optimizer", short: "Base", nav: "account", keywords: ["riic", "infrastructure", "shifts", "trading post", "factory"], load: () => import("./Base") },
   { path: "/pulls", group: "account", title: "Pull planner", short: "Pulls", nav: "account", keywords: ["orundum", "headhunting", "savings", "banners"], load: () => import("./Pulls") },
+  { path: "/story", group: "account", title: "Story & events", short: "Story & events", nav: "account", keywords: ["originite prime", "op", "side story", "intermezzi", "archive", "trial", "welfare", "event crystal", "annihilation"], load: () => import("./Story") },
   { path: "/settings", title: "Settings & backup", keywords: ["export", "import", "backup", "privacy", "theme"], load: () => import("./Settings") },
   { path: "/about", title: "About", keywords: ["privacy", "feedback", "support"], load: () => import("./About") },
   { path: "/credits", title: "Credits", keywords: ["sources", "license", "licenses", "credits", "attribution", "copyright", "fonts"], load: () => import("./Credits") },

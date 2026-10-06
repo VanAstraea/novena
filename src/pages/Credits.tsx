@@ -19,7 +19,7 @@ const IMAGES = [
 
 const DATA = [
   { key: "gamedata", name: "ArknightsGamedata", by: "ArknightsAssets", url: "https://github.com/ArknightsAssets/ArknightsGamedata",
-    what: "The game's own tables for all four servers: operators, skills, modules, items, stages, events, recruitment.", license: "Game data © Hypergryph and affiliates" },
+    what: "The game's own tables for all four servers: operators, skills, modules, items, stages, events, story archives, recruitment.", license: "Game data © Hypergryph and affiliates" },
   { key: "penguin", name: "Penguin Statistics", by: "Penguin Statistics", url: "https://penguin-stats.io/",
     what: "Crowd-sourced drop rates per server, for the farming planner and the Sanity Dump.", license: "CC BY-NC 4.0" },
   { key: "yituliu", name: "Yituliu", by: "ark.yituliu.cn", url: "https://ark.yituliu.cn/",
