@@ -18,11 +18,35 @@ const MIN_GUIDES = 3;
 export interface Soft { kind: 0 | 1 | 2 | 3; value: number | string; miss: number }
 export interface Req { elite: number; level: number; skill: number; sl: number; module: string; mstage: number; soft: Soft[] }
 
+/** The guides one row each: [stage index, weight, slots of [char index, req index] options]. */
 export interface Guidebook {
   chars: string[];
   stages: [string, string][];
   reqs: [number, number, number, number, string, number, [number, number | string, number][]][];
-  guides: [number, number, [number, number][][], number][];
+  guides: [number, number, [number, number][][]][];
+}
+
+/** common/guidebook.json: the guides as columns, their slots as indexes into `uses`, listed stage by stage
+ * (pipeline/novena_pipeline/guidebook.py). */
+export interface GuidebookFile extends Omit<Guidebook, "guides"> {
+  uses: number[]; // char index, req index, ...
+  stage: number[];
+  weight: number[]; // weight × 1000
+  slots: (number | number[])[][];
+}
+
+/** The file back to one row per guide, in the order the guides were posted (ties in the plan depend on it). */
+export function decodeGuidebook(f: GuidebookFile | Guidebook): Guidebook {
+  if ("guides" in f) return f;
+  const next = new Array<number>(f.stages.length).fill(0); // where each stage's next guide is in `slots`
+  for (const si of f.stage) next[si]++;
+  let n = 0;
+  next.forEach((c, si) => { next[si] = n; n += c; });
+  const use = (u: number): [number, number] => [f.uses[2 * u], f.uses[2 * u + 1]];
+  return {
+    chars: f.chars, stages: f.stages, reqs: f.reqs,
+    guides: f.stage.map((si, i) => [si, f.weight[i] / 1000, f.slots[next[si]++].map((s) => (typeof s === "number" ? [use(s)] : s.map(use)))]),
+  };
 }
 
 export function meetsHard(s: OpState, r: Req): boolean {
@@ -56,7 +80,7 @@ export function chance(s: OpState, r: Req): number {
 
 export const stateKey = (s: OpState) => `${s.elite}.${s.level}.${s.skillLevel}.${s.masteries.join("")}.${Object.entries(s.modules).sort().map(([k, v]) => k + v).join("")}`;
 
-interface Guide { stage: string; weight: number; slots: [string, Req][][]; borrowable: boolean[]; job: number }
+interface Guide { stage: string; weight: number; slots: [string, Req][][]; borrowable: boolean[] }
 
 class Totals {
   w = new Map<string, number>();
@@ -224,7 +248,7 @@ export class Coverage {
 }
 
 export interface PlanInput {
-  book: Guidebook;
+  book: Guidebook | GuidebookFile;
   costs: Record<string, CostData>;
   constTable: Const;
   values: Record<string, number>;
@@ -321,7 +345,8 @@ export function raiseTo(c: CostData, current: OpState, req: Req, kinds: number[]
 
 export function makePlan(input: PlanInput, progress?: (phase: string, done: number, total: number) => void): PlanResult {
   const report = progress || (() => undefined);
-  const { book, costs, values } = input;
+  const { costs, values } = input;
+  const book = decodeGuidebook(input.book);
   const available = new Set(input.available);
   const shared = new Set(input.shared);
   const filter = input.stageFilter ? new Set(input.stageFilter) : null;
@@ -330,11 +355,11 @@ export function makePlan(input: PlanInput, progress?: (phase: string, done: numb
     elite, level, skill, sl, module, mstage, soft: soft.map(([kind, value, miss]) => ({ kind: kind as Soft["kind"], value, miss })),
   }));
   const guides: Guide[] = [];
-  for (const [si, weight, slots, job] of book.guides) {
+  for (const [si, weight, slots] of book.guides) {
     const stage = book.stages[si][0];
     if (filter && !filter.has(stage)) continue;
     const s = slots.map((slot) => slot.map(([ci, ri]) => [book.chars[ci], reqs[ri]] as [string, Req]));
-    guides.push({ stage, weight, slots: s, borrowable: s.map((slot) => slot.some(([c]) => available.has(c))), job });
+    guides.push({ stage, weight, slots: s, borrowable: s.map((slot) => slot.some(([c]) => available.has(c))) });
   }
   const category = new Map(book.stages.map(([id, cat]) => [id, cat]));
   // per-stage factor so the account value is the category-weighted mean of stage values (0-1)

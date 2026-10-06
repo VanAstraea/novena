@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from novena_pipeline import text, usage
+from novena_pipeline import guidebook, text, usage
 from novena_pipeline.sources import copilot, values
 from novena_pipeline.sources.penguin import Stage
 from novena_pipeline.upcoming import featured
@@ -60,6 +60,13 @@ def test_build_target_needs_half_of_clears_or_owners():
     inv = {"e2": 0.9, "m3": {"2": 0.6}, "mod": {"X": 0.2}}
     assert usage.build_target(u, inv, 6) == {"elite": 2, "skill": 2, "mastery": 3, "module": "Y"}
     assert usage.build_target(u, None, 3) == {"skill": 2, "module": "Y"}
+
+
+def test_guidebook_packs_guides_as_columns():
+    # the same example is unpacked in tests/unit/planner.test.ts
+    guides = [[0, 2.5, [[[0, 0]], [[1, 1], [2, 1]]]], [1, 1.0, [[[1, 1]]]], [0, 1.25, [[[1, 1]]]]]
+    assert guidebook.pack(guides) == {"uses": [1, 1, 0, 0, 2, 1], "stage": [0, 1, 0], "weight": [2500, 1000, 1250],
+                                      "slots": [[1, [0, 2]], [0], [0]]}
 
 
 def test_value_correction_catches_a_cheap_outlier():

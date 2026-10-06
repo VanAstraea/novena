@@ -142,7 +142,7 @@ def main(argv: list[str] | None = None) -> None:
     write(out / "common" / "usage.json", usage_data)
     book = guidebook.build(jobs, usage_data["ops"])
     size = write(out / "common" / "guidebook.json", book)
-    log(f"  guidebook: {len(book['guides'])} guides, {len(book['reqs'])} requirement profiles, {size / 1e6:.1f} MB")
+    log(f"  guidebook: {len(book['stage'])} guides, {len(book['reqs'])} requirement profiles, {size / 1e6:.1f} MB")
     log(f"  usage for {len(usage_data['ops'])} operators from {len(jobs)} guides")
 
     manifest = {"version": DATA_VERSION, "built": int(time.time() * 1000), "servers": {},

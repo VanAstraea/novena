@@ -4,11 +4,12 @@ import type { Server } from "../types";
 import { load } from "./data";
 import { parse, reach } from "./build";
 import type { Const, CostData, OpState } from "./costs";
-import type { Guidebook, PlanInput, PlanResult } from "./planner";
+import type { GuidebookFile, PlanInput, PlanResult } from "./planner";
 import type { Account, PlanTarget } from "../state";
 import type { OpIndex, UsageFile } from "../types";
 
-export const guidebook = () => load<Guidebook>("common/guidebook.json");
+// kept as published: the planner's worker unpacks it, and a few flat arrays are much quicker to hand over than 40k rows
+export const guidebook = () => load<GuidebookFile>("common/guidebook.json");
 export const costTable = (s: Server) => load<Record<string, CostData>>(`${s}/costs.json`);
 
 export function rosterStates(a: Account, costs: Record<string, CostData>): Record<string, OpState> {

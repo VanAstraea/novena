@@ -7,10 +7,18 @@ the level most guides state, M3 on the skill used, the main module), each with t
 without it: 1 - how common the community has it. Only 29% of guides state any requirement, so this is what lets
 a plan say "E2 now, M3 later".
 
-Nothing identifying is published: no titles, text, authors or guide ids beyond the numeric job id.
+Nothing identifying is published: no titles, text, authors or guide ids.
+
+The guides are columns, under half the size of one row per guide (the slots are most of it, so they share a
+table of operator uses, the most common first, and are listed stage by stage, where nearby guides look alike):
 
     {"chars": [char id], "stages": [[stage id, category]], "reqs": [[elite, level, skill, skill_level, module,
-     module_stage, [[kind, value, miss]]]], "guides": [[stage index, weight, [[[char index, req index], ...], ...]]]}
+     module_stage, [[kind, value, miss]]]], "uses": [char index, req index, ...],
+     "stage": [stage index per guide], "weight": [round(weight * 1000) per guide],
+     "slots": [[use index, or [use index, ...] for a slot several operators can fill] per guide, by stage]}
+
+Guides keep the order they were posted in (the planner's ties depend on it): the nth guide of stage s in "stage" is
+the nth of stage s's run in "slots".
 
 kind: 0 elite, 1 level, 2 mastery, 3 module.
 """
@@ -18,7 +26,7 @@ kind: 0 elite, 1 level, 2 mastery, 3 module.
 from __future__ import annotations
 
 import statistics
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 from novena_pipeline import gamedata as gd
 from novena_pipeline.sources import copilot
@@ -126,6 +134,16 @@ def build(jobs: list[copilot.Job], usage_ops: dict) -> dict:
         if sid not in stage_index:
             stage_index[sid] = len(stage_rows)
             stage_rows.append([sid, stages.category(sid)])
-        guides.append([stage_index[sid], round(job_weight(job), 3), slots, job.id])
-    return {"chars": chars, "stages": stage_rows, "reqs": reqs, "guides": guides}
+        guides.append([stage_index[sid], job_weight(job), slots])
+    return {"chars": chars, "stages": stage_rows, "reqs": reqs, **pack(guides)}
 
+
+def pack(guides: list[list]) -> dict:
+    """[stage index, weight, [[[char index, req index], ...], ...]] per guide as the published columns."""
+    count: Counter = Counter(tuple(o) for _, _, slots in guides for slot in slots for o in slot)
+    use = {o: i for i, (o, _) in enumerate(count.most_common())}
+    by_stage: dict[int, list] = defaultdict(list)
+    for si, _, slots in guides:
+        by_stage[si].append([use[tuple(slot[0])] if len(slot) == 1 else [use[tuple(o)] for o in slot] for slot in slots])
+    return {"uses": [x for o in use for x in o], "stage": [g[0] for g in guides],
+            "weight": [round(g[1] * 1000) for g in guides], "slots": [s for si in sorted(by_stage) for s in by_stage[si]]}

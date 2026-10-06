@@ -60,7 +60,7 @@ function PlanView({ ops }: { ops: Map<string, OpIndex> }) {
         <FiltersControl ops={ops} />
         {progress && <p role="status" class="muted" style={{ marginTop: "8px" }}>{plan ? "Updating the priorities (the list below is the previous one): " : ""}{progress}…</p>}
         {error && <p role="alert" class="bad-text">{error}</p>}
-        <Explain>Each upgrade is scored by how many more community clear guides (MAA Copilot) your roster could follow, per sanity it costs. Unstated parts of a guide's usual build (E2, M3, module) count as soft: missing M3 on a skill 98% of owners mastered leaves a 2% chance. Your Planner targets are applied first as goals. Runs in your browser by itself after an import or sync and whenever your roster has changed; the first run downloads the guidebook (a few MB).</Explain>
+        <Explain>Each upgrade is scored by how many more community clear guides (MAA Copilot) your roster could follow, per sanity it costs. Unstated parts of a guide's usual build (E2, M3, module) count as soft: missing M3 on a skill 98% of owners mastered leaves a 2% chance. Your Planner targets are applied first as goals. Runs in your browser by itself after an import or sync and whenever your roster has changed; the first run downloads the guidebook (about half a MB).</Explain>
       </section>
       {plan && <Result plan={plan} ops={ops} />}
     </>
