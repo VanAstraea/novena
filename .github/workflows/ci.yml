@@ -39,6 +39,8 @@ jobs:
         run: npx vitest run tests/unit/depot.test.ts
       - name: Build site
         run: npm run build
+      - name: Size budgets (gzipped JS, CSS and data)
+        run: node scripts/budgets.mjs
       - name: Smoke test (Playwright)
         run: npx playwright install --with-deps chromium && npm run smoke
       - uses: actions/upload-artifact@v7

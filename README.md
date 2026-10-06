@@ -140,6 +140,7 @@ Tests:
 npm test                              # unit + golden tests (TypeScript ports vs. the original Python)
 cd pipeline && python -m pytest -q    # pipeline tests
 npm run build && npm run smoke        # Playwright smoke test of the built site, phone and desktop
+node scripts/budgets.mjs              # after a build: gzipped JS, CSS and data against their size budgets (CI runs it)
 ```
 
 ## Contributing
