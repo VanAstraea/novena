@@ -185,11 +185,11 @@ export interface UsageFile {
   archetypes: Record<string, { u: Partial<Record<Category, number>>; score: number }>;
 }
 
-export interface UpcomingEvent {
+export interface UpcomingEvent extends WikiDated {
   id: string;
   name_cn: string;
   name?: string;
-  name_en?: string; // Novena's unofficial English until this server names it
+  name_en?: string; // the wiki's name (name_by "wiki"), else Novena's unofficial English, until this server names it
   kind: string;
   cn_start: string;
   eta: string;
@@ -210,9 +210,21 @@ export interface ShopEvent {
   end?: string;
   eta?: string;
   confirmed?: boolean;
+  dated_by?: "wiki";
+  wiki?: string;
+  name_by?: "wiki";
   offers: [string, number, number, number | null, number][]; // item, price in tokens, quantity per purchase, stock or null, section
 }
 export interface ShopsFile { events: ShopEvent[] }
+
+/** An upcoming item's date status, and what the Arknights Terra Wiki adds to it (shared under CC BY-SA 4.0). */
+export interface WikiDated {
+  overdue?: boolean; // an estimate already past
+  dated_by?: "wiki"; // eta (and end) are the wiki's Global dates, not an estimate
+  end?: string;
+  wiki?: string; // the wiki's page for it
+  name_by?: "wiki"; // name_en is the wiki's
+}
 
 export interface UpcomingFile {
   server: Server;
@@ -221,11 +233,11 @@ export interface UpcomingFile {
   running: { id: string; name: string; start: string; end: string }[];
   operators: string[];
   modules: { char: string; id: string; letter: string; icon: string; name_cn: string; name_en?: string; cn_start: string; eta: string }[];
-  banners: { id: string; name_cn: string; name_en?: string; kind: string; cn_open: string; eta: string; featured: string[]; spark?: number }[];
+  banners: ({ id: string; name_cn: string; name_en?: string; kind: string; cn_open: string; eta: string; featured: string[]; spark?: number } & WikiDated)[];
   cc: {
     history: { id: string; name: string; start: string; end: string }[];
     current: { id: string; name: string; start: string; end: string } | null;
-    next: { id: string; name_cn: string; name_en?: string; cn_start: string; eta: string; overdue: boolean } | null;
+    next: ({ id: string; name_cn: string; name_en?: string; cn_start: string; eta: string } & WikiDated) | null;
     lag_days: number | null;
   } | null;
 }

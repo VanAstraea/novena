@@ -4,33 +4,45 @@ pulls.py banners).
 Event ids are shared, so the lag is the median gap over the most recent events both servers ran; each CN event
 this server hasn't had gets CN's start plus that lag. An event the server's own table lists with a future start is
 "announced", with its real date and name. Contingency Contract seasons are matched the same way. Banners are CN's
-that name a featured 6-star (limited, collaboration, special, Kernel). Every date is an estimate: servers skip and
-reorder events (collaborations especially).
+that name a featured 6-star (limited, collaboration, special, Kernel). These dates are estimates: servers skip and
+reorder events (collaborations especially), and an estimate already past is marked "overdue".
+
+The Arknights Terra Wiki (sources/wikigg.py) replaces an estimate with the Global date once its editors have one (from
+an announcement or the game files), matched by CN start day, and gives the English name; translations.py fills the gaps.
 """
 
 from __future__ import annotations
 
+import re
 import statistics
 import time
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from novena_pipeline import gamedata as gd
 from novena_pipeline.translations import english
-from novena_pipeline.sources import copilot
+from novena_pipeline.sources import copilot, wikigg
 from novena_pipeline.usage import StageIndex, ids_by_cn_name, stage_presence
 
 RECENT_EVENTS = 8
 DAY = 86400
 BANNER_KINDS = {"LIMITED": "limited", "LINKAGE": "collab", "SPECIAL": "special", "CLASSIC": "kernel", "CLASSIC_DOUBLE": "kernel"}
+STORY_EVENTS = {"TYPE_MAINSS"}  # celebration events told like a main-story chapter: MAIN and SUB stages, no ACTIVITY ones
+CN_TZ = timezone(timedelta(hours=8))
+GLOBAL_START, GLOBAL_END = (15, 0, 0), (10, 59, 59)  # EN's usual times (UTC); JP and KR open at the same moment, 8 h earlier
+SHIFT = {"en": 0, "jp": -8 * 3600, "kr": -8 * 3600}
 
 
 def event_stages(server: str) -> dict[str, set[str]]:
-    acts = gd.table("activity_table", server)["zoneToActivity"]
+    table = gd.table("activity_table", server)
+    acts, info = table["zoneToActivity"], table["basicInfo"]
     out: dict[str, set[str]] = defaultdict(set)
     for sid, st in gd.table("stage_table", server)["stages"].items():
         act = acts.get(st["zoneId"])
-        if act and st["stageType"] == "ACTIVITY":
+        if not act:
+            continue
+        story = (info.get(act) or {}).get("type") in STORY_EVENTS and st["stageType"] in ("MAIN", "SUB")
+        if st["stageType"] == "ACTIVITY" or (story and st["zoneId"].startswith(act)):  # never a permanent main_ zone
             out[act].add(sid)
     return out
 
@@ -65,7 +77,8 @@ def _iso(ts: float) -> str:
     return datetime.fromtimestamp(ts, timezone.utc).isoformat().replace("+00:00", "Z")
 
 
-def build(server: str, jobs: list[copilot.Job], usage_ops: dict, now: float | None = None) -> dict:
+def build(server: str, jobs: list[copilot.Job], usage_ops: dict, now: float | None = None,
+          wiki: wikigg.Wiki | None = None) -> dict:
     now = now or time.time()
     out: dict = {"server": server, "lag_days": None, "events": [], "running": [], "operators": [], "modules": [],
                  "banners": [], "cc": None}
@@ -122,24 +135,102 @@ def build(server: str, jobs: list[copilot.Job], usage_ops: dict, now: float | No
         if not chars or rule not in BANNER_KINDS:
             continue
         eta = p["openTime"] + delay
-        if not now - 14 * DAY <= eta <= now + 200 * DAY:
+        if not now - 120 * DAY <= eta <= now + 200 * DAY:  # the wiki may date a late one; the real window is applied below
             continue
         if rule in ("LIMITED", "LINKAGE") and all(c in ran_here for c in chars):
             continue
         out["banners"].append({"id": p["gachaPoolId"], "name_cn": p.get("gachaPoolName") or "", "kind": BANNER_KINDS[rule],
                                "cn_open": _iso(p["openTime"]), "eta": _iso(eta), "featured": chars,
                                **({"spark": 300} if rule == "LIMITED" else {})})
-    out["banners"].sort(key=lambda b: b["eta"])
     out["cc"] = cc_schedule(server, now)
+    add_wiki(out, server, wiki if wiki is not None else wikigg.load())
     add_english(out)
+    mark_overdue(out, now)
+    out["banners"] = sorted((b for b in out["banners"] if now - 14 * DAY <= _ts(b["eta"]) <= now + 200 * DAY), key=lambda b: b["eta"])
     return out
 
 
+def mark_overdue(out: dict, now: float) -> None:
+    """An estimate already past (as CC's): the server skipped it, moved it or is running late. Real dates never are."""
+    for x in out["events"] + out["banners"]:
+        x["overdue"] = not x.get("confirmed") and x.get("dated_by") != "wiki" and _ts(x["eta"]) < now
+
+
+def _ts(iso: str) -> float:
+    return datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp()
+
+
+def cn_day(iso: str) -> date:
+    """The CN calendar day (UTC+8) of a time, as the wiki writes CN dates."""
+    return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(CN_TZ).date()
+
+
+def _norm(name: str | None) -> str:
+    return re.sub(r"[^a-z0-9]", "", (name or "").lower())
+
+
+def wiki_row(rows: list[wikigg.Row], day: date, name: str | None = None) -> wikigg.Row | None:
+    """The wiki row starting on this CN day. Rows with a Global date come first and a name listed twice counts once;
+    two different rows on the day are told apart by name, or not matched at all."""
+    found: dict[str, wikigg.Row] = {}
+    for r in sorted((r for r in rows if r.cn and r.cn[0] == day), key=lambda r: r.glob is None):
+        found.setdefault(_norm(r.name), r)
+    if len(found) > 1:
+        found = {k: r for k, r in found.items() if k == _norm(name)}
+    return next(iter(found.values())) if len(found) == 1 else None
+
+
+def _wiki_date(x: dict, row: wikigg.Row, server: str) -> None:
+    """The wiki's Global dates in place of an estimate. They're UTC-7 days; the countdown, when there is one, is exact."""
+    if not row.glob or x.get("confirmed"):
+        return
+    start, end = row.glob
+
+    def at(d: date, hms: tuple[int, int, int]) -> float:
+        return datetime(d.year, d.month, d.day, *hms, tzinfo=timezone.utc).timestamp() + SHIFT[server]
+
+    begins = _ts(row.starts) + SHIFT[server] if row.starts else at(start, GLOBAL_START)
+    x.update(eta=_iso(begins), dated_by="wiki", **({"end": _iso(at(end, GLOBAL_END))} if end else {}))
+
+
+def add_wiki(out: dict, server: str, wiki: wikigg.Wiki) -> None:
+    """English names, links and (once known) Global dates from the Arknights Terra Wiki. Its rerun rows are left out:
+    Novena lists first runs only."""
+    if server not in SHIFT:
+        return
+    events = [r for r in wiki.events if "Rerun" not in r.tag and not r.name.endswith("Rerun")]
+    contracts = [r for r in events if "Contingency Contract" in f"{r.tag} {r.name}"]
+    events = [r for r in events if r not in contracts]
+
+    def fill(x: dict, row: wikigg.Row | None) -> None:
+        if not row:
+            return
+        x["wiki"] = row.url
+        if not x.get("name"):
+            x.update(name_en=row.name, name_by="wiki")
+        _wiki_date(x, row, server)
+
+    for e in out["events"]:
+        fill(e, wiki_row(events, cn_day(e["cn_start"]), e.get("name") or english(e["name_cn"])))
+    if out["cc"] and out["cc"].get("next"):
+        nxt = out["cc"]["next"]
+        fill(nxt, wiki_row(contracts, cn_day(nxt["cn_start"]), english(nxt["name_cn"])))
+        if nxt.get("dated_by"):
+            nxt["overdue"] = False
+    for b in out["banners"]:  # crossovers count as limited: the yearly pages file them under Limited Headhunting
+        kind = "limited" if b["kind"] == "collab" else b["kind"]
+        rows = [r for r in wiki.banners if (k := wikigg.banner_kind(r)) and ("limited" if k == "collab" else k) == kind]
+        fill(b, wiki_row(rows, cn_day(b["cn_open"])))
+
+
 def add_english(out: dict) -> list[str]:
-    """Unofficial English (translations.py) where this server has no official name yet; returns what's untranslated."""
+    """Unofficial English (translations.py) where this server has no official name yet and the wiki gave none; returns
+    what's untranslated."""
     missing = []
     items = [e for e in out["events"] if not e.get("name")] + out["banners"] + out["modules"] + ([out["cc"]["next"]] if out["cc"].get("next") else [])
     for x in items:
+        if x.get("name_by") == "wiki":
+            continue
         en = english(x.get("name_cn"))
         if en:
             x["name_en"] = en
