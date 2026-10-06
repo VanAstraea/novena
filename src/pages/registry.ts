@@ -8,6 +8,7 @@ export interface PageDef {
   group?: string; // the section it sits in: the header shows sections, the strip under it that section's pages
   short?: string;
   keywords?: string[];
+  hidden?: boolean; // reached by link only: left out of the menus and of search
   load: () => Promise<{ default: ComponentType<{ params: Record<string, string> }> }>;
 }
 
@@ -33,6 +34,7 @@ export const PAGES: PageDef[] = [
   { path: "/story", group: "account", title: "Story & events", short: "Story & events", nav: "account", keywords: ["originite prime", "op", "side story", "intermezzi", "archive", "trial", "welfare", "event crystal", "annihilation"], load: () => import("./Story") },
   { path: "/settings", title: "Settings & backup", keywords: ["export", "import", "backup", "privacy", "theme"], load: () => import("./Settings") },
   { path: "/about", title: "About", keywords: ["privacy", "feedback", "support"], load: () => import("./About") },
+  { path: "/navtest", title: "Help test Novena's menus", hidden: true, load: () => import("./NavTest") },
   { path: "/credits", title: "Credits", keywords: ["sources", "license", "licenses", "credits", "attribution", "copyright", "fonts"], load: () => import("./Credits") },
 ];
 

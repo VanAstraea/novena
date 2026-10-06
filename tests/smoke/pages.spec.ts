@@ -25,6 +25,8 @@ const PAGES: [string, RegExp][] = [
   ["/settings", /Settings/],
   ["/about", /About/],
   ["/credits", /Credits/],
+  ["/navtest", /Help test Novena's menus/],
+  ["/navtest?tally", /Menu test tally/],
 ];
 
 // Images come from a third-party mirror; a missing one isn't a site error.
