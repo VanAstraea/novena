@@ -1,12 +1,13 @@
 // Usage rankings from community clears, per content type and archetype. (The roster's archetype gaps are their own page.)
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { CommunityMarks } from "../components/Marks";
-import { OpFilters, useOpFilters } from "../components/OpFilters";
+import { OpFilters, RoleChips, useOpFilters } from "../components/OpFilters";
 import { WeightsControl } from "../components/Weights";
 import { contentLevels, customised, weightedScore } from "../lib/weights";
 import { Await, Explain, metaSig, OpLink, SortTh, Stars, Tabs, useAsync } from "../components/ui";
 import { operators, usage as loadUsage } from "../lib/data";
 import { CATEGORY_NAMES, CLASS_NAMES, CLASS_ORDER, pct } from "../lib/format";
+import { parseRole, ROLE_NAMES, roleOf } from "../lib/roles";
 import { href, navigate, route, setQuery } from "../lib/router";
 import { account, hasRoster, server } from "../state";
 import type { Category, OpIndex, UsageFile } from "../types";
@@ -49,7 +50,7 @@ function Ops({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
       const k = sort.key as "u" | "lift" | "own";
       const key = sort.key === "usage" ? "u" : k;
       return sort.key === "name" ? a.o.name.localeCompare(b.o.name) * sort.dir : ((a[key] as number) - (b[key] as number)) * sort.dir;
-    }), [ops, usage, cat, cls, branch, sort, here, s, contentLevels.value, filters.rarity.join(), filters.own, account.value.ops]);
+    }), [ops, usage, cat, cls, branch, sort, here, s, contentLevels.value, filters.rarity.join(), filters.own, filters.role, account.value.ops]);
   const branches = [...new Set(ops.filter((o) => !cls || o.cls === cls).map((o) => o.branch))].sort((a, b) => (meta?.branches[a] || a).localeCompare(meta?.branches[b] || b));
   return (
     <>
@@ -113,22 +114,27 @@ function Ops({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
 function Archetypes({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
   const meta = metaSig.value;
   const cat = (route.value.query.get("cat") || "all") as Category | "all";
-  const rows = Object.entries(usage.archetypes).map(([a, u]) => ({ a, v: cat === "all" ? (customised() ? weightedScore(u.u) : u.score) : u.u[cat] || 0,
-    cls: ops.find((o) => o.branch === a)?.cls, top: ops.filter((o) => o.branch === a).sort((x, y) => (usage.ops[y.id]?.score || 0) - (usage.ops[x.id]?.score || 0)).slice(0, 3) }))
-    .filter((r) => r.cls).sort((x, y) => y.v - x.v);
+  const role = parseRole(route.value.query.get("role"));
+  const rows = Object.entries(usage.archetypes).map(([a, u]) => {
+    const cls = ops.find((o) => o.branch === a)?.cls;
+    return { a, v: cat === "all" ? (customised() ? weightedScore(u.u) : u.score) : u.u[cat] || 0, cls, role: cls ? roleOf({ id: "", cls, branch: a }) : undefined,
+      top: ops.filter((o) => o.branch === a).sort((x, y) => (usage.ops[y.id]?.score || 0) - (usage.ops[x.id]?.score || 0)).slice(0, 3) };
+  }).filter((r) => r.cls && (!role || r.role === role)).sort((x, y) => y.v - x.v);
   return (
     <>
       <div class="seg" role="group" aria-label="Content type">
         {CATS.map((c) => <button key={c} aria-pressed={c === cat} onClick={() => setQuery({ cat: c === "all" ? "" : c })}>{c === "all" ? "All" : CATEGORY_NAMES[c]}</button>)}
       </div>
+      <RoleChips />
       <div class="table-wrap">
         <table class="cards">
-          <thead><tr><th>Archetype</th><th>Class</th><th class="num">Used in</th><th>Most used</th></tr></thead>
+          <thead><tr><th>Archetype</th><th>Class</th><th>Role</th><th class="num">Used in</th><th>Most used</th></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.a}>
                 <td data-label="Archetype"><a href={href("/rankings", { branch: r.a })}>{meta?.branches[r.a] || r.a}</a></td>
                 <td data-label="Class">{CLASS_NAMES[r.cls!]}</td>
+                <td data-label="Role">{ROLE_NAMES[r.role!]}</td>
                 <td data-label="Used in" class="num">{pct(r.v)}</td>
                 <td data-label="Most used">{r.top.map((o) => o.name).join(", ")}</td>
               </tr>
@@ -136,7 +142,7 @@ function Archetypes({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
           </tbody>
         </table>
       </div>
-      <Explain>Used in: share of community clear guides that use at least one operator of the archetype.{hasRoster.value ? <> Which of these your roster covers poorly: <a href={href("/gaps")}>Gaps</a>.</> : null}</Explain>
+      <Explain>Used in: share of community clear guides that use at least one operator of the archetype. Roles group archetypes by the job they do in a team.{hasRoster.value ? <> Which of these your roster covers poorly: <a href={href("/gaps")}>Gaps</a>.</> : null}</Explain>
     </>
   );
 }

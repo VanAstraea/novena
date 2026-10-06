@@ -94,7 +94,7 @@ these services. Thank you to everyone who runs and contributes to them.
 | [ArknightsAssets/ArknightsGamedata](https://github.com/ArknightsAssets/ArknightsGamedata) | Game tables for all servers | Game data © Hypergryph / Yostar |
 | [Penguin Statistics](https://penguin-stats.io/) | Drop rates per server | [CC BY-NC 4.0](https://developer.penguin-stats.io/public-api/) |
 | [Yituliu](https://ark.yituliu.cn/) | Material values; operator investment survey (~100k CN accounts); CN event shops | Used with credit |
-| [MAA Copilot guide database](https://prts.plus/) | Community clear guides, read only to count usage for Rankings and the Plan (no guide is republished) | Community-submitted |
+| [MAA Copilot guide database](https://prts.plus/) | Community clear guides, read only to count usage for Rankings, Upcoming and the Plan (no guide is republished) | Community-submitted |
 | [MAA resource files](https://github.com/MaaAssistantArknights/MaaAssistantArknights) | Base skill values and combinations, IS recruit priorities, as data (Novena doesn't use the MAA program) | AGPL-3.0; processed copies are published with the site |
 | [ArknightsGameResource](https://github.com/yuanyan3060/ArknightsGameResource) | Operator portraits, splash and outfit art, skill, item and base-skill icons (loaded, not bundled) | Art © Hypergryph / Yostar |
 | [ArknightsAssets2](https://github.com/ArknightsAssets/ArknightsAssets2) | The game's UI icons (classes, branches, elite, potential, mastery, rarity, modules) and story backgrounds (loaded, not bundled) | Art © Hypergryph / Yostar |

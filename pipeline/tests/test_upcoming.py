@@ -1,4 +1,5 @@
-"""Upcoming: story-only celebration events, overdue estimates and the Arknights Terra Wiki's dates (made-up inputs)."""
+"""Upcoming: story-only celebration events, overdue estimates, the Arknights Terra Wiki's dates and key operators'
+alternatives (made-up inputs)."""
 
 from __future__ import annotations
 
@@ -9,6 +10,8 @@ from datetime import date, datetime, timezone
 
 from novena_pipeline import upcoming
 from novena_pipeline.sources import wikigg
+from novena_pipeline.sources.copilot import Job, OperUse
+from novena_pipeline.usage import slot_alternatives
 
 # Trimmed from the wiki's rendered markup: a heading, then one of its tables (event cell, date cell).
 EVENT_PAGE = """<div class="mw-parser-output">
@@ -179,3 +182,51 @@ def test_wiki_cache_survives_a_bad_or_failed_fetch(monkeypatch, tmp_path):
     week_old = time.time() - 8 * 86400
     os.utime(cached, (week_old, week_old))
     assert wikigg.Fetcher().page("Event") is None  # too old to date anything
+
+
+class _Stages:
+    def resolve(self, stage: str) -> str:
+        return stage
+
+
+def _job(i: int, stage: str, *slots: tuple[str, ...], views: int = 0) -> Job:
+    return Job(i, stage, views, [[OperUse(n, 0, 0, 0, -1) for n in slot] for slot in slots])
+
+
+def test_slot_alternatives_count_what_shares_a_slot():
+    names = {n: f"char_{n}" for n in ("saria", "nearl", "shu", "exu", "kroos", "fang")}
+    jobs = [
+        _job(1, "a-1", ("saria", "nearl"), ("exu",)),
+        _job(2, "a-1", ("saria", "nearl", "shu", "unknown"), ("exu",)),
+        _job(3, "a-2", ("saria",), ("exu", "kroos")),
+        _job(4, "a-2", ("saria",), ("fang",)),
+        _job(5, "b-1", ("saria", "shu"), ("exu",)),  # another event's stage
+    ]
+    got = slot_alternatives(jobs, {"a-1", "a-2"}, _Stages(), names, ["char_saria", "char_exu", "char_fang", "char_none"])
+    assert got["char_saria"] == {"flex": 0.5, "alts": [["char_nearl", 0.5], ["char_shu", 0.25]]}
+    assert got["char_exu"] == {"flex": 0.33, "alts": [["char_kroos", 0.333]]}
+    assert got["char_fang"] == {"flex": 0.0, "alts": []}  # always a fixed pick
+    assert "char_none" not in got  # in no guide for these stages
+    weighted = slot_alternatives([_job(1, "a-1", ("saria", "nearl"), views=1000), _job(2, "a-1", ("saria", "shu"))],
+                                 {"a-1"}, _Stages(), names, ["char_saria"])
+    assert weighted["char_saria"]["alts"][0][0] == "char_nearl"  # the more viewed guide counts for more
+
+
+def test_alternatives_fall_back_to_the_archetype_when_guides_name_few(monkeypatch):
+    monkeypatch.setattr(upcoming.gd, "is_playable", lambda cid, e: True)
+    chars = {"char_saria": {"subProfessionId": "guardian"}, "char_nearl": {"subProfessionId": "guardian"},
+             "char_shu": {"subProfessionId": "guardian"}, "char_gummy": {"subProfessionId": "guardian"},
+             "char_exu": {"subProfessionId": "fastshot"}, "char_kroos": {"subProfessionId": "fastshot"},
+             "char_bp": {"subProfessionId": "fastshot"}}
+    here = {c: e for c, e in chars.items() if c != "char_shu"}  # not on this server yet
+    usage_ops = {"char_saria": {"score": 0.3}, "char_nearl": {"score": 0.1}, "char_shu": {"score": 0.4}, "char_gummy": {"score": 0.05},
+                 "char_kroos": {"score": 0.2}, "char_bp": {"score": 0.1}}
+    ops = [{"id": "char_saria", "share": 0.5}, {"id": "char_exu", "share": 0.4}, {"id": "char_shu", "share": 0.2}]
+    alts = {"char_saria": {"flex": 0.0, "alts": []},
+            "char_exu": {"flex": 0.6, "alts": [["char_kroos", 0.5], ["char_bp", 0.2]]},
+            "char_shu": {"flex": 0.25, "alts": [["char_saria", 0.25]]}}
+    upcoming.add_alternatives(ops, alts, chars, here, usage_ops)
+    saria, exu, shu = ops
+    assert saria == {"id": "char_saria", "share": 0.5, "like": ["char_nearl", "char_gummy"]}  # no Shu here, never itself
+    assert exu == {"id": "char_exu", "share": 0.4, "alts": [["char_kroos", 0.5], ["char_bp", 0.2]], "flex": 0.6}  # enough from guides
+    assert shu["alts"] == [["char_saria", 0.25]] and shu["like"] == ["char_nearl", "char_gummy"]  # Saria is listed once

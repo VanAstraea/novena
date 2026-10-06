@@ -255,3 +255,35 @@ def stage_presence(jobs: list[copilot.Job], stage_ids: set[str], stages: StageIn
             presence[cid] += w
     return ([{"id": cid, "share": round(w / total, 4)} for cid, w in presence.most_common(top)] if total else [],
             count, len(guided))
+
+
+def slot_alternatives(jobs: list[copilot.Job], stage_ids: set[str], stages: StageIndex, names: dict[str, str],
+                      keys: list[str], top: int = 4) -> dict[str, dict]:
+    """What guide writers accept instead of each key operator on these stages: a slot that names several operators
+    (a group) can be filled by any of them. Per key operator, {"flex": share of its guides where its slot was such a
+    group, "alts": [[char id, share of its guides listing it in that group], ...] (most listed first)}, view-weighted."""
+    wanted = set(keys)
+    used: Counter = Counter()
+    flexible: Counter = Counter()
+    alts: dict[str, Counter] = defaultdict(Counter)
+    for job in jobs:
+        if stages.resolve(job.stage) not in stage_ids:
+            continue
+        w = job_weight(job)
+        seen: set[str] = set()
+        others: dict[str, set[str]] = defaultdict(set)
+        for slot in job.slots:
+            ids = list(dict.fromkeys(names[o.name] for o in slot if o.name in names))
+            seen.update(ids)
+            if len(ids) > 1:
+                for cid in ids:
+                    others[cid].update(x for x in ids if x != cid)
+        for cid in seen & wanted:
+            used[cid] += w
+            if cid in others:
+                flexible[cid] += w
+                for x in others[cid]:
+                    alts[cid][x] += w
+    return {cid: {"flex": round(flexible[cid] / used[cid], 2),
+                  "alts": [[x, round(v / used[cid], 3)] for x, v in sorted(alts[cid].items(), key=lambda a: (-a[1], a[0]))[:top]]}
+            for cid in keys if used[cid]}

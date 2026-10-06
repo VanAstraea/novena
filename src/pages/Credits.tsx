@@ -25,7 +25,7 @@ const DATA = [
   { key: "yituliu", name: "Yituliu", by: "ark.yituliu.cn", url: "https://ark.yituliu.cn/",
     what: "Material values in sanity, how about 100,000 surveyed CN accounts build each operator, and the record of every CN event shop (the event shop advisor).", license: "Used with credit" },
   { key: "copilot", name: "MAA Copilot guide database", by: "prts.plus", url: "https://prts.plus/",
-    what: "Community-written clear guides: which operators, skills and modules each stage was cleared with. Read only to count usage, for Rankings and the Plan; no guide is republished.", license: "Community-submitted; used for aggregate statistics" },
+    what: "Community-written clear guides: which operators, skills and modules each stage was cleared with, and which operators a writer accepts in place of another. Read only to count usage, for Rankings, Upcoming and the Plan; no guide is republished.", license: "Community-submitted; used for aggregate statistics" },
   { key: "maa", name: "MAA resource files", by: "MaaAssistantArknights", url: "https://github.com/MaaAssistantArknights/MaaAssistantArknights",
     what: "Curated base-skill values and combinations, and the morale and dorm effects in their descriptions (the Base optimizer), and Integrated Strategies recruit priorities (the IS helper). Data only.", license: "AGPL-3.0" },
   { key: "wikigg", name: "Arknights Terra Wiki", by: "arknights.wiki.gg contributors", url: "https://arknights.wiki.gg/wiki/Event",

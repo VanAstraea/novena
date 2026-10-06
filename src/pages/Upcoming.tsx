@@ -1,14 +1,16 @@
 // Upcoming content, with CN as the preview: events, operators, modules, banners and Contingency Contract.
+import { Fragment } from "preact";
 import { OpFilters, useOpFilters } from "../components/OpFilters";
-import { Avatar, Await, Explain, ItemIcon, itemName, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
+import { Await, Explain, ItemIcon, itemName, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
 import { CommunityMarks } from "../components/Marks";
 import { costTable } from "../lib/account";
 import { planNeeds } from "../lib/needs";
+import { ROLE_HINTS, ROLE_NAMES, ROLES, roleOf } from "../lib/roles";
 import { operators, shops as loadShops, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
 import { date, pct, relative } from "../lib/format";
 import { href, route, setQuery } from "../lib/router";
 import { account, hasRoster, server } from "../state";
-import type { OpIndex, ShopEvent, UpcomingFile, UsageFile, WikiDated } from "../types";
+import type { KeyOp, OpIndex, ShopEvent, UpcomingFile, UsageFile, WikiDated } from "../types";
 
 type View = "events" | "shops" | "operators" | "modules" | "banners" | "cc";
 
@@ -127,41 +129,83 @@ function ShopCard({ e, values, short }: { e: ShopEvent; values: Record<string, n
 function Events({ up, byId }: { up: UpcomingFile; byId: Map<string, OpIndex> }) {
   return (
     <div class="stack">
-      {up.events.map((e) => {
-        const owned = e.key_ops.filter((k) => account.value.ops[k.id]);
+      {up.events.map((e) => (
+        <details key={e.id} class="card" open={e === up.events.find((x) => new Date(x.eta).getTime() > Date.now())}>
+          <summary class="cut" style={{ cursor: "pointer" }}>
+            <span class="cut-title" style={{ fontSize: "1.45rem" }}>{e.name || e.name_en || e.name_cn}</span>{!e.name && e.name_en && <> <Unofficial wiki={e.name_by === "wiki" ? e.wiki : undefined} /></>}
+            <br />{(e.name || e.name_en) && <span class="muted">{e.name_cn} · </span>}<Eta eta={e.eta} confirmed={e.confirmed} cn={e.cn_start} x={e} />
+          </summary>
+          <p style={{ marginTop: "8px" }}>{e.stages} stages, {e.guided} with community guides ({e.guides} guides).</p>
+          {e.key_ops.length > 0 ? <KeyOps ops={e.key_ops} byId={byId} /> : <p class="muted">No community guides for it yet.</p>}
+        </details>
+      ))}
+      <Explain>Key operators: share of the event's community clear guides (CN) that use each one, weighted by views, grouped by the job they do in a team. "Or": the operators those guides list in the same slot, the alternatives their writers accept (most listed first). "Similar": where the guides name few, the most used operators of the same archetype on this server, which may need more work to fit. ✓ marks the ones you own.</Explain>
+    </div>
+  );
+}
+
+const ROLE_SHOWN = 4; // a role's operators shown before "more"
+
+/** An event's key operators by role, each with what can stand in for it, and how your roster covers each role. */
+function KeyOps({ ops, byId }: { ops: KeyOp[]; byId: Map<string, OpIndex> }) {
+  const mine = account.value.ops, roster = hasRoster.value;
+  const known = ops.filter((k) => byId.has(k.id));
+  const groups = ROLES.map((r) => ({ r, ops: known.filter((k) => roleOf(byId.get(k.id)!) === r) })).filter((g) => g.ops.length);
+  const cover = (g: { ops: KeyOp[] }) => g.ops.some((k) => mine[k.id]) ? "yes"
+    : g.ops.some((k) => [...(k.alts || []).map(([id]) => id), ...(k.like || [])].some((id) => mine[id])) ? "alt" : "no";
+  const uncovered = groups.filter((g) => cover(g) === "no").map((g) => ROLE_NAMES[g.r]);
+  const row = (k: KeyOp) => <KeyOpRow key={k.id} k={k} byId={byId} />;
+  return (
+    <>
+      <h3>Operators its guides use most</h3>
+      {groups.map((g) => {
+        const c = cover(g);
         return (
-          <details key={e.id} class="card" open={e === up.events.find((x) => new Date(x.eta).getTime() > Date.now())}>
-            <summary class="cut" style={{ cursor: "pointer" }}>
-              <span class="cut-title" style={{ fontSize: "1.45rem" }}>{e.name || e.name_en || e.name_cn}</span>{!e.name && e.name_en && <> <Unofficial wiki={e.name_by === "wiki" ? e.wiki : undefined} /></>}
-              <br />{(e.name || e.name_en) && <span class="muted">{e.name_cn} · </span>}<Eta eta={e.eta} confirmed={e.confirmed} cn={e.cn_start} x={e} />
-            </summary>
-            <p style={{ marginTop: "8px" }}>{e.stages} stages, {e.guided} with community guides ({e.guides} guides).</p>
-            {e.key_ops.length > 0 ? (
-              <>
-                <h3>Operators its guides use most</h3>
-                <div class="op-grid">
-                  {e.key_ops.map((k) => {
-                    const op = byId.get(k.id);
-                    if (!op) return null;
-                    const mine = account.value.ops[k.id];
-                    return (
-                      <a key={k.id} class="op-card" href={href(`/operator/${k.id}`)}>
-                        <Avatar op={op} size="sm" />
-                        <span><span class="op-name">{op.name}</span><br /><span class="meta">in {pct(k.share, 0)} of guides</span>
-                          {hasRoster.value && <><br /><span class={`meta ${mine ? "good-text" : "warn-text"}`}>{mine ? `yours: E${mine.elite} Lv ${mine.level}` : "not owned"}</span></>}
-                          {op.src && <><br /><span class="badge cn">CN only</span></>}</span>
-                      </a>
-                    );
-                  })}
-                </div>
-                {hasRoster.value && <p class="muted" style={{ marginTop: "8px" }}>Readiness: you own {owned.length} of these {e.key_ops.length}.</p>}
-              </>
-            ) : <p class="muted">No community guides for it yet.</p>}
-          </details>
+          <section key={g.r} class="key-role">
+            <h4><span title={ROLE_HINTS[g.r]}>{ROLE_NAMES[g.r]}</span>
+              {roster && <small class={c === "yes" ? "good-text" : c === "alt" ? "" : "warn-text"}>{c === "yes" ? "✓ covered" : c === "alt" ? "an alternative owned" : "none owned"}</small>}</h4>
+            <ul class="key-ops">{g.ops.slice(0, ROLE_SHOWN).map(row)}</ul>
+            {g.ops.length > ROLE_SHOWN && (
+              <details class="key-more"><summary>{g.ops.length - ROLE_SHOWN} more</summary><ul class="key-ops">{g.ops.slice(ROLE_SHOWN).map(row)}</ul></details>
+            )}
+          </section>
         );
       })}
-      <Explain>Key operators: share of the event's community clear guides (CN) that use each one, weighted by views.</Explain>
-    </div>
+      {roster && (
+        <p class="muted" style={{ marginTop: "8px" }}>Readiness: you own {known.filter((k) => mine[k.id]).length} of these {known.length}.
+          {uncovered.length ? ` Nothing yet for ${uncovered.join(", ")}: not the operators, not their alternatives.` : " Every role is covered, by them or their alternatives."}</p>
+      )}
+    </>
+  );
+}
+
+function KeyOpRow({ k, byId }: { k: KeyOp; byId: Map<string, OpIndex> }) {
+  const op = byId.get(k.id)!;
+  const mine = account.value.ops[k.id];
+  const alts = (k.alts || []).filter(([id]) => byId.has(id));
+  const like = (k.like || []).filter((id) => byId.has(id));
+  return (
+    <li class="key-op">
+      <OpLink op={op} sub={<>in {pct(k.share, 0)} of guides{hasRoster.value && <> · <span class={mine ? "good-text" : "warn-text"}>{mine ? `yours: E${mine.elite} Lv ${mine.level}` : "not owned"}</span></>}</>} />
+      {alts.length > 0 && (
+        <p class="key-alts"><span class="muted" title={`What the guides that use ${op.name} list in the same slot, most listed first`}>Or:</span> {alts.map(([id, share], i) => <Fragment key={id}>{i > 0 && ", "}<AltName op={byId.get(id)!} note={`listed in ${pct(share, 0)} of the guides that use ${op.name}`} /></Fragment>)}
+          {k.flex ? <span class="muted"> · swappable in {pct(k.flex, 0)} of its guides</span> : null}</p>
+      )}
+      {like.length > 0 && (
+        <p class="key-alts"><span class="muted" title={`Its guides name few alternatives: the most used operators of ${op.name}'s archetype on this server`}>Similar:</span> {like.map((id, i) => <Fragment key={id}>{i > 0 && ", "}<AltName op={byId.get(id)!} note="same archetype" /></Fragment>)}</p>
+      )}
+    </li>
+  );
+}
+
+/** A stand-in's name: linked, marked when it's yours or not on this server yet. */
+function AltName({ op, note }: { op: OpIndex; note: string }) {
+  const mine = account.value.ops[op.id];
+  return (
+    <a href={href(`/operator/${op.id}`)} data-panel={op.id} class={mine ? "alt-mine" : undefined}
+      title={`${op.name}: ${note}${mine ? ` · yours, E${mine.elite} Lv ${mine.level}` : ""}${op.src ? " · not on this server yet" : ""}`}>
+      {op.name}{mine ? " ✓" : ""}{op.src && <small class="muted">{" (CN)"}</small>}
+    </a>
   );
 }
 
