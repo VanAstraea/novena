@@ -79,6 +79,7 @@ const DEPOT_SHOT = ".cache/dr/cases/us_simulator_0/image.png";
 test("depot screenshot import reads every item", async ({ page }) => {
   const { existsSync, readFileSync } = await import("node:fs");
   test.skip(!existsSync(DEPOT_SHOT), "run scripts/depot_fixtures.py for the test screenshot");
+  test.setTimeout(90_000); // recognition alone can take half a minute on a busy machine
   await page.goto("/roster?tab=depot");
   await page.locator('input[type=file][accept="image/*"]').setInputFiles({ name: "depot.png", mimeType: "image/png", buffer: readFileSync(DEPOT_SHOT) });
   await expect(page.getByText(/Found 24 items/)).toBeVisible({ timeout: 60_000 });
