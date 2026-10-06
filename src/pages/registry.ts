@@ -17,7 +17,7 @@ export const PAGES: PageDef[] = [
   { path: "/", title: "Home", load: () => import("./Home") },
   // My account
   { path: "/today", group: "account", title: "Today", short: "Today", nav: "account", keywords: ["checklist", "daily", "routine", "sanity", "timer", "notification"], load: () => import("./Today") },
-  { path: "/roster", group: "account", title: "My roster", short: "Roster", nav: "account", keywords: ["account", "import", "depot", "inventory"], load: () => import("./Roster") },
+  { path: "/roster", group: "account", title: "My roster", short: "Roster", nav: "account", keywords: ["account", "import", "depot", "inventory"], load: () => import("./roster/Roster") },
   { path: "/base", group: "account", title: "Base (RIIC) optimizer", short: "Base", nav: "account", keywords: ["riic", "infrastructure", "shifts", "trading post", "factory"], load: () => import("./Base") },
   // Plan
   { path: "/plan", group: "plan", title: "Priorities: what to raise next", short: "Priorities", nav: "main", keywords: ["priority", "priorities", "plan", "next", "progression", "guides"], load: () => import("./Plan") },
