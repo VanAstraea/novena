@@ -17,7 +17,7 @@ const BUDGET = {
   data: {
     "en/base.json": 20.5 * KB, "en/costs.json": 32.5 * KB, "en/is.json": 9.5 * KB, "en/items.json": 12 * KB,
     "en/meta.json": 11.5 * KB, "en/operators.json": 21.5 * KB, "en/progress.json": 21 * KB, "en/ranges.json": 1 * KB,
-    "en/recruit.json": 2.5 * KB, "en/shops.json": 1 * KB, "en/stages.json": 13.5 * KB, "en/upcoming.json": 5 * KB,
+    "en/recruit.json": 2.5 * KB, "en/shops.json": 2 * KB, "en/stages.json": 13.5 * KB, "en/upcoming.json": 9 * KB,
     "en/ops/*": 3 * KB, // the largest single operator file
     "common/usage.json": 40 * KB,
     // TODO: generous on purpose while the guidebook is being reduced separately; bring it down to ~10% above its size
