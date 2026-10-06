@@ -1,6 +1,6 @@
 // Settings and the single-file backup. Everything here works on this browser's storage only.
 import { useState } from "preact/hooks";
-import { Explain } from "../components/ui";
+import { Explain, GuideLink } from "../components/ui";
 import { clearAll, getItem, keys, setItem, setPref } from "../lib/storage";
 import { href, navigate } from "../lib/router";
 import { SERVERS, server, theme, type Theme } from "../state";
@@ -51,7 +51,7 @@ export default function Settings() {
     <div class="stack fade-in">
       <h1>Settings & backup</h1>
       <section class="card">
-        <h2>Your data stays in this browser</h2>
+        <div class="card-head"><h2>Your data stays in this browser</h2><GuideLink m="move" label="Moving to another device" /></div>
         <p>Your roster, depot, plans and settings are saved in this browser's storage (local storage and IndexedDB) and nowhere else. There are no accounts, no analytics, no tracking and no cookies. Clearing your browser's site data deletes them, so keep a backup.</p>
         <div class="row">
           <button class="primary" onClick={exportAll}>Export backup</button>

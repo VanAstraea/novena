@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/ho
 import { signal } from "@preact/signals";
 import { art, items as loadItems, meta as loadMeta, ranges as loadRanges } from "../lib/data";
 import { compact, fmt } from "../lib/format";
+import { href } from "../lib/router";
 import { account, server } from "../state";
 import type { ItemsFile, Meta, OpIndex } from "../types";
 
@@ -281,6 +282,12 @@ export function Explain({ children }: { children: ComponentChildren }) {
       <p class="explain">{children}</p>
     </details>
   );
+}
+
+/** A small link to one way's steps in the import guide (pages/Guide.tsx), or to its comparison without `m`; for the
+ *  places where people import. */
+export function GuideLink({ m, label = "Step-by-step guide" }: { m?: string; label?: string }) {
+  return <a class="guide-link" href={href("/guide", { m })}>{label} <span aria-hidden="true">→</span></a>;
 }
 
 /** Table header cell that sorts. */

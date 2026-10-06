@@ -23,6 +23,9 @@ const SUBPAGES: [string, string, Record<string, string>, string[]][] = [
   ["What changed (progress with costs)", "/roster", { tab: "progress" }, ["progress", "history", "spent"]],
   ["Depot from screenshots", "/roster", { tab: "depot" }, ["depot", "screenshot", "inventory"]],
   ["Import a roster or sync", "/roster", { tab: "import" }, ["import", "sync", "krooster"]],
+  ["Import guide: Novena Sync", "/guide", { m: "sync" }, ["novena sync", "sync app", "bind email", "local network access"]],
+  ["Import guide: Krooster", "/guide", { m: "krooster" }, ["krooster", "krooster profile"]],
+  ["Import guide: another browser or device", "/guide", { m: "move" }, ["transfer", "move", "new phone", "another device"]],
   ["Sanity timer and checklist", "/today", {}, ["timer", "checklist", "daily"]],
 ];
 const ACTIONS: { label: string; words: string[]; run: () => void }[] = [

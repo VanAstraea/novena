@@ -43,7 +43,7 @@ export default function Upcoming() {
           const byId = new Map(ops.map((o) => [o.id, o]));
           return (
             <>
-              <p class="muted">CN runs months ahead. Dates here are CN's plus the lag measured over the last events both servers ran ({up.lag_days ?? "?"} days); servers do skip and reorder things, collaborations especially.</p>
+              <p class="note" role="note"><strong>These dates are estimates, not announcements.</strong> CN runs months ahead, so a date marked <span class="badge est">estimate</span> is CN's date plus the lag measured over the last events both servers ran ({up.lag_days ?? "?"} days). Servers skip, swap and reorder things, collaborations especially. A date turns solid (no badge) once this server's own game data lists it; for announced dates, the official news and in-game notices come first.</p>
               <Tabs label="Upcoming sections" value={view} onChange={(v) => setQuery({ view: v === "events" ? "" : v })} tabs={[
                 { key: "events", label: `Events (${up.events.length})` }, { key: "shops", label: "Event shops" }, { key: "operators", label: `Operators (${up.operators.length})` },
                 { key: "modules", label: "Modules" }, { key: "banners", label: `Banners (${up.banners.length})` }, { key: "cc", label: "Contingency Contract" },

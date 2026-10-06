@@ -5,7 +5,7 @@ import { undoable } from "../components/Toast";
 import { MasteryMark, ModuleMark } from "../components/Marks";
 import { DepotImport } from "../components/DepotImport";
 import { OpPicker } from "../components/OpPicker";
-import { Avatar, Await, Divider, Explain, GIcon, ItemIcon, itemName, Items, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
+import { Avatar, Await, Divider, Explain, GIcon, GuideLink, ItemIcon, itemName, Items, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
 import { CLASS_NAMES } from "../lib/format";
 import { costTable } from "../lib/account";
 import { expiring, held, tokenUse, voucherIds, voucherPicks } from "../lib/consumables";
@@ -124,7 +124,7 @@ function Ops({ ops }: { ops: OpIndex[] }) {
   const here = ops.filter((o) => !o.src && !o.patch);
   const edit = editing || rows.length === 0; // an empty roster opens straight into adding
   const toggle = () => { setEditing(!editing); setPref("rosterEdit", editing ? "" : "1"); setPicked(new Set()); if (editing) setAdded([]); };
-  const pick1 = (id: string) => { const n = new Set(picked); if (n.has(id)) n.delete(id); else n.add(id); setPicked(n); };
+  const pick1 = (id: string) => setPicked((was) => { const n = new Set(was); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const allShown = shown.length > 0 && shown.every((x) => picked.has(x.r.id));
   const classes = [...new Set(rows.map((x) => x.op.cls))].sort();
   const Th = ({ k, label, c }: { k?: string; label: string; c?: string }) => (
@@ -310,7 +310,7 @@ function Depot() {
     <>
     <DepotImport />
     <section class="card krooster">
-      <h2>From another planner</h2>
+      <div class="card-head"><h2>From another planner</h2><GuideLink m="planner" /></div>
       <p class="muted">Kept your depot on Krooster or Penguin Statistics? Bring it over without screenshots.</p>
       <DepotPaste />
     </section>
@@ -361,7 +361,7 @@ function Import({ ops }: { ops: OpIndex[] }) {
     <div class="grid two">
       <SyncCard ops={ops} />
       <section class="card">
-        <h2>Import a file</h2>
+        <div class="card-head"><h2>Import a file</h2><GuideLink m="file" /></div>
         <p>Accepted: a Novena roster file, a Novena Sync file, game sync data (syncData JSON), a saved Krooster profile page, or a depot export from Krooster or Penguin Statistics.</p>
         <p class="muted">For your depot, the easiest way is screenshots: <a href={href("/roster", { tab: "depot" })}>Depot → Import from screenshots</a>.</p>
         <div class="row" style={{ marginBottom: "10px" }}>
@@ -382,7 +382,7 @@ function Import({ ops }: { ops: OpIndex[] }) {
       </section>
       <KroosterImport ops={ops} mode={mode} />
       <section class="card">
-        <h2>Export</h2>
+        <div class="card-head"><h2>Export</h2><GuideLink m="move" /></div>
         <p>Download this server's roster and depot as a file you can import elsewhere or keep.</p>
         <button onClick={exportIt} disabled={!Object.keys(account.value.ops).length}>Export roster</button>
       </section>
@@ -407,7 +407,7 @@ function KroosterImport({ ops, mode }: { ops: OpIndex[]; mode: "replace" | "merg
   };
   return (
     <section class="card krooster">
-      <h2>From Krooster</h2>
+      <div class="card-head"><h2>From Krooster</h2><GuideLink m="krooster" /></div>
       <label class="field"><span>Your Krooster username</span>
         <input type="text" value={name} onInput={(e) => setName((e.target as HTMLInputElement).value)} placeholder="username" autocomplete="off" spellcheck={false} />
       </label>
@@ -527,7 +527,7 @@ function SyncCard({ ops }: { ops: OpIndex[] }) {
     <section class="card sync-card" style={{ gridColumn: "1 / -1" }}>
       <div class="row" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <h2>Novena Sync <span class="badge">Optional app</span></h2>
+          <div class="card-head"><h2>Novena Sync <span class="badge">Optional app</span></h2><GuideLink m="sync" /></div>
           <p style={{ maxWidth: "70ch" }}>A small desktop app that signs in to your game account <strong>on your own computer</strong>, reads it, and hands Novena your operators, depot and currencies with one click. This website never sees your login.</p>
         </div>
         <a class="btn" href={`${REPO_URL}/releases/latest`} rel="noopener">Download Novena Sync</a>

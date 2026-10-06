@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { prepare, recognize, type Slot, depotItems } from "../lib/depot/client";
 import { fmt } from "../lib/format";
 import { account, saveAccount, server, snapshotOf } from "../state";
-import { Explain, ItemIcon, itemsSig } from "./ui";
+import { Explain, GuideLink, ItemIcon, itemsSig } from "./ui";
 
 interface Shot { name: string; url: string; width: number; height: number }
 interface Row { key: string; shot: number; slot: Slot; id: string; count: number; include: boolean; dupes: number }
@@ -96,7 +96,7 @@ export function DepotImport() {
 
   return (
     <section class="card">
-      <h2>Import from screenshots</h2>
+      <div class="card-head"><h2>Import from screenshots</h2><GuideLink m="screenshots" /></div>
       <ol style={{ paddingLeft: "1.3em", margin: "0 0 10px" }}>
         <li>In the game, open the <strong>Depot</strong> and pick <strong>Growth Materials</strong> (or <strong>All</strong>).</li>
         <li>Take a screenshot, scroll so new items show, take another. Overlap is fine; take as many as you need.</li>

@@ -24,6 +24,7 @@ export const PAGES: PageDef[] = [
   { path: "/is", group: "is", title: "Integrated Strategies", short: "IS", nav: "main", keywords: ["roguelike", "rogue"], load: () => import("./IS") },
   { path: "/today", group: "account", title: "Today", short: "Today", nav: "account", keywords: ["checklist", "daily", "routine", "sanity", "timer", "notification"], load: () => import("./Today") },
   { path: "/roster", group: "account", title: "My roster", short: "Roster", nav: "account", keywords: ["account", "import", "depot", "inventory"], load: () => import("./Roster") },
+  { path: "/guide", group: "account", title: "Import guide", short: "Guide", nav: "account", keywords: ["import", "sync", "novena sync", "krooster", "depot", "screenshots", "syncdata", "penguin", "transfer", "backup", "how to"], load: () => import("./Guide") },
   { path: "/plan", group: "account", title: "Priorities: what to raise next", short: "Priorities", nav: "account", keywords: ["priority", "priorities", "plan", "next", "progression", "guides"], load: () => import("./Plan") },
   { path: "/gaps", group: "account", title: "Gaps", short: "Gaps", nav: "account", keywords: ["archetypes", "coverage", "missing", "who to build", "weak"], load: () => import("./Gaps") },
   { path: "/dump", group: "account", title: "Sanity Dump", short: "Sanity Dump", nav: "account", keywords: ["today", "what to farm"], load: () => import("./Dump") },

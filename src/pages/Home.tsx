@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Feathers } from "../components/Feathers";
 import { searchOpen } from "../components/Search";
-import { Avatar, Await, Divider, Explain, PortraitCard, useAsync } from "../components/ui";
+import { Avatar, Await, Divider, Explain, GuideLink, PortraitCard, useAsync } from "../components/ui";
 import { art, BASE, operators, stages as loadStages, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
 import { date, dayTime, duration, fmt, pct, relative } from "../lib/format";
 import { href, route } from "../lib/router";
@@ -120,7 +120,7 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
       onDrop={(e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer?.files?.[0]; if (f) void onFile(f); }}>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M5 15v4h14v-4" /></svg>
       <span><strong>{hasRoster.value ? "Drop a newer file" : "Drop a file here"}</strong><small>or choose one · Novena Sync, game sync data, a Krooster profile or a Novena file</small></span>
-      <input type="file" accept=".json,application/json" class="sr-only" disabled={!ops}
+      <input type="file" accept=".json,.html,.htm,.csv,.txt,application/json,text/html" class="sr-only" disabled={!ops}
         onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void onFile(f); }} />
     </label>
   );
@@ -159,6 +159,7 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
               <a class="pill" href={href("/roster", { tab: "import" })}>Sync again</a>
             </div>
             {drop}
+            <p class="acct-try"><GuideLink label="Step-by-step import guide" /></p>
           </>
         ) : (
           <>
@@ -167,9 +168,10 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
             <p class="acct-lede">Novena plans around what you own: who to raise next, what you're short of, and the cheapest way to farm it. Your roster stays in this browser.</p>
             <ol class="acct-ways">
               <li><strong>Novena Sync</strong><span>A small app for your computer that brings your operators, depot and base over in one click, whenever you like. Your sign-in never leaves your PC.</span><a href={href("/roster", { tab: "import" })}>Set it up →</a></li>
-              <li><strong>A file</strong><span>Game sync data, a Novena file from another browser, or your Krooster profile (<a href={href("/roster", { tab: "import" })}>how</a>).</span>{drop}</li>
+              <li><strong>A file</strong><span>Game sync data, a Novena file from another browser, or your Krooster profile (<a href={href("/guide", { m: "krooster" })}>how</a>).</span>{drop}</li>
               <li><strong>By hand</strong><span>A quick editor: search, tick, set elite and level in a few clicks.</span><a href={href("/roster")}>Start adding →</a></li>
             </ol>
+            <p class="acct-try">Not sure which? <GuideLink label="Compare them in the import guide" /></p>
             <p class="acct-try">Just looking? <button class="linkish" disabled={!ops} onClick={async () => { if (ops) { await loadSample(ops); setMsg({ ok: true, text: "Loaded a sample roster: look around Today, Priorities, Roster and Base." }); } }}>Try it with a sample roster</button> <span class="muted">(made up; clear it any time)</span></p>
           </>
         )}

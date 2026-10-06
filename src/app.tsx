@@ -98,7 +98,7 @@ function GetStarted() {
   const [hidden, setHidden] = useState(() => pref("getStartedHidden", "") === "1");
   const steps: [boolean, string, string, string][] = [
     [hasRoster.value, "Add your operators", "/roster?tab=import", "Sync, import a file, or add them by hand"],
-    [Object.keys(account.value.depot).length > 0, "Add your depot", "/roster?tab=depot", "From screenshots of your in-game Depot"],
+    [Object.keys(account.value.depot).length > 0, "Add your depot", "/roster?tab=depot", "From screenshots of your in-game Depot, or from Krooster or Penguin Statistics"],
     [targets.value.length > 0, "Set a goal", "/planner", "Type a build in the planner, or press Make it a goal on any operator"],
   ];
   if (hidden || steps.every(([done]) => done)) return null;
