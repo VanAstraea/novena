@@ -19,6 +19,7 @@ const PAGES: [string, RegExp][] = [
   ["/dump", /Sanity Dump/],
   ["/base", /Base/],
   ["/pulls", /Pull planner/],
+  ["/story", /Story & events/],
   ["/settings", /Settings/],
   ["/about", /About/],
   ["/credits", /Credits/],

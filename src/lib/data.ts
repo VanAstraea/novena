@@ -1,6 +1,6 @@
 // Loads the published data files. Each file is fetched once per page load; failures are not cached, so a retry
 // (or going back to the page) fetches again.
-import type { ISFile, ItemsFile, Manifest, Meta, OpDetail, OpIndex, RecruitFile, Server, ShopsFile, StagesFile, UpcomingFile, UsageFile } from "../types";
+import type { ISFile, ItemsFile, Manifest, Meta, OpDetail, OpIndex, ProgressFile, RecruitFile, Server, ShopsFile, StagesFile, UpcomingFile, UsageFile } from "../types";
 
 export const BASE = import.meta.env.BASE_URL;
 const ROOT = `${BASE}data/v1/`;
@@ -31,6 +31,11 @@ export const recruit = (s: Server) => load<RecruitFile>(`${s}/recruit.json`);
 export const upcoming = (s: Server) => load<UpcomingFile>(`${s}/upcoming.json`);
 export const integrated = (s: Server) => load<ISFile>(`${s}/is.json`);
 export const shops = (s: Server) => load<ShopsFile>(`${s}/shops.json`);
+/** Story & events, or null until the daily build first publishes it (a missing file, or the dev server's page in its place). */
+export const progress = (s: Server) => load<ProgressFile>(`${s}/progress.json`).catch((e: Error) => {
+  if (e instanceof SyntaxError || / \(404\)$/.test(e.message)) return null;
+  throw e;
+});
 
 /** Operator index keyed by id. */
 export async function opMap(s: Server): Promise<Map<string, OpIndex>> {

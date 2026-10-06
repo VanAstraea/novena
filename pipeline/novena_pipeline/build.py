@@ -14,6 +14,7 @@ Writes to NOVENA_OUT (default public/data/v1/). Layout:
     {server}/stages.json          farmable stages with drop rates, CE, supply zones and open days
     {server}/recruit.json         recruitment tags and pool
     {server}/upcoming.json        CN content not here yet, with estimated dates
+    {server}/progress.json        story and events: one-time Originite Prime, archives and their trials, free operators
     {server}/is.json              Integrated Strategies priorities per theme
     {server}/base.json            base skills: production, morale, dorms, Training Room and Workshop
     {server}/shops.json           event shops for events running or coming here
@@ -31,7 +32,7 @@ from novena_pipeline import OUT_DIR, SERVERS
 from novena_pipeline import gamedata as gd
 from novena_pipeline import items as items_mod
 from novena_pipeline import shops as shops_mod
-from novena_pipeline import base, guidebook, operators, recruit, roguelike, upcoming, usage
+from novena_pipeline import base, guidebook, operators, progress, recruit, roguelike, upcoming, usage
 from novena_pipeline.sources import copilot, penguin, yituliu
 
 DATA_VERSION = 1
@@ -105,6 +106,9 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
     log(f"  [{server}] {len(item_rows)} items, {len(stages)} stages, {len(vals['corrections'])} value corrections")
 
     write(out / server / "upcoming.json", upcoming_data)
+    prog = progress.build(server)
+    write(out / server / "progress.json", prog)
+    log(f"  [{server}] {len(prog['retros'])} archives, {len(prog['welfare'])} free operators")
     write(out / server / "shops.json", shop_data)
     log(f"  [{server}] {len(shop_data['events'])} event shops")
     write(out / server / "is.json", roguelike.build(server))

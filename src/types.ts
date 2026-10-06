@@ -230,6 +230,34 @@ export interface UpcomingFile {
   } | null;
 }
 
+/** A stage in progress.json: [stage id, code, flags]. Flags: 1 Originite Prime on the first 3★ clear, 2 challenge
+ *  mode, 4 story only, 8 gives an operator, 16 counts towards the archive's trial. */
+export type ProgressStage = [string, string, number];
+export type WelfareSource =
+  | { kind: "retro"; id: string; stars: number | null } // null: the archive has no trial yet
+  | { kind: "event"; id: string; name: string; start: string; end: string }
+  | { kind: "stage"; stage: string; code: string; retro?: string };
+export interface Retro {
+  id: string;
+  kind: "side" | "intermezzo";
+  index: number;
+  name: string;
+  start: string;
+  acts: string[];
+  op: number;
+  stars: number | null;
+  stages: ProgressStage[];
+  char: string | null;
+  trail: { start: string; rewards: [string, number, string, string][] } | null; // reward id, stars, type, item id
+}
+export interface ProgressFile {
+  zones: { id: string; kind: "main" | "supply"; name: string; title: string | null; op: number; stages: ProgressStage[] }[];
+  retros: Retro[];
+  welfare: Record<string, WelfareSource[]>;
+  annihilation: { id: string; name: string; region: string; orundum: number; rotation: [string, string] | null }[];
+  crystal: { cap: Record<string, number>; perWeek: number; unlockCost: number } | null;
+}
+
 export interface ISFile {
   themes: {
     id: string;
