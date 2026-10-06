@@ -1,6 +1,6 @@
 // The menu tree test (/navtest): the places in a proposed menu tree, the short result code a participant copies at the
-// end, and the tally of many codes. Nothing here is sent anywhere: people copy their code by hand, and the owner
-// pastes the codes they were sent into the tally view (/navtest?tally).
+// end, and the tally of many codes. Nothing here is sent anywhere: people copy their code by hand and paste it as a
+// reply; the replies are tallied offline with tally().
 //
 // A code reads `NT<version>-<often>-<task>-<task>-…`, one 8-character group per task in the order it was shown:
 //   task number · y found / n not found / s skipped · first top-level item · place (2) · clicks · seconds (2)

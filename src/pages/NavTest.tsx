@@ -1,9 +1,8 @@
 // A tree test of a proposed menu layout, before it's built: players get a task, tap through the menus as plain text
 // and say where they'd look. Not linked from anywhere; shared by link. Nothing is sent: each participant copies a
-// short code at the end and pastes it where they found the link, and /navtest?tally adds the codes up.
-import { useMemo, useRef, useState } from "preact/hooks";
-import { encode, findCodes, places, tally, type NavNode, type Often, type Place, type TaskResult } from "../lib/navtest";
-import { route } from "../lib/router";
+// short code at the end and pastes it where they found the link.
+import { useRef, useState } from "preact/hooks";
+import { encode, places, type NavNode, type Often, type Place, type TaskResult } from "../lib/navtest";
 import { pref, setPref } from "../lib/storage";
 
 // Bump when the tree or the tasks change, so codes from different versions aren't added up together.
@@ -43,7 +42,6 @@ const TASKS: { text: string; answers: string[][] }[] = [
 
 const PLACES = places(TREE);
 const PLACE_OF = new Map<NavNode, Place>(PLACES.map((p) => [p.node, p]));
-const where = (p: Place) => p.path.join(" › ");
 
 const RIGHT: Place[][] = TASKS.map((t) => t.answers.map((path) => {
   const p = PLACES.find((x) => x.path.join("\n") === path.join("\n"));
@@ -52,8 +50,6 @@ const RIGHT: Place[][] = TASKS.map((t) => t.answers.map((path) => {
 }));
 const isRight = (task: number, p: Place) =>
   RIGHT[task - 1].some((r) => r.path.length <= p.path.length && r.path.every((label, i) => p.path[i] === label));
-/** Per task number, the top-level items a right answer sits under. */
-const FIRST_RIGHT: Record<number, number[]> = Object.fromEntries(RIGHT.map((rs, i) => [i + 1, [...new Set(rs.map((r) => r.top))]]));
 
 const OFTEN: [Often, string][] = [["d", "Daily"], ["w", "Weekly"], ["r", "Rarely"]];
 
@@ -83,7 +79,6 @@ function shuffled(n: number): number[] {
 }
 
 export default function NavTest() {
-  if (route.value.query.has("tally")) return <TallyView />;
   return <Test />;
 }
 
@@ -226,50 +221,6 @@ function Done({ progress, onRestart }: { progress: Progress; onRestart: () => vo
         <p class="explain">The code only holds where you tapped, how many taps and how long each task took, plus your warm-up answer. It stays on this page until you paste it somewhere.</p>
       </section>
       <div><button class="ghost small" onClick={onRestart}>Clear and start over</button></div>
-    </div>
-  );
-}
-
-/** For the owner: paste the replies, codes and all, and see how each task went. */
-function TallyView() {
-  const [text, setText] = useState("");
-  const t = useMemo(() => tally(findCodes(text), { version: VERSION, firstRight: FIRST_RIGHT }), [text]);
-  const pct = (n: number, of: number) => (of ? `${Math.round((n / of) * 100)}%` : "–");
-  const placeName = (i: number) => (PLACES[i] ? where(PLACES[i]) : `place ${i}`);
-  return (
-    <div class="stack fade-in">
-      <h1>Menu test tally</h1>
-      <section class="card">
-        <label for="navtest-paste">Paste the replies</label>
-        <p class="explain">One code per line, or whole threads: the codes are picked out of any text, and the same code pasted twice counts once.</p>
-        <textarea id="navtest-paste" rows={6} value={text} onInput={(e) => setText((e.target as HTMLTextAreaElement).value)} />
-        <p class="muted">
-          {t.read} code{t.read === 1 ? "" : "s"} read{t.ignored ? `, ${t.ignored} from another version of the test or unreadable (left out)` : ""}.
-          {t.read > 0 && ` Daily ${t.often.d} · Weekly ${t.often.w} · Rarely ${t.often.r} · No answer ${t.often.x}.`}
-        </p>
-      </section>
-      {t.read > 0 && (
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Task</th><th class="num">Found</th><th class="num">First click right</th><th class="num">Skipped</th><th class="num">Median time</th><th>Most common wrong places</th><th>First clicks</th></tr>
-            </thead>
-            <tbody>
-              {t.tasks.map((r) => (
-                <tr key={r.task}>
-                  <td>{r.task}. {TASKS[r.task - 1]?.text || "(not in this version)"}</td>
-                  <td class="num">{pct(r.found, r.answers)}<br /><small class="muted">{r.found} of {r.answers}</small></td>
-                  <td class="num">{r.firstRight === null ? "–" : pct(r.firstRight, r.answers)}</td>
-                  <td class="num">{r.skipped}</td>
-                  <td class="num">{r.medianSeconds === null ? "–" : `${Math.round(r.medianSeconds)} s`}</td>
-                  <td>{r.wrong.length ? r.wrong.slice(0, 3).map(([p, n]) => <div key={p}>{placeName(p)} <span class="muted">({n})</span></div>) : <span class="muted">none</span>}</td>
-                  <td>{r.firsts.map(([top, n]) => <div key={top}>{TREE[top]?.label || `item ${top}`} <span class="muted">({n})</span></div>)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 }
