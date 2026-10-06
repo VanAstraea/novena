@@ -121,7 +121,7 @@ export default function Credits() {
 
       <section class="card">
         <h2>Imports from other tools</h2>
-        <p>Novena reads rosters kept on <a href="https://www.krooster.com" rel="noopener">Krooster</a> by neeia (<a href="https://github.com/neeia/ak-roster" rel="noopener">source</a>): you open your own public profile there and paste it here. Novena never contacts Krooster itself.</p>
+        <p>Novena reads rosters kept on <a href="https://www.krooster.com" rel="noopener">Krooster</a> by neeia (<a href="https://github.com/neeia/ak-roster" rel="noopener">source</a>): you save or copy your own public profile there, and copy your depot from its planner's export. Novena never contacts Krooster itself; it also reads Penguin Statistics' planner export.</p>
       </section>
 
       <section class="card">

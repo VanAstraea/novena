@@ -48,7 +48,7 @@ Useful without any account data:
 With your roster (typed in, imported, or a made-up sample roster to try things first):
 
 - **Roster** shown with the game's own elite, potential, mastery and module icons; an edit mode for changing it by
-  hand; depot, import/export (this site's files, Novena Sync, raw syncData, Krooster profiles) and progress over time.
+  hand; depot, import/export (this site's files, Novena Sync, raw syncData, Krooster profiles, depot exports from Krooster and Penguin Statistics) and progress over time.
 - **Novena Sync (optional desktop app):** signs in to your account on your own computer and hands the site your
   roster with one click: operators and their outfits, depot, recruitment slots, your base and sanity. See
   [`sync/README.md`](sync/README.md) and the [releases](../../releases).

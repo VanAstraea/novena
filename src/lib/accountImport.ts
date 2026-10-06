@@ -1,7 +1,7 @@
 // Putting an import into the account, shared by the Roster's Import tab and the home page's account panel.
 import { undoable } from "../components/Toast";
 import { BASE } from "./data";
-import { parseRoster, readData, type Imported } from "./importers";
+import { parseDepot, parseRoster, readData, type Imported } from "./importers";
 import { prioritiesSoon } from "./priorities";
 import { account, saveAccount, server, snapshotOf, type Account } from "../state";
 import { pref, setPref } from "./storage";
@@ -33,11 +33,29 @@ export async function importFile(f: File, ops: OpIndex[], server: string, mode: 
 
 /** Import pasted or read text (a file's contents, or a Krooster profile copied from the browser). */
 export function importText(text: string, ops: OpIndex[], server: string, mode: "replace" | "merge", what = "Novena couldn't read that"): string {
+  const depot = parseDepot(text);
+  if (depot) return applyDepot(depot.depot, depot.format);
   let json: unknown;
   try { json = readData(text); } catch { throw new Error(`${what}. Novena reads its own roster files, Novena Sync files, game sync data and Krooster profiles.`); }
   const r = parseRoster(json, ops);
   if (r.server && r.server !== server) throw new Error(`This file is from the ${r.server.toUpperCase()} server; switch to it first (top right).`);
   return applyImport(r, mode);
+}
+
+/** Counts from another planner's depot export: each item it lists is set to its count (none: removed), the rest of
+ *  the depot and the roster stay. Undoable. */
+export function applyDepot(counts: Record<string, number>, format: string): string {
+  const ids = Object.keys(counts);
+  if (!ids.length) throw new Error("That export lists no items.");
+  const before = account.value.depot;
+  updateAccount((acc) => {
+    const depot = { ...acc.depot };
+    for (const id of ids) { if (counts[id] > 0) depot[id] = counts[id]; else delete depot[id]; }
+    return { ...acc, depot };
+  });
+  const text = `Updated ${ids.length} items in your depot from ${format}.`;
+  undoable(text, () => updateAccount((acc) => ({ ...acc, depot: before })));
+  return text;
 }
 
 /** A synced sanity reading replaces the timer's when it's newer than what was typed (the notification choice stays). */

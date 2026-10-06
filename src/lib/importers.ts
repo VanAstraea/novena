@@ -70,6 +70,32 @@ export function readData(text: string): unknown {
   return JSON.parse(t.slice(Math.max(0, t.indexOf("{")), t.lastIndexOf("}") + 1) || t);
 }
 
+/** A depot from another planner: Penguin Statistics' planner export (which Krooster's "Penguin-Stats" export also
+ *  is) or Krooster's CSV ("itemId, itemName, owned, needed"). Null when the text is neither. Item ids are the game's. */
+export function parseDepot(text: string): { depot: Record<string, number>; format: string } | null {
+  const t = text.trim();
+  const count = (v: unknown) => Math.max(0, Math.round(Number(v) || 0));
+  if (t.includes("@penguin-statistics")) {
+    let d: any;
+    try { d = readData(t); } catch { return null; }
+    if (!Array.isArray(d?.items)) return null;
+    const depot: Record<string, number> = {};
+    for (const it of d.items) if (it && typeof it.id === "string") depot[it.id] = count(it.have);
+    return { depot, format: "a Penguin Statistics planner export" };
+  }
+  const lines = t.split(/\r?\n/).filter((l) => l.trim());
+  const head = (lines[0] || "").split(",").map((h) => h.trim().toLowerCase());
+  const owned = head.indexOf("owned");
+  if (head[0] !== "itemid" || owned < 0) return null;
+  const fromEnd = head.length - 1 - owned; // names can hold commas, so count the columns after it from the end
+  const depot: Record<string, number> = {};
+  for (const line of lines.slice(1)) {
+    const cols = line.split(",").map((c) => c.trim());
+    if (cols[0]) depot[cols[0]] = count(cols[cols.length - 1 - fromEnd]);
+  }
+  return { depot, format: "a CSV depot export" };
+}
+
 export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
   const known = new Map(ops.map((o) => [o.id, o]));
   const letters = letterMap(ops);

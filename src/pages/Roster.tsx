@@ -16,8 +16,8 @@ import { EXP, LMD, sanity } from "../lib/costs";
 import { diff, type Change } from "../lib/progress";
 import { operators } from "../lib/data";
 import { date, fmt } from "../lib/format";
-import { applyImport, importFile, importText, updateAccount } from "../lib/accountImport";
-import { exportRoster, parseRoster } from "../lib/importers";
+import { applyDepot, applyImport, importFile, importText, updateAccount } from "../lib/accountImport";
+import { exportRoster, parseDepot, parseRoster } from "../lib/importers";
 import { pref, setPref } from "../lib/storage";
 import { BridgeError, forget, hello, isPaired, pair, SYNC_SERVERS, syncNow } from "../lib/syncBridge";
 import { REPO_URL } from "../config";
@@ -233,6 +233,11 @@ function Depot() {
   return (
     <>
     <DepotImport />
+    <section class="card krooster">
+      <h2>From another planner</h2>
+      <p class="muted">Kept your depot on Krooster or Penguin Statistics? Bring it over without screenshots.</p>
+      <DepotPaste />
+    </section>
     <section class="card">
       <div class="row" style={{ justifyContent: "space-between" }}>
         <h2 style={{ margin: 0 }}>Depot</h2>
@@ -281,7 +286,7 @@ function Import({ ops }: { ops: OpIndex[] }) {
       <SyncCard ops={ops} />
       <section class="card">
         <h2>Import a file</h2>
-        <p>Accepted: a Novena roster file, a Novena Sync file, game sync data (syncData JSON), or a saved Krooster profile page.</p>
+        <p>Accepted: a Novena roster file, a Novena Sync file, game sync data (syncData JSON), a saved Krooster profile page, or a depot export from Krooster or Penguin Statistics.</p>
         <p class="muted">For your depot, the easiest way is screenshots: <a href={href("/roster", { tab: "depot" })}>Depot → Import from screenshots</a>.</p>
         <div class="row" style={{ marginBottom: "10px" }}>
           <div class="seg" role="group" aria-label="Import mode">
@@ -358,8 +363,39 @@ function KroosterImport({ ops, mode }: { ops: OpIndex[]; mode: "replace" | "merg
         </li>
       </ol>
       {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
-      <Explain>Krooster profiles are public, so no sign-in is needed. The pages open on Krooster's site; Novena only reads the file you choose or the text you paste, in your browser. Krooster doesn't share depots on profiles; for yours, use Depot → Import from screenshots.</Explain>
+      <h3>Your depot</h3>
+      <DepotPaste />
+      <Explain>Krooster profiles are public, so no sign-in is needed. The pages open on Krooster's site; Novena only reads the file you choose or the text you paste, in your browser. Profiles don't include the depot, which is why it's a separate step.</Explain>
     </section>
+  );
+}
+
+/** A depot copied out of Krooster's planner (its Penguin-Stats or CSV export) or Penguin Statistics' planner. Only the
+ *  items it lists change; the roster stays. */
+export function DepotPaste() {
+  const [text, setText] = useState("");
+  const [msg, setMsg] = useState<Msg>(null);
+  const go = () => {
+    try {
+      const d = parseDepot(text);
+      if (!d) throw new Error("That isn't a depot export. In Krooster's Export/Import, pick Penguin-Stats or CSV and copy again.");
+      setMsg({ ok: true, text: applyDepot(d.depot, d.format) }); setText("");
+    }
+    catch (e) { setMsg({ ok: false, text: (e as Error).message }); }
+  };
+  return (
+    <div class="depot-paste">
+      <ol class="steps">
+        <li>On Krooster, open <a href="https://www.krooster.com/data/planner" target="_blank" rel="noopener noreferrer">Planner</a>, click the gear on the materials list, then <em>Export/Import</em>.</li>
+        <li>Set <em>Export format</em> to Penguin-Stats (CSV works too) and press the copy button. (Penguin Statistics' own planner export works the same way.)</li>
+        <li>
+          Paste it here:
+          <textarea rows={3} aria-label="Paste your depot export here" value={text} onInput={(e) => setText((e.target as HTMLTextAreaElement).value)} placeholder='{"@type":"@penguin-statistics/planner/config",…' spellcheck={false} style={{ marginTop: "6px" }} />
+          <button class="primary" disabled={!text.trim()} onClick={go} style={{ marginTop: "8px" }}>Update my depot</button>
+        </li>
+      </ol>
+      {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
+    </div>
   );
 }
 

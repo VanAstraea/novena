@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import fixture from "../fixtures/novena-sync.json";
-import { parseRoster, readData } from "../../src/lib/importers";
+import { parseDepot, parseRoster, readData } from "../../src/lib/importers";
 import type { OpIndex } from "../../src/types";
 
 const op = (id: string, rarity: number, mods: string[] = [], modIds: string[] = []) =>
@@ -85,8 +85,24 @@ describe("Krooster profiles", () => {
     const esc = raw.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const html = `<html><head><meta charset="utf-8"></head><body><pre>${esc}</pre><div class="json-formatter-container"></div></body></html>`;
     expect(parseRoster(readData(html), OPS).format).toBe("Krooster profile");
-    expect(parseRoster(readData(`Pretty-print
-${raw}
-`), OPS).format).toBe("Krooster profile");
+    expect(parseRoster(readData(`Pretty-print\n${raw}\n`), OPS).format).toBe("Krooster profile");
+  });
+});
+
+describe("Depot exports from other planners", () => {
+  // As Krooster writes them (neeia/ak-roster, src/util/fns/depot/exportImportHelper.ts).
+  it("read Krooster's (and Penguin Statistics') Penguin-Stats JSON", () => {
+    const text = JSON.stringify({ "@type": "@penguin-statistics/planner/config", items: [{ id: "30012", have: 120, need: 40 }, { id: "30063", have: 0, need: 6 }] });
+    expect(parseDepot(text)).toEqual({ depot: { "30012": 120, "30063": 0 }, format: "a Penguin Statistics planner export" });
+  });
+
+  it("read Krooster's CSV, even with a comma in a name", () => {
+    const text = "itemId, itemName, owned, needed\n30012,Orirock Cube,120,40\nmod_unlock_token,Module Data Block, Type A,3,0\n";
+    expect(parseDepot(text)?.depot).toEqual({ "30012": 120, mod_unlock_token: 3 });
+  });
+
+  it("leave rosters and other text alone", () => {
+    expect(parseDepot('{"data":{"roster":{}}}')).toBeNull();
+    expect(parseDepot("hello")).toBeNull();
   });
 });
