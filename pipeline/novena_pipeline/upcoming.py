@@ -22,9 +22,12 @@ from datetime import date, datetime, timedelta, timezone
 from novena_pipeline import gamedata as gd
 from novena_pipeline.translations import english
 from novena_pipeline.sources import copilot, wikigg
-from novena_pipeline.usage import StageIndex, ids_by_cn_name, stage_presence
+from novena_pipeline.usage import StageIndex, ids_by_cn_name, slot_alternatives, stage_presence
 
 RECENT_EVENTS = 8
+KEY_OPS = 15  # enough for the page to group them by role
+ALTS = 4  # alternatives kept per key operator
+LIKE = 3  # same-archetype stand-ins when its guides name fewer than two alternatives
 DAY = 86400
 BANNER_KINDS = {"LIMITED": "limited", "LINKAGE": "collab", "SPECIAL": "special", "CLASSIC": "kernel", "CLASSIC_DOUBLE": "kernel"}
 STORY_EVENTS = {"TYPE_MAINSS"}  # celebration events told like a main-story chapter: MAIN and SUB stages, no ACTIVITY ones
@@ -92,6 +95,7 @@ def build(server: str, jobs: list[copilot.Job], usage_ops: dict, now: float | No
     delay, last_shared = lag(server)
     out["lag_days"] = round(delay / DAY)
     stage_index, names = StageIndex(), ids_by_cn_name()
+    here_chars, cn_chars = gd.table("character_table", server), gd.table("character_table", "cn")
     cn_acts = gd.table("activity_table", "cn")["basicInfo"]
     cn_stages = event_stages("cn")
     for act_id, info in cn_acts.items():
@@ -105,12 +109,13 @@ def build(server: str, jobs: list[copilot.Job], usage_ops: dict, now: float | No
               "eta": _iso(info["startTime"] + delay), "confirmed": False}
         if act_id in here_acts:
             ev.update(eta=_iso(here_acts[act_id]["startTime"]), name=here_acts[act_id]["name"], confirmed=True)
-        ops, guides, guided = stage_presence(jobs, cn_stages[act_id], stage_index, names)
+        ops, guides, guided = stage_presence(jobs, cn_stages[act_id], stage_index, names, top=KEY_OPS)
+        alts = slot_alternatives(jobs, cn_stages[act_id], stage_index, names, [k["id"] for k in ops], top=ALTS)
+        add_alternatives(ops, alts, cn_chars, here_chars, usage_ops)
         ev.update(stages=len(cn_stages[act_id]), guided=guided, guides=guides, key_ops=ops)
         out["events"].append(ev)
     out["events"].sort(key=lambda e: e["cn_start"])
 
-    here_chars, cn_chars = gd.table("character_table", server), gd.table("character_table", "cn")
     only = [cid for cid, e in cn_chars.items() if gd.is_playable(cid, e) and cid not in here_chars]
     out["operators"] = sorted(only, key=lambda c: -(usage_ops.get(c, {}).get("score") or 0))
 
@@ -148,6 +153,27 @@ def build(server: str, jobs: list[copilot.Job], usage_ops: dict, now: float | No
     mark_overdue(out, now)
     out["banners"] = sorted((b for b in out["banners"] if now - 14 * DAY <= _ts(b["eta"]) <= now + 200 * DAY), key=lambda b: b["eta"])
     return out
+
+
+def add_alternatives(ops: list[dict], alts: dict[str, dict], cn_chars: dict, here_chars: dict, usage_ops: dict) -> None:
+    """Fills in each key operator's stand-ins: "alts", what its guides accept in the same slot ([char id, share]);
+    "flex", the share of its guides where the slot was open to others; and, when the guides name fewer than two,
+    "like": the most used operators of its archetype this server has (a fallback, not something the guides say)."""
+    for k in ops:
+        a = alts.get(k["id"]) or {}
+        if a.get("alts"):
+            k["alts"] = a["alts"]
+        if a.get("flex"):
+            k["flex"] = a["flex"]
+        if len(k.get("alts", [])) >= 2:
+            continue
+        branch = (cn_chars.get(k["id"]) or {}).get("subProfessionId")
+        taken = {k["id"], *(x for x, _ in k.get("alts", []))}
+        like = sorted((cid for cid, e in here_chars.items() if cid not in taken and e.get("subProfessionId") == branch
+                       and gd.is_playable(cid, e) and (usage_ops.get(cid) or {}).get("score")),
+                      key=lambda c: (-usage_ops[c]["score"], c))[:LIKE]
+        if like:
+            k["like"] = like
 
 
 def mark_overdue(out: dict, now: float) -> None:

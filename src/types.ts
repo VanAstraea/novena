@@ -197,7 +197,16 @@ export interface UpcomingEvent extends WikiDated {
   stages: number;
   guided: number;
   guides: number;
-  key_ops: { id: string; share: number }[];
+  key_ops: KeyOp[];
+}
+
+/** An operator an event's guides use most, with its stand-ins (files from before these were added lack them). */
+export interface KeyOp {
+  id: string;
+  share: number; // view-weighted share of the event's guides that use it
+  alts?: [string, number][]; // what its guides list in the same slot, with the share of its guides that do
+  flex?: number; // share of its guides where that slot is open to others
+  like?: string[]; // when the guides name fewer than two: the archetype's most used operators on this server
 }
 
 export interface ShopEvent {
