@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sanityAt } from "../../src/lib/sanity";
-import type { BaseFile, Room, Team } from "../../src/lib/base";
+import { gameOrder, movesFrom, shiftBySlot, type BaseFile, type BaseLayout, type Room, type Team } from "../../src/lib/base";
 import { expiring, held, tokenUse, voucherPicks } from "../../src/lib/consumables";
 import type { CostData } from "../../src/lib/costs";
 import { dormPlan, drains, lasts } from "../../src/lib/morale";
@@ -57,6 +57,29 @@ describe("morale and dorms", () => {
     expect(plan.dorms[0].resting.map((x) => x.id)).toEqual(["worker"]);
     expect(plan.dorms[0].resting[0].used).toBeCloseTo(1.4 * 12);
     expect(plan.dorms[0].rate).toBeCloseTo(4.2);
+  });
+});
+
+describe("base map", () => {
+  const layout: BaseLayout = { rows: 4, cols: 8, passages: [], annex: [], capacity: {},
+    slots: { slot_a: [2, 4, 2, 4, "B1"], slot_b: [2, 0, 2, 4, "B1"], slot_c: [0, 0, 2, 4, "1F"] } };
+  const rooms = [
+    { slot: "slot_a", room: "TRADING", team: [{ charId: "x" }] },
+    { slot: "slot_b", room: "TRADING", team: [{ charId: "y" }] },
+    { slot: "slot_c", room: "MANUFACTURE", team: [] },
+  ];
+  it("orders rooms top floor first, then left to right", () => {
+    expect(gameOrder(rooms, layout).map((r) => r.slot)).toEqual(["slot_c", "slot_b", "slot_a"]);
+  });
+  it("lays a shift's rooms onto yours in that order and counts who moves", () => {
+    const t1: Room = { facility: "Trade", product: "Money", slots: 1 };
+    const t2: Room = { facility: "Trade", product: "Money", slots: 1 };
+    const shift: [Room, Team][] = [[t1, { members: ["y"], efficiency: 30 }], [t2, { members: ["z"], efficiency: 20 }]];
+    const planned = shiftBySlot(shift, gameOrder(rooms, layout));
+    expect(planned.get("slot_b")?.[0]).toBe(t1);
+    expect(planned.get("slot_a")?.[0]).toBe(t2);
+    expect(planned.has("slot_c")).toBe(false);
+    expect(movesFrom(planned, rooms)).toBe(1); // y stays put, z moves in
   });
 });
 

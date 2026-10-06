@@ -19,6 +19,9 @@ Also, after ako's base.py and training.py:
      "dorm":   {skill id: [everyone, one, own, per dorm level]}  morale per hour a dorm skill adds
      "train":  {skill id: [speed %, [classes] (empty: all), branch or null, mastery level or null, extra %]}
      "workshop": {skill id: [materials, byproduct rate %]}
+     "layout": {"rows", "cols", "slots": {slot id: [row, col, height, width, floor]},
+                "passages": [[row, col, height, width(, 1 in the annex)]], "annex": [slot ids], "capacity": {room: [per level]}}
+               the base's slot grid from building_data, rows flipped so the top floor comes first, for the base map
 Training and Workshop skills aren't in MAA's data, so they're read from the game's English descriptions (skill ids
 are the same on every server). Left out: conditional morale effects, faction-counting skills, and the Training Room
 skills that depend on who else is in the base or stored-up effects.
@@ -162,6 +165,34 @@ def control_buffs(infrast: dict) -> dict[str, dict[str, float]]:
     return out
 
 
+PASSAGES = ("ELEVATOR", "CORRIDOR")
+_ROOMS = ("CONTROL", "POWER", "MANUFACTURE", "TRADING", "DORMITORY", "WORKSHOP", "HIRE", "TRAINING", "MEETING")
+
+
+def layout(b: dict) -> dict:
+    """Where each slot of the base sits (building_data's layouts.v0), for drawing a synced base like the game's screen.
+
+    The game counts rows from the bottom; they're flipped here so the top floor (the Control Center's) is row 0.
+    Elevators and corridors hold no one, so they're kept apart as passages. Slots whose costs end in "_P" are the
+    annex to the right of the main base; its passages are marked so the map can leave them out when nothing is built
+    there. "capacity" is how many operators each kind of room holds at each level."""
+    slots = ((b.get("layouts") or {}).get("v0") or {}).get("slots") or {}
+    height = max((g["offset"]["row"] + g["size"]["row"] for g in slots.values()), default=0)
+    out: dict = {"rows": height, "cols": max((g["offset"]["col"] + g["size"]["col"] for g in slots.values()), default=0),
+                 "slots": {}, "passages": [], "annex": []}
+    for sid, g in slots.items():
+        place = [height - g["offset"]["row"] - g["size"]["row"], g["offset"]["col"], g["size"]["row"], g["size"]["col"]]
+        annex = str(g.get("cleanCostId") or "").endswith("_P")
+        if g.get("category") in PASSAGES:
+            out["passages"].append(place + [1] if annex else place)
+        else:
+            out["slots"][sid] = place + [g.get("storeyId") or ""]
+            if annex:
+                out["annex"].append(sid)
+    out["capacity"] = {k: [p.get("maxStationedNum", 0) for p in r.get("phases") or []] for k, r in (b.get("rooms") or {}).items() if k in _ROOMS}
+    return out
+
+
 def build(server: str) -> dict:
     infrast = cached_json(CACHE_DIR / "sources" / "maa_infrast.json", MAA_URL, 20 * 3600)
     b = gd.table("building_data", server)
@@ -205,4 +236,5 @@ def build(server: str) -> dict:
     train, workshop = training_workshop()
     formulas = {k: f.get("itemId") for k, f in (b.get("manufactFormulas") or {}).items() if f.get("itemId")}  # what a factory makes
     return {"ops": ops, "rooms": rooms, "control": control_buffs(infrast), "names": names,
-            "morale": morale_effects(infrast), "dorm": dorm_effects(infrast), "train": train, "workshop": workshop, "formulas": formulas}
+            "morale": morale_effects(infrast), "dorm": dorm_effects(infrast), "train": train, "workshop": workshop, "formulas": formulas,
+            "layout": layout(b)}
