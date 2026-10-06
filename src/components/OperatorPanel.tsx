@@ -3,7 +3,8 @@
 // against your depot), one-click "Make it a goal" and "Farm what's short", the comparison list, and what other pages
 // know about the operator. It lives in the address (?op=char_x), so Back closes it and a link reopens it.
 import { useEffect } from "preact/hooks";
-import { BuildMarks } from "./Marks";
+import { BuildMarks, ModuleMark } from "./Marks";
+import { ModuleLine } from "./ModuleInfo";
 import { costTable, lastPlan } from "../lib/account";
 import type { BaseFile } from "../lib/base";
 import { parse } from "../lib/build";
@@ -162,6 +163,7 @@ function Body({ id }: { id: string }) {
               : opts.map((o, i) => {
                 const shortSanity = sanity(o.short, items.values);
                 const ready = !Object.keys(o.short).filter((k) => k !== LMD && k !== EXP).length;
+                const mod = /^Mod ([A-Z])(\d)$/.exec(o.text);
                 return (
                   <details key={o.text} class="opt" open={i === 0}>
                     <summary>
@@ -170,6 +172,7 @@ function Body({ id }: { id: string }) {
                       <span class={ready ? "good-text" : "warn-text"}> · {ready ? "Ready" : "Short"}</span>
                     </summary>
                     <div class="opt-body">
+                      {mod && <p class="mod-sum"><ModuleMark op={op} k={mod[1]} stage={+mod[2]} size={20} /><ModuleLine id={id} k={mod[1]} stage={+mod[2]} /></p>}
                       <Items cost={o.cost} />
                       {!ready && <p class="muted" style={{ margin: "6px 0 0" }}>Short of ~{fmt(shortSanity)} sanity of materials: about {Math.max(1, Math.ceil(shortSanity / daily))} day{Math.ceil(shortSanity / daily) === 1 ? "" : "s"} of sanity at {daily} a day.</p>}
                       {o.trainer && <p class="muted" style={{ margin: "6px 0 0" }}>{o.trainer}.</p>}

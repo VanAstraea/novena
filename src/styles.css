@@ -1001,3 +1001,34 @@ table.cards tr.picked td { background: color-mix(in srgb, var(--accent) 9%, tran
   table.cards td.pick input { justify-self: start; }
   .next-grid { grid-template-columns: minmax(0, 1fr); } /* Today's three cards, one under another, so the ✕ has room */
 }
+
+/* Module cards: every module icon is a button that shows what the module does (src/components/ModuleInfo.tsx). The
+   card floats over the page beside the icon; the roster's edit mode adds an "i" beside each icon on touch screens. */
+button.mark-info { min-height: 0; padding: 2px 3px 1px; margin: -2px -3px -1px; border: 1px solid transparent; border-radius: 2px; background: none; color: inherit; font: inherit; letter-spacing: inherit; cursor: pointer; }
+button.mark-info:hover, button.mark-info[aria-expanded="true"] { background: var(--surface-2); border-color: var(--line); }
+.mod-edit { display: inline-flex; align-items: center; gap: 2px; }
+button.mod-i { display: none; min-height: 0; width: 26px; height: 26px; padding: 0; place-items: center; border: 0; background: none; color: var(--muted); }
+button.mod-i span { display: grid; place-items: center; width: 18px; height: 18px; border: 1px solid var(--line); border-radius: 50%; font: italic 700 0.74rem/1 var(--italic); }
+button.mod-i[aria-expanded="true"] span { border-color: var(--accent); color: var(--accent); }
+@media (hover: none) { button.mod-i { display: inline-grid; } }
+.modinfo { position: fixed; top: 0; left: 0; z-index: 60; width: min(380px, calc(100vw - 16px)); overflow-y: auto; overscroll-behavior: contain;
+  border: 1px solid var(--line); border-top: 2px solid var(--accent); background: var(--surface); color: var(--text); box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45); font-size: 0.86rem; }
+.modinfo:focus { outline: none; }
+.modinfo-body { padding: 10px 12px 10px; }
+.modinfo-body > p { margin: 0 0 6px; }
+.modinfo-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.modinfo-head strong { display: block; line-height: 1.2; }
+.modinfo-head small { display: block; }
+.modinfo-stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.modinfo-stages li { padding: 5px 8px; border-left: 2px solid var(--border); }
+.modinfo-stages li.on { border-left-color: var(--accent); background: var(--accent-soft); }
+.modinfo-stages li.on .modinfo-st b { color: var(--accent); }
+.modinfo-st { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.modinfo-st span { color: var(--muted); }
+.modinfo-stages p { margin: 3px 0 0; line-height: 1.4; }
+.modinfo .lbl { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
+.modinfo-foot { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-top: 8px; }
+.mod-sum { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 8px; }
+.mod-line { display: grid; min-width: 0; font-size: 0.86rem; line-height: 1.35; }
+.mod-line strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mod-line .muted { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }

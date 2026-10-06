@@ -3,6 +3,7 @@ import { useMemo, useState } from "preact/hooks";
 import { Chart } from "../components/Chart";
 import { undoable } from "../components/Toast";
 import { MasteryMark, ModuleMark } from "../components/Marks";
+import { ModuleInfoButton, moduleInfoProps } from "../components/ModuleInfo";
 import { DepotImport } from "../components/DepotImport";
 import { OpPicker } from "../components/OpPicker";
 import { Avatar, Await, Divider, Explain, GIcon, GuideLink, ItemIcon, itemName, Items, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
@@ -157,8 +158,8 @@ function Ops({ ops }: { ops: OpIndex[] }) {
         )}
         {edit && picked.size > 0 && <BulkBar ids={[...picked].filter((id) => a.ops[id])} byId={byId} clear={() => setPicked(new Set())} />}
         <Explain>{edit
-          ? "Change any value and it's saved straight away. Masteries and modules: click an icon to raise it (it sets E2 and SL7 for you), Shift+click or right-click to lower it. Operators you add appear at the top. Tick operators, or tick the header to take every one shown (filter first), to change many at once."
-          : "Your roster as the game shows it. Click an operator for their build, next upgrades and costs. Edit roster to change it by hand, or sync again under Import / export."}</Explain>
+          ? "Change any value and it's saved straight away. Masteries and modules: click an icon to raise it (it sets E2 and SL7 for you), Shift+click or right-click to lower it. Hover a module, or tap its i, to see what it does. Operators you add appear at the top. Tick operators, or tick the header to take every one shown (filter first), to change many at once."
+          : "Your roster as the game shows it. Click an operator for their build, next upgrades and costs, or a module icon for what the module does. Edit roster to change it by hand, or sync again under Import / export."}</Explain>
       </section>
       {rows.length > 0 ? (
         <div class="table-wrap">
@@ -278,12 +279,17 @@ function EditRow({ r, op, set, picked, pick, isNew }: { r: RosterOp; op: OpIndex
             {op.mods.map((k) => {
               const stage = r.modules[k] || 0, locked = maxElite(op) < 2;
               const to = (n: number) => set(r.id, { modules: { ...r.modules, [k]: (n + 4) % 4 } });
+              // hovering or focusing the icon shows what the module does (clicking it raises the stage); on touch
+              // screens the "i" beside it does
               return (
-                <button key={k} type="button" class="mark-btn" disabled={locked} aria-label={`${op.name} module ${k}: ${stage ? `stage ${stage}` : "not unlocked"}`}
-                  title={`Module ${k} stage ${stage}. Click to raise (sets E2), Shift+click or right-click to lower`}
-                  onClick={(e) => to(e.shiftKey ? stage - 1 : stage + 1)} onContextMenu={(e) => { e.preventDefault(); if (!locked) to(stage - 1); }}>
-                  <ModuleMark op={op} k={k} stage={stage} />
-                </button>
+                <span key={k} class="mod-edit">
+                  <button type="button" class="mark-btn" disabled={locked} aria-label={`${op.name} module ${k}: ${stage ? `stage ${stage}` : "not unlocked"}`}
+                    {...moduleInfoProps(op.id, k, stage, false, "Click to raise (sets E2), Shift+click or right-click to lower")}
+                    onClick={(e) => to(e.shiftKey ? stage - 1 : stage + 1)} onContextMenu={(e) => { e.preventDefault(); if (!locked) to(stage - 1); }}>
+                    <ModuleMark op={op} k={k} stage={stage} info={false} />
+                  </button>
+                  {!locked && <ModuleInfoButton id={op.id} k={k} stage={stage} />}
+                </span>
               );
             })}
           </span>

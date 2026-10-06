@@ -1,6 +1,7 @@
 import type { ComponentType } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { effect } from "@preact/signals";
+import { ModuleInfoLayer } from "./components/ModuleInfo";
 import { OperatorPanel } from "./components/OperatorPanel";
 import { SearchDialog, searchOpen } from "./components/Search";
 import { Toasts } from "./components/Toast";
@@ -225,6 +226,7 @@ export function App() {
       <BottomNav />
       <SearchDialog />
       <OperatorPanel />
+      <ModuleInfoLayer />
       <Toasts />
     </>
   );
