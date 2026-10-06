@@ -1,7 +1,7 @@
 // Putting an import into the account, shared by the Roster's Import tab and the home page's account panel.
 import { undoable } from "../components/Toast";
 import { BASE } from "./data";
-import { parseRoster, type Imported } from "./importers";
+import { parseRoster, readData, type Imported } from "./importers";
 import { prioritiesSoon } from "./priorities";
 import { account, saveAccount, server, snapshotOf, type Account } from "../state";
 import { pref, setPref } from "./storage";
@@ -28,16 +28,13 @@ export function applyImport(r: Imported, mode: "replace" | "merge"): string {
 
 /** Read a dropped or chosen file and import it. Throws with a readable message when it can't. */
 export async function importFile(f: File, ops: OpIndex[], server: string, mode: "replace" | "merge"): Promise<string> {
-  return importText(await f.text(), ops, server, mode, "That file isn't JSON");
+  return importText(await f.text(), ops, server, mode, "Novena couldn't read that file");
 }
 
 /** Import pasted or read text (a file's contents, or a Krooster profile copied from the browser). */
-export function importText(text: string, ops: OpIndex[], server: string, mode: "replace" | "merge", what = "That isn't JSON"): string {
+export function importText(text: string, ops: OpIndex[], server: string, mode: "replace" | "merge", what = "Novena couldn't read that"): string {
   let json: unknown;
-  // A copy of a whole browser page can carry a stray label around the data (Chrome's "Pretty-print"): read from the
-  // first { to the last }.
-  const body = text.slice(Math.max(0, text.indexOf("{")), text.lastIndexOf("}") + 1) || text;
-  try { json = JSON.parse(body); } catch { throw new Error(`${what}. Novena reads its own roster files, Novena Sync files, game sync data and Krooster profiles.`); }
+  try { json = readData(text); } catch { throw new Error(`${what}. Novena reads its own roster files, Novena Sync files, game sync data and Krooster profiles.`); }
   const r = parseRoster(json, ops);
   if (r.server && r.server !== server) throw new Error(`This file is from the ${r.server.toUpperCase()} server; switch to it first (top right).`);
   return applyImport(r, mode);

@@ -46,6 +46,30 @@ function sanitize(r: Partial<RosterOp> & { id: string }, known: Map<string, OpIn
   };
 }
 
+const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+const decodeEntities = (s: string) => s.replace(/&(#x?[0-9a-f]+|\w+);/gi, (m, e: string) =>
+  e[0] === "#" ? String.fromCodePoint(e[1].toLowerCase() === "x" ? parseInt(e.slice(2), 16) : +e.slice(1)) : ENTITIES[e.toLowerCase()] ?? m);
+
+/** The data in a file's text or a paste. Besides plain JSON, it reads two kinds of saved web page:
+ *  - Krooster's profile page (krooster.com/u/<name>, saved with Ctrl+S): the roster is in its Next.js data block;
+ *  - a JSON address saved from Chrome, which wraps the text in its own small page: the data is the <pre>.
+ *  A copied page can also carry a stray label around the data (Chrome's "Pretty-print"), so plain text is read from
+ *  the first { to the last }. Throws when there's no data. */
+export function readData(text: string): unknown {
+  const t = text.trim();
+  if (/^</.test(t)) {
+    const next = t.match(/<script[^>]*id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i);
+    if (next) {
+      const page = JSON.parse(next[1])?.props?.pageProps;
+      if (page?.data?.roster) return page.data;
+    }
+    const pre = t.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+    if (pre) return JSON.parse(decodeEntities(pre[1]).trim());
+    throw new Error("No data in this page");
+  }
+  return JSON.parse(t.slice(Math.max(0, t.indexOf("{")), t.lastIndexOf("}") + 1) || t);
+}
+
 export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
   const known = new Map(ops.map((o) => [o.id, o]));
   const letters = letterMap(ops);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import fixture from "../fixtures/novena-sync.json";
-import { parseRoster } from "../../src/lib/importers";
+import { parseRoster, readData } from "../../src/lib/importers";
 import type { OpIndex } from "../../src/types";
 
 const op = (id: string, rarity: number, mods: string[] = [], modIds: string[] = []) =>
@@ -71,5 +71,22 @@ describe("Krooster profiles", () => {
 
   it("are read when only the roster is pasted", () => {
     expect(Object.keys(parseRoster(profile.data.roster, OPS).ops)).toEqual(["char_202_demkni", "char_002_amiya"]);
+  });
+
+  // A saved krooster.com/u/<name> page carries the roster in its Next.js data block (src/pages/network/lookup).
+  it("are read from a saved Krooster profile page", () => {
+    const html = `<!DOCTYPE html><html><head><style>body{margin:0}</style></head><body><div id="__next"></div><script id="__NEXT_DATA__" type="application/json">${JSON.stringify({ props: { pageProps: { username: "doc", data: profile.data } }, page: "/network/lookup/[[...user]]" })}</script></body></html>`;
+    expect(Object.keys(parseRoster(readData(html), OPS).ops)).toEqual(["char_202_demkni", "char_002_amiya"]);
+  });
+
+  // Chrome saves a JSON address as its own small page with the text in a <pre>, escaped.
+  it("are read from the profile address saved in Chrome, or copied with a stray label", () => {
+    const raw = JSON.stringify({ ...profile, data: { ...profile.data, account: { username: "R&D <lab>" } } });
+    const esc = raw.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const html = `<html><head><meta charset="utf-8"></head><body><pre>${esc}</pre><div class="json-formatter-container"></div></body></html>`;
+    expect(parseRoster(readData(html), OPS).format).toBe("Krooster profile");
+    expect(parseRoster(readData(`Pretty-print
+${raw}
+`), OPS).format).toBe("Krooster profile");
   });
 });
