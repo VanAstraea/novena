@@ -1,5 +1,5 @@
-// Usage rankings from community clears, per content type and archetype; archetype gaps once a roster is in.
-import { useMemo, useState } from "preact/hooks";
+// Usage rankings from community clears, per content type and archetype. (The roster's archetype gaps are their own page.)
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { CommunityMarks } from "../components/Marks";
 import { OpFilters, useOpFilters } from "../components/OpFilters";
 import { WeightsControl } from "../components/Weights";
@@ -7,26 +7,25 @@ import { contentLevels, customised, weightedScore } from "../lib/weights";
 import { Await, Explain, metaSig, OpLink, SortTh, Stars, Tabs, useAsync } from "../components/ui";
 import { operators, usage as loadUsage } from "../lib/data";
 import { CATEGORY_NAMES, CLASS_NAMES, CLASS_ORDER, pct } from "../lib/format";
-import { analyse } from "../lib/gaps";
-import { href, route, setQuery } from "../lib/router";
+import { href, navigate, route, setQuery } from "../lib/router";
 import { account, hasRoster, server } from "../state";
 import type { Category, OpIndex, UsageFile } from "../types";
 
-type View = "operators" | "archetypes" | "gaps";
+type View = "operators" | "archetypes";
 const CATS: (Category | "all")[] = ["all", "main", "event", "annihilation", "cc"];
 
 export default function Rankings() {
   const s = server.value;
   const st = useAsync(() => Promise.all([operators(s), loadUsage()]), [s]);
-  const view = (route.value.query.get("view") || "operators") as View;
+  const view = (route.value.query.get("view") || "operators") as View | "gaps";
+  useEffect(() => { if (view === "gaps") navigate(href("/gaps"), { replace: true }); }, [view]); // old links
   return (
     <div class="stack fade-in">
       <h1>Rankings</h1>
       <Tabs label="Ranking views" value={view} onChange={(v) => setQuery({ view: v === "operators" ? "" : v })}
-        tabs={[{ key: "operators", label: "Operators" }, { key: "archetypes", label: "Archetypes" }, { key: "gaps", label: "Your gaps" }]} />
+        tabs={[{ key: "operators", label: "Operators" }, { key: "archetypes", label: "Archetypes" }]} />
       <Await state={st} what="usage data">
-        {([ops, usage]) => view === "archetypes" ? <Archetypes ops={ops} usage={usage} />
-          : view === "gaps" ? <Gaps ops={ops} usage={usage} /> : <Ops ops={ops} usage={usage} />}
+        {([ops, usage]) => view === "archetypes" ? <Archetypes ops={ops} usage={usage} /> : <Ops ops={ops} usage={usage} />}
       </Await>
     </div>
   );
@@ -137,38 +136,7 @@ function Archetypes({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
           </tbody>
         </table>
       </div>
-      <Explain>Used in: share of community clear guides that use at least one operator of the archetype.</Explain>
-    </>
-  );
-}
-
-function Gaps({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
-  const meta = metaSig.value;
-  const s = server.value;
-  const gaps = useMemo(() => analyse(ops, usage, account.value.ops, s), [ops, usage, account.value, s]);
-  if (!hasRoster.value) {
-    return <div class="card"><p>Enter your roster under <a href={href("/roster")}>My account</a> to see which archetypes your clears would struggle with.</p></div>;
-  }
-  return (
-    <>
-      <div class="table-wrap">
-        <table class="cards">
-          <thead><tr><th>Archetype</th><th class="num">Demand</th><th class="num">Covered</th><th class="num">Gap</th><th>Build</th><th>Get</th></tr></thead>
-          <tbody>
-            {gaps.slice(0, 25).map((g) => (
-              <tr key={g.branch}>
-                <td data-label="Archetype">{meta?.branches[g.branch] || g.branch}</td>
-                <td data-label="Demand" class="num">{pct(g.demand)}</td>
-                <td data-label="Covered" class="num">{pct(g.coverage, 0)}</td>
-                <td data-label="Gap" class="num"><strong>{pct(g.gap)}</strong></td>
-                <td data-label="Build">{g.options.filter((o) => o.owned && !o.built).slice(0, 3).map((o) => o.op.name).join(", ") || "–"}</td>
-                <td data-label="Get">{g.options.filter((o) => !o.owned).slice(0, 3).map((o) => `${o.op.name}${o.here ? "" : " (CN only)"}`).join(", ") || "–"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <Explain>Demand: share of clears using the archetype. Covered: share of the archetype's usage from operators you own (an owned copy below the promotion its community build needs counts 30%). Gap = demand × uncovered share.</Explain>
+      <Explain>Used in: share of community clear guides that use at least one operator of the archetype.{hasRoster.value ? <> Which of these your roster covers poorly: <a href={href("/gaps")}>Gaps</a>.</> : null}</Explain>
     </>
   );
 }

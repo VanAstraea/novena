@@ -720,6 +720,30 @@ button.linkish:hover { color: var(--text); }
 .op-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 12px; }
 .card > .op-filters:first-child { margin-top: 0; }
 
+/* --- gaps: archetypes the roster covers poorly */
+.gaps td { vertical-align: middle; }
+.gap-name { display: block; font-weight: 700; color: var(--text); }
+.gap-cls { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); }
+.gap-cov { display: inline-flex; align-items: center; gap: 10px; }
+.gap-cov .bar { width: 90px; }
+.gap-ops { display: flex; flex-wrap: wrap; gap: 6px; max-width: 380px; }
+.gap-ops.col { flex-direction: column; align-items: flex-start; }
+.gap-op { display: inline-flex; align-items: center; gap: 7px; padding: 3px 9px 3px 3px; border: 1px solid var(--line); background: var(--surface); font-size: 0.92rem; }
+.gap-op.todo { border-color: color-mix(in srgb, var(--accent) 60%, transparent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.gap-op-link { display: inline-flex; align-items: center; gap: 7px; color: var(--text); }
+.gap-op-link:hover { text-decoration: none; }
+.gap-op-link:hover .op-name { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 3px; }
+.gap-op.todo .op-name { color: var(--accent-strong); }
+.gap-op small { color: var(--muted); }
+.gap-op .avatar.sm { width: 26px; height: 26px; }
+.gap-op .build-marks { gap: 4px; }
+.gap-goal { padding: 1px 7px; min-height: 0; font-size: 0.8rem; }
+.gap-op, .gap-op-link, .gap-goal { white-space: nowrap; }
+@media (max-width: 720px) {
+  .gap-ops { max-width: none; }
+  table.cards.gaps td[data-label="Yours"], table.cards.gaps td[data-label="To fill it"] { grid-template-columns: 1fr; gap: 6px; }
+}
+
 /* --- compare -------------------------------------------------------------------------------------------------- */
 /* equal columns; the mirror's portraits are 180 × 360, so they're shown near that size, never blown up */
 .cmp-table { table-layout: fixed; min-width: 640px; }

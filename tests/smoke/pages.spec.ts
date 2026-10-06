@@ -15,6 +15,7 @@ const PAGES: [string, RegExp][] = [
   ["/today", /Today/],
   ["/roster", /My roster/],
   ["/plan", /Priorities/],
+  ["/gaps", /Gaps/],
   ["/dump", /Sanity Dump/],
   ["/base", /Base/],
   ["/pulls", /Pull planner/],

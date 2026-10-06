@@ -35,7 +35,9 @@ Useful without any account data:
   day-by-day schedule, and a list of stages to leave out (ones you haven't cleared yet).
 - **Recruitment calculator.** Pick your five tags; see every combination with its guaranteed rarity and the
   operators it can give. With Novena Sync, your four slots' tags are there to check in one click.
-- **Rankings.** Usage in community clears per content type and archetype; your archetype gaps once you add a roster.
+- **Rankings.** Usage in community clears per content type and archetype.
+- **Gaps.** The archetypes community clears lean on that your roster covers poorly, who you have in each, and the
+  quickest ways to fill them: raise one you own to its community build (one click makes it a Planner goal) or get one.
 - **Upcoming content.** Events, operators, modules and banners CN has had and your server hasn't, with estimated
   dates from the measured CN→server lag, the operators each event's guides use most, and the next Contingency Contract.
   Names Global hasn't announced get an unofficial English translation, marked as such, until the official one lands.

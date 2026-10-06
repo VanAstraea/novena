@@ -25,6 +25,7 @@ export const PAGES: PageDef[] = [
   { path: "/today", group: "account", title: "Today", short: "Today", nav: "account", keywords: ["checklist", "daily", "routine", "sanity", "timer", "notification"], load: () => import("./Today") },
   { path: "/roster", group: "account", title: "My roster", short: "Roster", nav: "account", keywords: ["account", "import", "depot", "inventory"], load: () => import("./Roster") },
   { path: "/plan", group: "account", title: "Priorities: what to raise next", short: "Priorities", nav: "account", keywords: ["priority", "priorities", "plan", "next", "progression", "guides"], load: () => import("./Plan") },
+  { path: "/gaps", group: "account", title: "Gaps", short: "Gaps", nav: "account", keywords: ["archetypes", "coverage", "missing", "who to build", "weak"], load: () => import("./Gaps") },
   { path: "/dump", group: "account", title: "Sanity Dump", short: "Sanity Dump", nav: "account", keywords: ["today", "what to farm"], load: () => import("./Dump") },
   { path: "/base", group: "account", title: "Base (RIIC) optimizer", short: "Base", nav: "account", keywords: ["riic", "infrastructure", "shifts", "trading post", "factory"], load: () => import("./Base") },
   { path: "/pulls", group: "account", title: "Pull planner", short: "Pulls", nav: "account", keywords: ["orundum", "headhunting", "savings", "banners"], load: () => import("./Pulls") },
