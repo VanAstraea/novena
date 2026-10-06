@@ -1,6 +1,6 @@
 import { useMemo, useState } from "preact/hooks";
 import { Avatar, Await, CutHead, Explain, ItemIcon, itemName, Tabs, useAsync } from "../components/ui";
-import { Evaluator, LAYOUTS, production, PRODUCT_LABEL, ROOM_LABEL, rotation, skillsAt, standardLayout, type BaseFile, type Room, type Team } from "../lib/base";
+import { Evaluator, LAYOUTS, production, PRODUCT_LABEL, ROOM_LABEL, rotation, skillsAt, standardLayout, type BaseFile, type Room, type RoomLevels, type Team } from "../lib/base";
 import { load, operators } from "../lib/data";
 import { DEFAULT_DORMS, dormPlan, dormRate, drains, lasts, MAX_MORALE, type DormSettings } from "../lib/morale";
 import { pref, setPref } from "../lib/storage";
@@ -33,6 +33,26 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
     const mine = `${n("TRADING")}${n("MANUFACTURE")}${n("POWER")}`;
     return LAYOUTS[mine] ? mine : "243";
   });
+  // Room levels per layout: saved once you change them, otherwise your base's own (Novena Sync), otherwise all level 3.
+  const syncedLevels = (): RoomLevels => ({
+    trade: synced?.rooms.filter((r) => r.room === "TRADING").map((r) => r.level) || [],
+    mfg: synced?.rooms.filter((r) => r.room === "MANUFACTURE").map((r) => r.level) || [],
+  });
+  const [levels, setLevels] = useState<RoomLevels>(() => { try { return { ...syncedLevels(), ...JSON.parse(pref(`baseLevels.${layout}`, "{}")) }; } catch { return syncedLevels(); } });
+  const changeLayout = (l: string) => {
+    setLayout(l);
+    try { setLevels({ ...syncedLevels(), ...JSON.parse(pref(`baseLevels.${l}`, "{}")) }); } catch { setLevels(syncedLevels()); }
+  };
+  const setLevel = (kind: keyof RoomLevels, i: number, v: number) => {
+    const [t, m] = LAYOUTS[layout];
+    const list = Array.from({ length: kind === "trade" ? t : m }, (_, j) => levels[kind][j] || 3);
+    list[i] = v;
+    const next = { ...levels, [kind]: list };
+    setLevels(next); setPref(`baseLevels.${layout}`, JSON.stringify(next));
+  };
+  const [goldBy, setGoldBy] = useState<Record<string, number>>(() => { try { return JSON.parse(pref("baseGold", "{}")); } catch { return {}; } });
+  const gold = Math.min(goldBy[layout] ?? LAYOUTS[layout][0], LAYOUTS[layout][1]);
+  const setGold = (n: number) => { const next = { ...goldBy, [layout]: n }; setGoldBy(next); setPref("baseGold", JSON.stringify(next)); };
   const [shifts, setShifts] = useState(2);
   const [tab, setTab] = useState("A");
   const [copied, setCopied] = useState(false);
@@ -43,10 +63,10 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
   const saveDorms = (patch: Partial<DormSettings>) => { const next = { ...dorms, ...patch }; setDorms(next); setPref("dorms", JSON.stringify(next)); };
   const skills = useMemo(() => new Map(Object.values(roster).map((r) => [r.id, skillsAt(data, r.id, r.elite, r.level)])), [data, roster]);
   const plan = useMemo(() => {
-    const rooms = standardLayout(layout);
+    const rooms = standardLayout(layout, gold, levels);
     const ev = new Evaluator(data, skills, rooms);
     return rotation(rooms, ev, new Set(Object.keys(roster)), shifts);
-  }, [data, skills, layout, shifts]);
+  }, [data, skills, layout, shifts, levels, gold]);
   const names = (t: Team) => t.members.map((m) => ops.get(m)?.name || m).join(", ");
   const text = plan.map((a, i) => [`Shift ${"ABC"[i]} (${24 / shifts} h)`, ...a.map(([r, t]) => `  ${ROOM_LABEL[r.facility]} (${PRODUCT_LABEL[r.product] || r.product}): ${names(t) || "—"}`)].join("\n")).join("\n\n");
   const k = Math.max(0, "ABC".indexOf(tab));
@@ -56,13 +76,21 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
   const rest = useMemo(() => (plan.length > 1 ? dormPlan(data, skills, plan, k, Object.keys(roster), dorms) : null), [plan, k, dorms]);
   const avg = plan.reduce((s, a) => s + production(a), 0) / plan.length;
   // base skills a promotion away: for owned operators, what E1/E2 would add to the plan (single best room)
-  const unlocks = useMemo(() => unlockGains(data, roster, layout, shifts, avg), [data, roster, layout, shifts]);
+  const unlocks = useMemo(() => unlockGains(data, roster, layout, shifts, avg, levels, gold), [data, roster, layout, shifts, levels, gold]);
+  const [nTrade, nMfg] = LAYOUTS[layout];
+  const levelPick = (kind: keyof RoomLevels, i: number, label: string) => (
+    <label key={`${kind}${i}`} class="field lvl"><span>{label}</span>
+      <select value={levels[kind][i] || 3} onChange={(e) => setLevel(kind, i, +(e.target as HTMLSelectElement).value)}>
+        {[1, 2, 3].map((n) => <option key={n} value={n}>Lv {n}</option>)}
+      </select>
+    </label>
+  );
   return (
     <>
       <section class="card">
         <div class="row" style={{ alignItems: "flex-end" }}>
           <label class="field"><span>Layout (Trading Posts, Factories, Power Plants)</span>
-            <select value={layout} onChange={(e) => setLayout((e.target as HTMLSelectElement).value)}>
+            <select value={layout} onChange={(e) => changeLayout((e.target as HTMLSelectElement).value)}>
               {Object.keys(LAYOUTS).map((l) => <option key={l} value={l}>{l.split("").join("-")}</option>)}
             </select>
           </label>
@@ -73,6 +101,16 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
           </label>
           <button onClick={() => { navigator.clipboard?.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>{copied ? "Copied" : "Copy as text"}</button>
         </div>
+        <div class="row room-levels" style={{ alignItems: "flex-end", marginTop: "12px" }}>
+          <label class="field lvl"><span>Factories on gold</span>
+            <select value={gold} onChange={(e) => setGold(+(e.target as HTMLSelectElement).value)}>
+              {Array.from({ length: nMfg + 1 }, (_, n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </label>
+          {Array.from({ length: nTrade }, (_, i) => levelPick("trade", i, `Trading Post ${i + 1}`))}
+          {Array.from({ length: nMfg }, (_, i) => levelPick("mfg", i, `Factory ${i + 1}${i < gold ? " (gold)" : " (records)"}`))}
+        </div>
+        <Explain>A room's level is how many operators it holds: a level-2 Trading Post takes two, so the plan fills it with the best pair (for example a dedicated Proviso post). {synced ? "Levels start from your base as Novena Sync last saw it; changes are kept per layout." : "Changes are kept per layout."} The skill values themselves don't change with level in MAA's data.</Explain>
       </section>
       <CutHead eyebrow="Your rotation" art="nave" title={<>+{fmt(avg)}% production</>}
         sub={<>{shifts === 1 ? "One shift" : `${shifts} shifts of ${24 / shifts} h`} on {layout.split("").join("-")} · rooms' percent bonuses added up, over the rotation</>} />
@@ -199,8 +237,8 @@ function RoomRow({ room, team, ops, hours, shiftHours }: { room: Room; team: Tea
   );
 }
 
-function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite: number; level: number }>, layout: string, shifts: number, base: number) {
-  const rooms = standardLayout(layout);
+function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite: number; level: number }>, layout: string, shifts: number, base: number, levels?: RoomLevels, gold?: number) {
+  const rooms = standardLayout(layout, gold, levels);
   const out: { id: string; elite: number; gain: number }[] = [];
   const skills = new Map(Object.values(roster).map((r) => [r.id, skillsAt(data, r.id, r.elite, r.level)]));
   for (const r of Object.values(roster)) {

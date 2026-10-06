@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { Await, Explain, ItemIcon, Items, itemName, itemsSig, metaSig, useAsync } from "../components/ui";
 import { LMD, type Cost } from "../lib/costs";
 import { EXP_CARDS } from "../lib/crafting";
+import { undoable } from "../components/Toast";
 import { operator, operators, stages as loadStages } from "../lib/data";
 import { DAILY_SANITY, plan, schedule, type FarmPlan } from "../lib/farming";
 import { compact, date, dayTime, fmt } from "../lib/format";
@@ -163,16 +164,26 @@ function FarmView({ stg, items }: { stg: StagesFile; items: ItemsFile }) {
         </div>
         <Explain>A linear program picks the stage runs and Workshop crafts that cover what you need for the least sanity, using Penguin Statistics drop rates for {stg.region} (updated {date(stg.fetched)}). It runs in your browser.</Explain>
       </section>
-      {result && <PlanView r={result.plan} stg={stg} items={items} today={today} setToday={setToday} cap={cap} setCap={setCap} />}
+      {result && <PlanView r={result.plan} stg={stg} items={items} today={today} setToday={setToday} cap={cap} setCap={setCap}
+        clear={() => {
+          const was = q.get("items") || "";
+          setResult(null); setQuery({ items: "" });
+          undoable("Farming plan cleared.", () => setQuery({ items: was }));
+        }} />}
       <ExcludedCard stg={stg} />
       <ResetCard stg={stg} />
     </>
   );
 }
 
-function PlanView({ r, stg, items, today, setToday, cap, setCap }: {
-  r: FarmPlan; stg: StagesFile; items: ItemsFile; today: number; setToday: (n: number) => void; cap: number; setCap: (n: number) => void;
+function PlanView({ r, stg, items, today, setToday, cap, setCap, clear }: {
+  r: FarmPlan; stg: StagesFile; items: ItemsFile; today: number; setToday: (n: number) => void; cap: number; setCap: (n: number) => void; clear: () => void;
 }) {
+  const wanted = new Set(r.wanted);
+  const value = (id: string) => items.values[id] || 0;
+  // Crafts in the order you'd make them: lower tiers first, since higher ones are made from them.
+  const crafts = Object.entries(r.crafts).map(([id, n]) => ({ id, times: Math.ceil(n - 1e-6), recipe: items.recipes[id] }))
+    .sort((a, b) => (items.items[a.id]?.rarity || 0) - (items.items[b.id]?.rarity || 0));
   const p = prefs.value;
   const s = server.value;
   const whole = r.runs.map((x) => ({ code: x.stage.code, runs: Math.ceil(x.runs - 1e-6), sanity: x.stage.ap }));
@@ -184,25 +195,46 @@ function PlanView({ r, stg, items, today, setToday, cap, setCap }: {
   return (
     <>
       <section class="card">
-        <h2>Plan: {fmt(r.sanity)} sanity <small class="muted">≈ {(r.sanity / p.daily).toFixed(1)} days at {p.daily}/day</small></h2>
+        <div class="row" style={{ justifyContent: "space-between" }}>
+          <h2 style={{ margin: 0 }}>Plan: {fmt(r.sanity)} sanity <small class="muted">≈ {(r.sanity / p.daily).toFixed(1)} days at {p.daily}/day</small></h2>
+          <button class="small ghost" onClick={clear} title="Remove this plan and what it was for">Clear plan</button>
+        </div>
         <div class="table-wrap">
           <table class="cards">
-            <thead><tr><th>Stage</th><th class="num">Runs</th><th class="num">Sanity</th><th>Main drops</th><th>Open</th><th><span class="sr-only">Exclude</span></th></tr></thead>
+            <thead><tr><th>Stage</th><th class="num">Runs</th><th class="num">Sanity</th><th title="What these runs should bring of what the plan needs (averages)">You'll get about</th><th>Open</th><th><span class="sr-only">Exclude</span></th></tr></thead>
             <tbody>
-              {r.runs.map((x) => (
+              {r.runs.map((x) => {
+                const n = Math.ceil(x.runs - 1e-6);
+                const gets = Object.entries(x.stage.drops).filter(([id]) => wanted.has(id)).map(([id, rate]) => [id, n * rate] as const)
+                  .filter(([, k]) => k >= 0.5).sort((a, b) => value(b[0]) * b[1] - value(a[0]) * a[1]);
+                return (
                 <tr key={x.stage.id}>
                   <td data-label="Stage"><a href={href("/farming", { ...Object.fromEntries(route.value.query), stage: x.stage.id })}>{x.stage.code}</a></td>
                   <td data-label="Runs" class="num">{Math.ceil(x.runs - 1e-6)}</td>
                   <td data-label="Sanity" class="num">{fmt(Math.ceil(x.runs - 1e-6) * x.stage.ap)}</td>
-                  <td data-label="Main drops"><span class="items">{Object.entries(x.stage.drops).sort((a, b) => (items.values[b[0]] || 0) * b[1] - (items.values[a[0]] || 0) * a[1]).slice(0, 3).map(([id]) => <ItemIcon key={id} id={id} />)}</span></td>
+                  <td data-label="You'll get about"><span class="items">{gets.map(([id, k]) => <ItemIcon key={id} id={id} count={Math.round(k)} title={`${itemName(id)}: about ${Math.round(k)} from ${n} runs`} />)}</span></td>
                   <td data-label="Open">{x.stage.days ? x.stage.days.map((d) => WEEKDAYS[d - 1]).join(" ") : "Always"}</td>
                   <td data-label=""><button class="small ghost" title="Leave this stage out of every plan" onClick={() => savePrefs({ ...p, excluded: [...p.excluded, x.stage.id] })}>Leave out</button></td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
-        {Object.keys(r.crafts).length > 0 && <><h3 style={{ marginTop: "12px" }}>Crafts</h3><div class="items">{Object.entries(r.crafts).map(([id, n]) => <ItemIcon key={id} id={id} count={Math.ceil(n - 1e-6)} />)}</div></>}
+        {crafts.length > 0 && (
+          <>
+            <h3 style={{ marginTop: "12px" }}>Then craft, in this order</h3>
+            <ol class="craft-steps">
+              {crafts.map((c) => (
+                <li key={c.id}>
+                  <span class="row tight"><ItemIcon id={c.id} count={c.times * (c.recipe?.count || 1)} /> <span class="muted">from</span>
+                    {c.recipe?.costs.map(([i, k]) => <ItemIcon key={i} id={i} count={k * c.times} />)}
+                    {c.recipe?.lmd ? <small class="muted">+ {compact(c.recipe.lmd * c.times)} LMD</small> : null}</span>
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
         {Object.keys(r.unmet).length > 0 && <><h3 style={{ marginTop: "12px" }}>No stage drops these</h3><Items cost={r.unmet} /><p class="muted">Get them from shops, events, the Factory (Chip Catalyst) or missions.</p></>}
         {(r.lmdShort > 0 || r.expShort > 0) && (
           <>
@@ -213,7 +245,7 @@ function PlanView({ r, stg, items, today, setToday, cap, setCap }: {
             </ul>
           </>
         )}
-        <Explain>Runs are rounded up per stage. Drops are averages: expect some variance. "Leave out" drops a stage from every plan, for example one you haven't cleared yet.</Explain>
+        <Explain>Runs are rounded up per stage. "You'll get about" is what those runs should drop of the items this plan needs, so you can tick a stage off when you have them; drops are averages, so expect some variance. Crafts are only the ones the plan relies on, lower tiers first. "Leave out" drops a stage from every plan, for example one you haven't cleared yet.</Explain>
       </section>
       <section class="card">
         <h2>Day by day</h2>

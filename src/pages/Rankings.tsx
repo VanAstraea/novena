@@ -105,7 +105,7 @@ function Ops({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
         </table>
       </div>
       {rows.length > limit && <button onClick={() => setLimit(limit + 100)}>Show more ({rows.length - limit} left)</button>}
-      <Explain>Usage: share of {usage.guides.toLocaleString()} community clear guides (MAA Copilot, CN) that use the operator, each stage counted equally{cat === "all" ? ", weighted across content (events 35%, main 25%, CC 20%, Annihilation 10%, other 10%)" : ""}. CN runs ahead of other servers, so percentages read low; rankings hold. Lift: usage ÷ ownership.</Explain>
+      <Explain>Usage: share of {usage.guides.toLocaleString()} community clear guides (MAA Copilot, CN) that use the operator, each stage counted equally{cat === "all" ? ", weighted across content (events 35%, main 25%, CC 20%, Annihilation 10%, supply, Paradox Simulation and other 10%)" : ""}. CN runs ahead of other servers, so percentages read low; rankings hold. Lift: usage ÷ ownership.</Explain>
     </>
   );
 }

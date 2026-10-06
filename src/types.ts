@@ -175,7 +175,7 @@ export interface UsageRow {
   build: { elite?: number; skill?: number; mastery?: number; module?: string };
 }
 
-export type Category = "main" | "event" | "annihilation" | "cc" | "supply" | "other";
+export type Category = "main" | "event" | "annihilation" | "cc" | "supply" | "paradox" | "other";
 
 export interface UsageFile {
   weights: Record<Category, number>;

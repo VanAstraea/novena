@@ -634,6 +634,12 @@ table.roster .lv.small { font-size: 0.95rem; color: var(--muted); }
 .pips { display: flex; gap: 2px; }
 .pips i { width: 5px; height: 5px; transform: rotate(45deg); border: 1px solid var(--line); }
 .pips i.on { background: var(--accent); border-color: var(--accent); }
+table.roster th.pick, table.roster td.pick { width: 34px; text-align: center; }
+table.roster tr.picked td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+table.roster tr.new td:nth-child(2) { box-shadow: inset 3px 0 0 var(--accent); }
+.bulk-bar { position: sticky; top: 64px; z-index: 6; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; margin-top: 12px; padding: 10px 12px;
+  background: var(--surface-2); border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.bulk-bar > strong { align-self: center; color: var(--accent-strong); }
 button.mark-btn { min-height: 0; padding: 3px 4px 2px; background: transparent; border-color: transparent; }
 button.mark-btn:hover:not(:disabled) { background: var(--surface-2); border-color: var(--line); }
 button.mark-btn:disabled { opacity: 0.4; }
@@ -729,6 +735,12 @@ button.linkish:hover { color: var(--text); }
 .krooster h3 { margin: 16px 0 8px; font-size: 0.95rem; }
 .krooster label.btn { cursor: pointer; }
 .krooster textarea { min-height: 72px; font-family: ui-monospace, monospace; font-size: 0.8rem; }
+
+.craft-steps { margin: 6px 0 0; padding-left: 1.4em; display: grid; gap: 6px; }
+.craft-steps li::marker { color: var(--accent); font-weight: 700; }
+
+.room-levels { gap: 10px; }
+.room-levels .field.lvl select { min-width: 5.5em; }
 
 /* --- gaps: archetypes the roster covers poorly */
 .gaps td { vertical-align: middle; }

@@ -20,6 +20,8 @@ export interface FarmPlan {
   runs: { stage: StageRow; runs: number }[];
   sanity: number;
   crafts: Record<string, number>;
+  /** Items the plan farms or crafts with: what's still needed after the depot, and what the crafts use. */
+  wanted: string[];
   unmet: Record<string, number>;
   lmdShort: number;
   expShort: number;
@@ -90,10 +92,13 @@ export async function plan(need: Cost, inventory: Record<string, number>, stages
   if (result.Status !== "Optimal") throw new Error(`The farming plan couldn't be solved (${result.Status})`);
   const x = (name: string) => result.Columns[name]?.Primal ?? 0;
 
-  const runs = useful.map((stage, k) => ({ stage, runs: x(`r${k}`) })).filter((r) => r.runs > 1e-6)
+  // Solver noise (a run or craft of 0.0001) would round up to a whole one, so tiny values are dropped.
+  const runs = useful.map((stage, k) => ({ stage, runs: x(`r${k}`) })).filter((r) => r.runs > 1e-3)
     .sort((a, b) => b.runs * b.stage.ap - a.runs * a.stage.ap);
   const made: Record<string, number> = {};
-  crafts.forEach(([item], k) => { const v = x(`c${k}`); if (v > 1e-6) made[item] = v; });
+  crafts.forEach(([item], k) => { const v = x(`c${k}`); if (v > 1e-3) made[item] = v; });
+  const wanted = new Set(itemList.filter((i) => (goal[i] || 0) - (inv[i] || 0) > 0));
+  for (const item of Object.keys(made)) for (const [i] of recipes[item].costs) if (!OUTSIDE.has(i)) wanted.add(i);
   const unmet: Record<string, number> = {};
   itemList.forEach((item, k) => { const v = x(`u${k}`); if (v > 1e-6) unmet[item] = Math.ceil(v - 1e-6); });
   const craftLmd = crafts.reduce((s, [, f], k) => s + f.lmd * x(`c${k}`), 0);
@@ -101,6 +106,7 @@ export async function plan(need: Cost, inventory: Record<string, number>, stages
     runs,
     sanity: runs.reduce((s, r) => s + r.stage.ap * r.runs, 0),
     crafts: made,
+    wanted: [...wanted],
     unmet,
     lmdShort: Math.max(0, Math.ceil((need[LMD] || 0) + craftLmd - (inv[LMD] || 0))),
     expShort: Math.max(0, (need[EXP] || 0) - expHeld),

@@ -1,13 +1,13 @@
 // What you play (after ako's content weights): how much each kind of content counts when the Plan scores upgrades and
 // when Rankings' "All" ranks operators. Each kind gets Off, Less, Normal or More on top of the default mix
-// (events 35%, main story 25%, CC 20%, Annihilation 10%, supply and other 5% each). Kept in this browser.
+// (events 35%, main story 25%, CC 20%, Annihilation 10%, supply 5%, Paradox Simulation 3%, other 2%). Kept in this browser.
 import { signal } from "@preact/signals";
 import type { Category } from "../types";
 import { pref, setPref } from "./storage";
 
-export const DEFAULT_WEIGHTS: Record<Category, number> = { main: 0.25, event: 0.35, annihilation: 0.1, cc: 0.2, supply: 0.05, other: 0.05 };
+export const DEFAULT_WEIGHTS: Record<Category, number> = { main: 0.25, event: 0.35, annihilation: 0.1, cc: 0.2, supply: 0.05, paradox: 0.03, other: 0.02 };
 export const LEVELS: [number, string][] = [[0, "Off"], [0.5, "Less"], [1, "Normal"], [2, "More"]];
-export const CATEGORY_ORDER: Category[] = ["event", "main", "cc", "annihilation", "supply", "other"];
+export const CATEGORY_ORDER: Category[] = ["event", "main", "cc", "annihilation", "supply", "paradox", "other"];
 
 const read = (): Partial<Record<Category, number>> => { try { return JSON.parse(pref("weights", "{}")); } catch { return {}; } };
 export const contentLevels = signal<Partial<Record<Category, number>>>(read());

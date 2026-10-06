@@ -29,12 +29,16 @@ export const PRODUCT_LABEL: Record<string, string> = { Money: "LMD", PureGold: "
 export const ROOM_LABEL: Record<Facility, string> = { Trade: "Trading Post", Mfg: "Factory", Power: "Power Plant", Control: "Control Center", Reception: "Reception Room", Office: "Office" };
 const ORDER: Record<Facility, number> = { Trade: 0, Mfg: 1, Power: 2, Control: 3, Reception: 4, Office: 5 };
 
-export function standardLayout(name: string, goldFactories?: number): Room[] {
+/** Each Trading Post's and Factory's level (1-3), which is how many operators it holds. Missing: level 3. */
+export interface RoomLevels { trade: number[]; mfg: number[] }
+
+export function standardLayout(name: string, goldFactories?: number, levels?: RoomLevels): Room[] {
   const [trade, mfg, power] = LAYOUTS[name];
   const gold = goldFactories ?? trade;
+  const lv = (list: number[] | undefined, i: number) => Math.min(3, Math.max(1, list?.[i] || 3));
   return [
-    ...Array.from({ length: trade }, () => ({ facility: "Trade" as Facility, product: "Money", slots: 3 })),
-    ...Array.from({ length: mfg }, (_, i) => ({ facility: "Mfg" as Facility, product: i < gold ? "PureGold" : "CombatRecord", slots: 3 })),
+    ...Array.from({ length: trade }, (_, i) => ({ facility: "Trade" as Facility, product: "Money", slots: lv(levels?.trade, i) })),
+    ...Array.from({ length: mfg }, (_, i) => ({ facility: "Mfg" as Facility, product: i < gold ? "PureGold" : "CombatRecord", slots: lv(levels?.mfg, i) })),
     ...Array.from({ length: power }, () => ({ facility: "Power" as Facility, product: "all", slots: 1 })),
     { facility: "Control", product: "Boost", slots: 5 }, { facility: "Reception", product: "General", slots: 2 }, { facility: "Office", product: "HR", slots: 1 },
   ];

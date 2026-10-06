@@ -22,8 +22,9 @@ import { account, hasRoster, server, targets } from "../state";
 interface Task { id: string; label: string; note?: string; link?: [string, string]; weekly?: boolean; custom?: boolean }
 
 const DAILY: Task[] = [
-  { id: "base", label: "Collect from the base", note: "Trading Post orders, Factory products, Reception clues", link: ["/base", "Base plan"] },
-  { id: "drones", label: "Use your drones", note: "On a Trading Post (LMD) or a Gold Factory" },
+  { id: "base", label: "Collect from the base", note: "Trading Post orders, Factory products, trust and morale in the dorms", link: ["/base", "Base plan"] },
+  { id: "drones", label: "Use your drones before they cap", note: "On a Trading Post for LMD or a Factory making Pure Gold; with Novena Sync, Timers below shows when they'll be full", link: ["/base", "Your base"] },
+  { id: "clues", label: "Clues", note: "Reception Room: collect the daily clue and any from friends, send your spares, and start a Clue Exchange once you hold all seven" },
   { id: "shifts", label: "Swap base shifts if they're due", link: ["/base", "Who goes where"] },
   { id: "recruit", label: "Collect and refill recruitments", link: ["/recruit", "Recruitment calculator"] },
   { id: "sanity", label: "Spend your sanity", link: ["/dump", "Today's runs"] },

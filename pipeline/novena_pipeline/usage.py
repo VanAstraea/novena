@@ -21,12 +21,14 @@ from dataclasses import dataclass, field
 from novena_pipeline import gamedata as gd
 from novena_pipeline.sources import copilot
 
-CATEGORIES = ("main", "event", "annihilation", "cc", "supply", "other")
-DEFAULT_WEIGHTS = {"main": 0.25, "event": 0.35, "annihilation": 0.10, "cc": 0.20, "supply": 0.05, "other": 0.05}
+# "paradox": Paradox Simulation (an operator's mem_ stages). "other": what's left, mostly Stationary Security Service
+# maps. Integrated Strategies and Reclamation Algorithm have no stage guides, so they aren't in this data at all.
+CATEGORIES = ("main", "event", "annihilation", "cc", "supply", "paradox", "other")
+DEFAULT_WEIGHTS = {"main": 0.25, "event": 0.35, "annihilation": 0.10, "cc": 0.20, "supply": 0.05, "paradox": 0.03, "other": 0.02}
 MIN_GUIDES = 3
 DEMAND = 0.5
 _STAGE_TYPE = {"MAIN": "main", "SUB": "main", "ACTIVITY": "event", "CAMPAIGN": "annihilation", "DAILY": "supply"}
-_CC = re.compile(r"(^level_crisis|rune/level_rune|^level_rune)")
+_CC = re.compile(r"(^level_crisis|rune/level_rune|^level_rune|^level_act\d+rune)")
 
 
 class StageIndex:
@@ -39,15 +41,27 @@ class StageIndex:
             codes[stage["code"]].append(sid)
             names[stage["name"]].append(sid)
         self._alias = {k: v[0] for d in (codes, names) for k, v in d.items() if len(v) == 1}
+        # A code several stages share ("3-1" is the normal and the Tough version, an event's EX stages come back in
+        # its rerun): no single stage, but usually a single kind of content.
+        self._shared = {k: v for d in (codes, names) for k, v in d.items() if len(v) > 1}
 
     def resolve(self, stage: str) -> str:
         return stage if stage in self.stages else self._alias.get(stage, stage)
 
-    def category(self, stage_id: str) -> str:
+    def _kind(self, stage_id: str) -> str:
         if _CC.search(stage_id):
             return "cc"
+        if stage_id.startswith("mem_"):
+            return "paradox"
         stage = self.stages.get(stage_id)
         return _STAGE_TYPE.get(stage["stageType"], "other") if stage else "other"
+
+    def category(self, stage_id: str) -> str:
+        if stage_id not in self.stages and stage_id in self._shared:
+            kinds = {self._kind(s) for s in self._shared[stage_id]}
+            if len(kinds) == 1:
+                return kinds.pop()
+        return self._kind(stage_id)
 
 
 def ids_by_cn_name() -> dict[str, str]:

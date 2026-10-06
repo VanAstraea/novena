@@ -6,7 +6,7 @@ export const CLASS_ORDER = ["PIONEER", "WARRIOR", "TANK", "SNIPER", "CASTER", "M
 
 export const CATEGORY_NAMES: Record<string, string> = {
   main: "Main story", event: "Events", annihilation: "Annihilation", cc: "Contingency Contract",
-  supply: "Supply", other: "Other", is: "Integrated Strategies",
+  supply: "Supply stages", paradox: "Paradox Simulation", other: "Other (mostly SSS)", is: "Integrated Strategies",
 };
 
 export const OBTAIN_NAMES: Record<string, string> = {

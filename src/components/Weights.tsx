@@ -1,4 +1,5 @@
 import { CATEGORY_NAMES } from "../lib/format";
+import { href } from "../lib/router";
 import { CATEGORY_ORDER, contentLevels, customised, LEVELS, setLevel } from "../lib/weights";
 
 /** "What you play": Off / Less / Normal / More per kind of content. */
@@ -18,6 +19,7 @@ export function WeightsControl({ compact = false }: { compact?: boolean }) {
           </div>
         ))}
       </div>
+      <p class="explain" style={{ marginTop: "8px" }}>These are the kinds of stage community clear guides cover. Integrated Strategies and Reclamation Algorithm aren't among them (they have no stage guides), so they can't be weighted here; for IS, the <a href={href("/is")}>IS page</a> has its own picks. "Other" is mostly Stationary Security Service.</p>
     </details>
   );
 }
