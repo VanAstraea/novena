@@ -6,7 +6,15 @@ planners, recruitment calculator, community rankings, and a look at what's comin
 
 **Site:** https://vanastraea.github.io/novena/ · **Feedback:** [open an issue](../../issues)
 
-<!-- Screenshots / GIFs: add docs/screenshots/*.png here before posting (see "Screenshots" below). -->
+![Novena's home page: Lemuen beside the Novena wordmark, with today's resets](docs/screenshots/home.jpg)
+
+| Priorities: what to raise next | Your roster, with the game's icons |
+|---|---|
+| ![Priorities](docs/screenshots/priorities.jpg) | ![Roster](docs/screenshots/roster.jpg) |
+| **Today: your account at a glance** | **Compare operators** |
+| ![Today](docs/screenshots/today.jpg) | ![Compare](docs/screenshots/compare.jpg) |
+
+<sub>Screenshots use the made-up sample roster.</sub>
 
 ## What it does
 
@@ -139,5 +147,6 @@ user data stays in the browser, and community sources are fetched only by the da
 
 ## Screenshots
 
-Take them from a local build or the live site and save them as `docs/screenshots/*.png`, then reference them at the
-top of this file. Suggested: Home, an operator page, Compare with three operators, the Farming plan on a phone.
+The images at the top come from `scripts/screenshots.mjs`, which uses the made-up sample roster (never a real
+account): run `npm run dev`, then `node scripts/screenshots.mjs`. It also takes `upcoming.jpg` and `phone.jpg`
+for announcements.
