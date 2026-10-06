@@ -27,6 +27,7 @@ export default function Dump() {
   return (
     <div class="stack fade-in">
       <h1>Sanity Dump</h1>
+      <p class="muted" style={{ marginTop: "-6px" }}>For days you're not following a farming plan: what to spend today's sanity on, from what your depot is short of.</p>
       {!hasRoster.value ? (
         <div class="card"><p>The Sanity Dump aims today's sanity at what your account lacks most, so it needs your roster and depot. <a href={href("/roster")}>Add them under My roster</a>.</p></div>
       ) : (
@@ -166,7 +167,7 @@ function DumpView({ ops, usage, costs, stg, items }: { ops: OpIndex[]; usage: Us
         </div>
         <p class="muted" style={{ marginTop: "8px" }}>Today's budget: <strong>{fmt(today)}</strong> sanity. The weekly Annihilation cap (1,800 Orundum) resets {dayTime(nextWeeklyReset(s))}.</p>
         {error && <p role="alert" class="bad-text">{error}</p>}
-        <Explain>Demand: {lastPlan.value ? "your built plan" : "your Planner targets"} plus the community builds (E2, main skill M3, main module) of your 40 most-used operators the plan doesn't cover; if that's nearly paid for, everything players commonly build. Your depot pays all of it at once, crafting included.</Explain>
+        <Explain>Demand: {lastPlan.value ? "your built plan" : "your goals in Materials"} plus the community builds (E2, main skill M3, main module) of your 40 most-used operators the plan doesn't cover; if that's nearly paid for, everything players commonly build. Your depot pays all of it at once, crafting included.</Explain>
       </section>
       {result && (
         <>

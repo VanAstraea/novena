@@ -100,7 +100,7 @@ function GetStarted() {
   const steps: [boolean, string, string, string][] = [
     [hasRoster.value, "Add your operators", "/roster?tab=import", "Sync, import a file, or add them by hand"],
     [Object.keys(account.value.depot).length > 0, "Add your depot", "/roster?tab=depot", "From screenshots of your in-game Depot, or from Krooster or Penguin Statistics"],
-    [targets.value.length > 0, "Set a goal", "/planner", "Type a build in the planner, or press Make it a goal on any operator"],
+    [targets.value.length > 0, "Set a goal", "/planner", "Type a build in the Materials planner, or press Make it a goal on any operator"],
   ];
   if (hidden || steps.every(([done]) => done)) return null;
   return (
@@ -141,11 +141,10 @@ function SampleBanner() {
 /** Phones: the sections in a bar at the bottom of the screen, within reach of a thumb (the top row hides there). */
 const SECTION_ICON: Record<string, string> = {
   account: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0",
+  plan: "M9 3h6v3H9zM9 4.5H5.5V21h13V4.5H15M8.5 13l2.5 2.5 4.5-4.5",
   operators: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-6 9a6 6 0 0 1 12 0M16 4.5a3.5 3.5 0 0 1 0 6.5m2 9a6 6 0 0 0-3-5.2",
-  farming: "M12 21V11m0 0c0-4 3-7 7-7 0 4-3 7-7 7Zm0 3c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5Z",
-  recruit: "M4 8h16M4 8l2-4h12l2 4M4 8v11h16V8M9 13h6",
-  upcoming: "M4 6h16v14H4zM4 10h16M8 3v4m8-4v4",
-  is: "M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z",
+  events: "M4 6h16v14H4zM4 10h16M8 3v4m8-4v4",
+  tools: "M3 9h18v10H3zM8.5 9V6.5a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1V9M3 13.5h7.5m3 0H21M10.5 12h3v3h-3z",
 };
 
 function BottomNav() {
@@ -155,7 +154,7 @@ function BottomNav() {
       {SECTIONS.map((g) => (
         <a key={g.id} href={href(g.home)} aria-current={section === g.id ? "page" : undefined}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={SECTION_ICON[g.id]} /></svg>
-          <span>{g.id === "account" ? "Account" : g.label}</span>
+          <span>{g.label}</span>
         </a>
       ))}
     </nav>
@@ -182,6 +181,7 @@ function Footer() {
           {" "}Data from ArknightsAssets, Penguin Statistics, Yituliu and MAA; art from community mirrors. <a href={href("/credits")}>Credits and licenses</a>.</p>
         <p class="muted">Unofficial fan tool. Not affiliated with Hypergryph, Yostar or Gryphline. Arknights and its assets belong to their owners. Code: MIT.
           {SUPPORT.length > 0 && <> · <a href={href("/about") + "#support"}>Support the project</a></>}</p>
+        <p><a href={href("/settings")}>Settings & backup</a> · <a href={href("/guide")}>Import guide</a> · <a href={href("/about")}>About</a> · <a href={href("/credits")}>Credits</a></p>
       </div>
     </footer>
   );

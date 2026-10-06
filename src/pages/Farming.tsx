@@ -139,7 +139,7 @@ function FarmView({ stg, items }: { stg: StagesFile; items: ItemsFile }) {
           </label>
           <label class="field"><span>How many</span><input type="number" min={1} value={count} onChange={(e) => setCount(+(e.target as HTMLInputElement).value || 1)} /></label>
           <button disabled={!pick} onClick={() => { setQuery({ items: encodeItems({ ...need, [pick]: (need[pick] || 0) + count }) }); setPick(""); }}>Add</button>
-          <button onClick={fromTargets} disabled={!targets.value.length} title={targets.value.length ? "Everything your planner targets cost" : "Add targets in the Planner first"}>Use my planner targets</button>
+          <button onClick={fromTargets} disabled={!targets.value.length} title={targets.value.length ? "Everything your planner targets cost" : "Add goals in Materials first"}>Use my planner targets</button>
         </div>
         {Object.keys(need).length > 0 && (
           <div style={{ marginTop: "10px" }}>

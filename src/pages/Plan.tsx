@@ -4,7 +4,7 @@ import { useEffect, useState } from "preact/hooks";
 import { BuildMarks } from "../components/Marks";
 import { toast, undoable } from "../components/Toast";
 import { parse } from "../lib/build";
-import { WeightsControl } from "../components/Weights";
+import { WeightsChip } from "../components/Weights";
 import { Avatar, Await, Explain, GIcon, Items, itemsSig, metaSig, useAsync } from "../components/ui";
 import { lastPlan } from "../lib/account";
 import { autoPriorities, buildPriorities, filtersOn, freshPriorities, leaveOut, mayRaise, NO_FILTERS, prioError, prioFilters, prioStatus, prioSupport, prioTop, setPrioFilters, setPrioSettings, TIERS, type PrioFilters } from "../lib/priorities";
@@ -58,11 +58,11 @@ function PlanView({ ops }: { ops: Map<string, OpIndex> }) {
           <label class="row tight"><input type="checkbox" checked={support} onChange={(e) => setPrioSettings(top, (e.target as HTMLInputElement).checked)} /> Count on borrowing one support operator</label>
           <button class="primary" onClick={build} disabled={!!progress || !items || !meta}>{progress ? "Working…" : "Rebuild"}</button>
         </div>
-        <WeightsControl compact />
+        <WeightsChip />
         <FiltersControl ops={ops} open={showFilters} setOpen={setShowFilters} />
         {progress && <p role="status" class="muted" style={{ marginTop: "8px" }}>{plan ? "Updating the priorities (the list below is the previous one): " : ""}{progress}…</p>}
         {error && <p role="alert" class="bad-text">{error}</p>}
-        <Explain>Each upgrade is scored by how many more community clear guides (MAA Copilot) your roster could follow, per sanity it costs. Unstated parts of a guide's usual build (E2, M3, module) count as soft: missing M3 on a skill 98% of owners mastered leaves a 2% chance. Your Planner targets are applied first as goals. Runs in your browser by itself after an import or sync and whenever your roster has changed; the first run downloads the guidebook (about half a MB).</Explain>
+        <Explain>Each upgrade is scored by how many more community clear guides (MAA Copilot) your roster could follow, per sanity it costs. Unstated parts of a guide's usual build (E2, M3, module) count as soft: missing M3 on a skill 98% of owners mastered leaves a 2% chance. Your goals in Materials are applied first. Runs in your browser by itself after an import or sync and whenever your roster has changed; the first run downloads the guidebook (about half a MB).</Explain>
       </section>
       {plan && <Result plan={plan} ops={ops} openFilters={openFilters} />}
     </>
@@ -189,7 +189,7 @@ function makeGoal(st: PlanStep, op: OpIndex) {
   const text = had ? `${had.text}, ${step}` : step;
   try { parse(`${op.name} ${text}`); } catch (e) { toast((e as Error).message, { kind: "bad" }); return; }
   saveTargets([...targets.value.filter((t) => t.id !== op.id), { id: op.id, text }]);
-  toast(`${op.name}: ${step} is a goal now.`, { link: { href: href("/planner"), label: "Open the planner" } });
+  toast(`${op.name}: ${step} is a goal now.`, { link: { href: href("/planner"), label: "Open Materials" } });
 }
 
 const RARITIES: [number, string][] = [[6, "6★"], [5, "5★"], [4, "4★"], [3, "3★ and below"]];
@@ -226,7 +226,7 @@ function FiltersControl({ ops, open, setOpen }: { ops: Map<string, OpIndex>; ope
           </div></div>
         {filtersOn(f) && <button class="small ghost" onClick={() => { setPrioFilters(NO_FILTERS); undoable("Filters cleared.", () => setPrioFilters(f)); }}>Clear the filters</button>}
       </div>
-      <p class="explain">Rarity and Upgrades: switch one off to stop suggesting it (3★ and below takes in 1★ and 2★). Class: pick some to suggest only those. Your Planner goals are always included. Today, Home, the Sanity Dump and the event shops follow these.</p>
+      <p class="explain">Rarity and Upgrades: switch one off to stop suggesting it (3★ and below takes in 1★ and 2★). Class: pick some to suggest only those. Your goals in Materials are always included. Today, Home, the Sanity Dump and the event shops follow these.</p>
     </details>
   );
 }

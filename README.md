@@ -18,6 +18,12 @@ planners, recruitment calculator, community rankings, and a look at what's comin
 
 ## What it does
 
+The site has five sections: **My account** (Today, Roster, Base), **Plan** (Priorities, Materials, Farming, Sanity
+Dump, Roster gaps), **Operators** (Database, Compare, Rankings), **Events** (Upcoming, Banners & pulls, Story &
+archives) and **Tools** (Recruitment, Integrated Strategies). Settings & backup, the Import guide, About and Credits
+are in the footer. "What you play" (how much each kind of content counts) is one setting for the whole site, under
+Settings.
+
 Useful without any account data:
 
 - **Operator database.** Every operator, searchable and filterable by class, branch, rarity, faction, how to get
@@ -28,7 +34,7 @@ Useful without any account data:
 - **Compare** 2–4 operators side by side, each at its own build: stats, skills at the chosen mastery, talents and
   module effects, the cost of reaching each build (materials, LMD and a sanity-equivalent), and community usage.
   The best value in each row is marked. Every comparison is a shareable link.
-- **Upgrade planner.** Type builds like `Saria E2 L90, S2 M3, Mod X2` (or pick them), get the total materials,
+- **Materials planner.** Type builds like `Saria E2 L90, S2 M3, Mod X2` (or pick them), get the total materials,
   LMD and EXP, what to craft from lower tiers, and what your depot already covers.
 - **Farming planner.** The cheapest stage runs for what you're missing (a linear program over Penguin Statistics
   drop rates, solved in your browser), stages open today and this week, reset times in your local time, a
@@ -36,8 +42,8 @@ Useful without any account data:
 - **Recruitment calculator.** Pick your five tags; see every combination with its guaranteed rarity and the
   operators it can give. With Novena Sync, your four slots' tags are there to check in one click.
 - **Rankings.** Usage in community clears per content type and archetype.
-- **Gaps.** The archetypes community clears lean on that your roster covers poorly, who you have in each, and the
-  quickest ways to fill them: raise one you own to its community build (one click makes it a Planner goal) or get one.
+- **Roster gaps.** The archetypes community clears lean on that your roster covers poorly, who you have in each, and the
+  quickest ways to fill them: raise one you own to its community build (one click makes it a goal in Materials) or get one.
 - **Upcoming content.** Events, operators, modules and banners CN has had and your server hasn't, with estimated
   dates from the measured CN→server lag, the operators each event's guides use most, and the next Contingency Contract.
   Names Global hasn't announced get an unofficial English translation, marked as such, until the official one lands.
@@ -54,7 +60,7 @@ With your roster (typed in, imported, or a made-up sample roster to try things f
   [`sync/README.md`](sync/README.md) and the [releases](../../releases).
 - **Depot from screenshots:** take screenshots of your in-game Depot, drop or paste them in, check what was read,
   apply. They're read on your device and never uploaded, and nothing touches the game.
-- **Priorities:** the upgrades that unlock the most community clears per sanity, your planner targets first, with a
+- **Priorities:** the upgrades that unlock the most community clears per sanity, your goals in Materials first, with a
   "doable now" check against your depot counted all together. Built by itself after an import or sync; each step can
   become a goal or open the farming plan for what it's short of. Leave out operators you don't want to raise, one at
   a time or several at once, or whole rarities. The top three also show on Home and Today.
@@ -68,7 +74,9 @@ With your roster (typed in, imported, or a made-up sample roster to try things f
 - **Progress with costs:** what you raised since an earlier day and exactly what it cost (materials, LMD, EXP).
 - **Items to use:** training vouchers with the five operators each is best spent on, potential tokens and whose
   potential they raise, and items that expire soonest.
-- **Pull planner:** savings, steady income and the banners coming.
+- **Banners & pulls:** savings, steady income and the banners coming.
+- **Story & archives:** what the main story, the Side Story and Intermezzo archives and Annihilation pay out once,
+  and every free operator with where to get them now.
 
 ## Privacy
 

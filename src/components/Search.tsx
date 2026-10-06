@@ -9,13 +9,13 @@ import { pref } from "../lib/storage";
 import { account, server, theme } from "../state";
 import { rememberOperator } from "./OperatorPanel";
 import type { OpIndex, StageRow } from "../types";
-import { PAGES } from "../pages/registry";
+import { pageScore, PAGES } from "../pages/registry";
 import { Avatar, ItemIcon, itemsSig } from "./ui";
 
 // Pages people look for by what's on them, opened on the right tab; and things to do.
 const SUBPAGES: [string, string, Record<string, string>, string[]][] = [
   ["Event shops", "/upcoming", { view: "shops" }, ["shop", "tokens", "event store"]],
-  ["Banners and pulls", "/upcoming", { view: "banners" }, ["banner", "headhunting"]],
+  ["Upcoming banners", "/upcoming", { view: "banners" }, ["banner", "headhunting"]],
   ["Contingency Contract", "/upcoming", { view: "cc" }, ["cc"]],
   ["Training Room and Workshop", "/base", {}, ["trainer", "training", "workshop", "byproduct"]],
   ["Dorms and morale", "/base", {}, ["dorm", "morale"]],
@@ -100,7 +100,7 @@ export function SearchDialog() {
       if (s >= 55) out.push({ key: `s${st.id}`, label: `${st.code} (${st.ap} sanity)`, kind: "Stage", to: href("/farming", { stage: st.id }), score: s - 5 });
     }
     for (const p of PAGES) {
-      const s = Math.max(matchScore(q, p.title), ...(p.keywords || []).map((k) => matchScore(q, k)));
+      const s = pageScore(q, p);
       if (s) out.push({ key: p.path, label: p.title, kind: "Page", to: href(p.path), score: s + 1 });
     }
     for (const [label, path, query, words] of SUBPAGES) {

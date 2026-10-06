@@ -128,7 +128,7 @@ function Body({ id }: { id: string }) {
           const text = goal ? `${goal.text}, ${step}` : step;
           try { parse(`${op.name} ${text}`); } catch (e) { toast((e as Error).message, { kind: "bad" }); return; }
           saveTargets([...targets.value.filter((t) => t.id !== id), { id, text }]);
-          toast(`${op.name}: ${o.text} is a goal now.`, { link: { href: href("/planner"), label: "Open the planner" } });
+          toast(`${op.name}: ${o.text} is a goal now.`, { link: { href: href("/planner"), label: "Open Materials" } });
         };
         const toggleCompare = () => {
           const list = compareList().filter((x) => x !== id);

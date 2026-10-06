@@ -18,7 +18,7 @@ export default function Planner() {
   const st = useAsync(() => operators(s), [s]);
   return (
     <div class="stack fade-in">
-      <h1>Upgrade planner</h1>
+      <h1>Materials</h1>
       <Await state={st} what="operators">{(ops) => <PlannerView ops={ops} />}</Await>
     </div>
   );

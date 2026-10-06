@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { CommunityMarks } from "../components/Marks";
 import { OpFilters, RoleChips, useOpFilters } from "../components/OpFilters";
-import { WeightsControl } from "../components/Weights";
+import { WeightsChip } from "../components/Weights";
 import { contentLevels, customised, weightedScore } from "../lib/weights";
 import { Await, Explain, metaSig, OpLink, SortTh, Stars, Tabs, useAsync } from "../components/ui";
 import { operators, usage as loadUsage } from "../lib/data";
@@ -74,7 +74,7 @@ function Ops({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
           <label class="row tight"><input type="checkbox" checked={here} onChange={(e) => setQuery({ here: (e.target as HTMLInputElement).checked ? "1" : "" })} /> Only on this server</label>
         </div>
         <OpFilters />
-        {cat === "all" && <WeightsControl compact />}
+        {cat === "all" && <WeightsChip />}
       </div>
       <div class="table-wrap">
         <table class="cards">
@@ -142,7 +142,7 @@ function Archetypes({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
           </tbody>
         </table>
       </div>
-      <Explain>Used in: share of community clear guides that use at least one operator of the archetype. Roles group archetypes by the job they do in a team.{hasRoster.value ? <> Which of these your roster covers poorly: <a href={href("/gaps")}>Gaps</a>.</> : null}</Explain>
+      <Explain>Used in: share of community clear guides that use at least one operator of the archetype. Roles group archetypes by the job they do in a team.{hasRoster.value ? <> Which of these your roster covers poorly: <a href={href("/gaps")}>Roster gaps</a>.</> : null}</Explain>
     </>
   );
 }
