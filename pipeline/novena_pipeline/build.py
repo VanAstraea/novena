@@ -13,7 +13,7 @@ Writes to NOVENA_OUT (default public/data/v1/). Layout:
     {server}/items.json           items, recipes, sanity values (with this server's corrections)
     {server}/stages.json          farmable stages with drop rates, CE, supply zones and open days
     {server}/recruit.json         recruitment tags and pool
-    {server}/upcoming.json        CN content not here yet, with estimated dates
+    {server}/upcoming.json        CN content not here yet, with estimated dates (or the wiki's, CC BY-SA 4.0)
     {server}/is.json              Integrated Strategies priorities per theme
     {server}/base.json            base skills: production, morale, dorms, Training Room and Workshop
     {server}/shops.json           event shops for events running or coming here
@@ -32,7 +32,7 @@ from novena_pipeline import gamedata as gd
 from novena_pipeline import items as items_mod
 from novena_pipeline import shops as shops_mod
 from novena_pipeline import base, guidebook, operators, recruit, roguelike, upcoming, usage
-from novena_pipeline.sources import copilot, penguin, yituliu
+from novena_pipeline.sources import copilot, penguin, wikigg, yituliu
 
 DATA_VERSION = 1
 
@@ -154,6 +154,8 @@ def main(argv: list[str] | None = None) -> None:
         log(f"Server {server}")
         gd.table.cache_clear()
         manifest["servers"][server] = build_server(server, out, usage_data, jobs, yituliu_values)
+    if wikigg.load.cache_info().currsize and wikigg.load().fetched:  # read for EN, JP or KR's Upcoming
+        manifest["sources"]["wikigg"] = {"date": int(wikigg.load().fetched * 1000)}
     write(out / "manifest.json", manifest)
     log("Done")
 

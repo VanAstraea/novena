@@ -28,6 +28,9 @@ const DATA = [
     what: "Community-written clear guides: which operators, skills and modules each stage was cleared with. Read only to count usage, for Rankings and the Plan; no guide is republished.", license: "Community-submitted; used for aggregate statistics" },
   { key: "maa", name: "MAA resource files", by: "MaaAssistantArknights", url: "https://github.com/MaaAssistantArknights/MaaAssistantArknights",
     what: "Curated base-skill values and combinations, and the morale and dorm effects in their descriptions (the Base optimizer), and Integrated Strategies recruit priorities (the IS helper). Data only.", license: "AGPL-3.0" },
+  { key: "wikigg", name: "Arknights Terra Wiki", by: "arknights.wiki.gg contributors", url: "https://arknights.wiki.gg/wiki/Event",
+    what: "Global (EN/JP/KR) dates of events and banners once announced or found in the game files, and their English names, for Upcoming. Read once a day by the pipeline from the Event, Event/Upcoming and Headhunting/Banners pages.",
+    license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/" },
 ];
 
 export default function Credits() {
@@ -66,8 +69,8 @@ export default function Credits() {
                       <tr key={s.key}>
                         <td data-label="Source"><a href={s.url} rel="noopener">{s.name}</a><br /><small>{s.by}</small></td>
                         <td data-label="Used for">{s.what}</td>
-                        <td data-label="License">{s.license}</td>
-                        <td data-label="Last updated">{t ? date(t) : "Live"}</td>
+                        <td data-label="License">{"licenseUrl" in s ? <a href={s.licenseUrl} rel="noopener">{s.license}</a> : s.license}</td>
+                        <td data-label="Last updated">{t ? date(t) : s.key === "wikigg" ? "–" : "Live"}</td>
                       </tr>
                     );
                   })}
@@ -80,6 +83,7 @@ export default function Credits() {
           The MAA Copilot guide database is a library of written clear guides; Novena reads it for statistics only. Novena does not use the MAA automation program and never drives the game.
           The MAA resource files are AGPL-3.0: Novena's processed copies of them are published openly with the site (for example <a href={`${BASE}data/v1/en/base.json`}>base.json</a> and <a href={`${BASE}data/v1/en/is.json`}>is.json</a>), and the pipeline that makes them is in the <a href={REPO_URL} rel="noopener">source</a>.
           Penguin Statistics' data is used non-commercially, as its license asks.
+          The dates, names and page links Upcoming takes from the Arknights Terra Wiki (<code>eta</code> and <code>end</code> where <code>dated_by</code> is "wiki", <code>name_en</code> where <code>name_by</code> is "wiki", and the <code>wiki</code> links in <a href={`${BASE}data/v1/en/upcoming.json`}>upcoming.json</a>) are shared under <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>, like the wiki itself.
         </p>
       </section>
 

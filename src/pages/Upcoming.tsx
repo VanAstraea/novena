@@ -8,18 +8,22 @@ import { operators, shops as loadShops, upcoming as loadUpcoming, usage as loadU
 import { date, pct, relative } from "../lib/format";
 import { href, route, setQuery } from "../lib/router";
 import { account, hasRoster, server } from "../state";
-import type { OpIndex, ShopEvent, UpcomingFile, UsageFile } from "../types";
+import type { OpIndex, ShopEvent, UpcomingFile, UsageFile, WikiDated } from "../types";
 
 type View = "events" | "shops" | "operators" | "modules" | "banners" | "cc";
 
 const KIND: Record<string, string> = { limited: "Limited", collab: "Collaboration", special: "Special (pick rate-ups)", kernel: "Kernel" };
 
-function Eta({ eta, confirmed, cn }: { eta: string; confirmed?: boolean; cn?: string }) {
-  const past = new Date(eta).getTime() < Date.now();
+/** A date: solid when this server's game data lists it, linked when the wiki dates it, otherwise an estimate. */
+function Eta({ eta, confirmed, cn, x }: { eta: string; confirmed?: boolean; cn?: string; x?: WikiDated }) {
+  const wiki = !confirmed && x?.dated_by === "wiki";
+  const late = !confirmed && !wiki && (x?.overdue || new Date(eta).getTime() < Date.now());
   return (
     <span>
-      {confirmed ? <strong>{date(eta)}</strong> : <>~{date(eta)} <span class="badge est" title="Estimated: CN's date plus the measured lag">estimate</span></>}
-      <br /><small class={past && !confirmed ? "warn-text" : "muted"}>{past && !confirmed ? "Expected already: may have been skipped or moved" : relative(eta)}{cn ? ` · CN ${date(cn)}` : ""}</small>
+      {confirmed ? <strong>{date(eta)}</strong>
+        : wiki ? <><strong>{date(eta)}</strong> <a class="badge wiki" href={x!.wiki} rel="noopener" title="Dated by the Arknights Terra Wiki from an announcement or the game files, not Novena's estimate">dated by the wiki</a></>
+        : <>~{date(eta)} <span class="badge est" title="Estimated: CN's date plus the measured lag">estimate</span></>}
+      <br /><small class={late ? "warn-text" : "muted"}>{late ? "Expected already: may have been skipped or moved" : relative(eta)}{wiki && x!.end ? ` · until ${date(x!.end)}` : ""}{cn ? ` · CN ${date(cn)}` : ""}</small>
     </span>
   );
 }
@@ -43,7 +47,7 @@ export default function Upcoming() {
           const byId = new Map(ops.map((o) => [o.id, o]));
           return (
             <>
-              <p class="note" role="note"><strong>These dates are estimates, not announcements.</strong> CN runs months ahead, so a date marked <span class="badge est">estimate</span> is CN's date plus the lag measured over the last events both servers ran ({up.lag_days ?? "?"} days). Servers skip, swap and reorder things, collaborations especially. A date turns solid (no badge) once this server's own game data lists it; for announced dates, the official news and in-game notices come first.</p>
+              <p class="note" role="note"><strong>Most of these dates are estimates, not announcements.</strong> CN runs months ahead, so a date marked <span class="badge est">estimate</span> is CN's date plus the lag measured over the last events both servers ran ({up.lag_days ?? "?"} days). Servers skip, swap and reorder things, collaborations especially. A date marked <span class="badge wiki">dated by the wiki</span> comes from the <a href="https://arknights.wiki.gg/wiki/Event" rel="noopener">Arknights Terra Wiki</a>: announced, or found in the game files. A date turns solid (no badge) once this server's own game data lists it; the official news and in-game notices come first.</p>
               <Tabs label="Upcoming sections" value={view} onChange={(v) => setQuery({ view: v === "events" ? "" : v })} tabs={[
                 { key: "events", label: `Events (${up.events.length})` }, { key: "shops", label: "Event shops" }, { key: "operators", label: `Operators (${up.operators.length})` },
                 { key: "modules", label: "Modules" }, { key: "banners", label: `Banners (${up.banners.length})` }, { key: "cc", label: "Contingency Contract" },
@@ -96,7 +100,7 @@ function ShopCard({ e, values, short }: { e: ShopEvent; values: Record<string, n
   return (
     <details class="card" open={e.status === "running" || undefined}>
       <summary style={{ cursor: "pointer" }}>
-        <strong>{e.name}</strong>{e.unofficial && <> <Unofficial /></>} <span class="muted">· {e.status === "running" ? `running, ends ${date(e.end!)}` : <>coming <Eta eta={e.eta!} confirmed={e.confirmed} /></>}</span>
+        <strong>{e.name}</strong>{e.unofficial && <> <Unofficial wiki={e.name_by === "wiki" ? e.wiki : undefined} /></>} <span class="muted">· {e.status === "running" ? `running, ends ${date(e.end!)}` : <>coming <Eta eta={e.eta!} confirmed={e.confirmed} x={e} /></>}</span>
         {needTokens > 0 && <span class="badge" style={{ marginLeft: "8px" }}>{needTokens.toLocaleString()} tokens for what you need</span>}
       </summary>
       <div class="table-wrap" style={{ marginTop: "10px" }}>
@@ -128,8 +132,8 @@ function Events({ up, byId }: { up: UpcomingFile; byId: Map<string, OpIndex> }) 
         return (
           <details key={e.id} class="card" open={e === up.events.find((x) => new Date(x.eta).getTime() > Date.now())}>
             <summary class="cut" style={{ cursor: "pointer" }}>
-              <span class="cut-title" style={{ fontSize: "1.45rem" }}>{e.name || e.name_en || e.name_cn}</span>{!e.name && e.name_en && <> <Unofficial /></>}
-              <br />{(e.name || e.name_en) && <span class="muted">{e.name_cn} · </span>}<Eta eta={e.eta} confirmed={e.confirmed} cn={e.cn_start} />
+              <span class="cut-title" style={{ fontSize: "1.45rem" }}>{e.name || e.name_en || e.name_cn}</span>{!e.name && e.name_en && <> <Unofficial wiki={e.name_by === "wiki" ? e.wiki : undefined} /></>}
+              <br />{(e.name || e.name_en) && <span class="muted">{e.name_cn} · </span>}<Eta eta={e.eta} confirmed={e.confirmed} cn={e.cn_start} x={e} />
             </summary>
             <p style={{ marginTop: "8px" }}>{e.stages} stages, {e.guided} with community guides ({e.guides} guides).</p>
             {e.key_ops.length > 0 ? (
@@ -182,7 +186,7 @@ function Operators({ up, byId, usage }: { up: UpcomingFile; byId: Map<string, Op
                   <td data-label="Operator"><OpLink op={op} sub={<Stars n={op.rarity} />} /></td>
                   <td data-label="Usage on CN" class="num">{u?.score ? pct(u.score) : "–"}</td>
                   <td data-label="Community build"><CommunityMarks b={b} op={op} /></td>
-                  <td data-label="Banner">{banner ? <><Eta eta={banner.eta} /><br /><small>{KIND[banner.kind]}</small></> : <span class="muted">Not in a listed banner</span>}</td>
+                  <td data-label="Banner">{banner ? <><Eta eta={banner.eta} x={banner} /><br /><small>{KIND[banner.kind]}</small></> : <span class="muted">Not in a listed banner</span>}</td>
                 </tr>
               );
             })}
@@ -232,8 +236,8 @@ function Banners({ up, byId, usage }: { up: UpcomingFile; byId: Map<string, OpIn
       {up.banners.map((b) => (
         <div key={b.id} class="card">
           <div class="row" style={{ justifyContent: "space-between" }}>
-            <span><strong>{KIND[b.kind] || b.kind}</strong>{b.name_en && <> · {b.name_en} <Unofficial /></>} <span class="muted">{b.name_cn}</span></span>
-            <Eta eta={b.eta} cn={b.cn_open} />
+            <span><strong>{KIND[b.kind] || b.kind}</strong>{b.name_en && <> · {b.name_en} <Unofficial wiki={b.name_by === "wiki" ? b.wiki : undefined} /></>} <span class="muted">{b.name_cn}</span></span>
+            <Eta eta={b.eta} cn={b.cn_open} x={b} />
           </div>
           <div class="row" style={{ marginTop: "8px" }}>
             {b.featured.map((id) => {
@@ -258,7 +262,7 @@ function CC({ up, ops, usage }: { up: UpcomingFile; ops: OpIndex[]; usage: Usage
       <section class="card">
         <h2>Seasons</h2>
         {cc?.current && <p>Running now: <strong>{cc.current.name}</strong>, until {date(cc.current.end)}.</p>}
-        {cc?.next ? <p>Next: <strong>{cc.next.name_en || cc.next.name_cn}</strong>{cc.next.name_en && <> <Unofficial /> <span class="muted">{cc.next.name_cn}</span></>} <Eta eta={cc.next.eta} cn={cc.next.cn_start} /></p> : <p class="muted">No newer CN season known.</p>}
+        {cc?.next ? <p>Next: <strong>{cc.next.name_en || cc.next.name_cn}</strong>{cc.next.name_en && <> <Unofficial wiki={cc.next.name_by === "wiki" ? cc.next.wiki : undefined} /> <span class="muted">{cc.next.name_cn}</span></>} <Eta eta={cc.next.eta} cn={cc.next.cn_start} x={cc.next} /></p> : <p class="muted">No newer CN season known.</p>}
         <h3>Recent on this server</h3>
         <ul>{cc?.history.slice(0, 6).map((h) => <li key={h.id}>{h.name} <span class="muted">{date(h.start)}</span></li>)}</ul>
         <Explain>Lag measured over the last three seasons both servers ran ({cc?.lag_days ?? "?"} days).</Explain>
@@ -277,7 +281,8 @@ function CC({ up, ops, usage }: { up: UpcomingFile; ops: OpIndex[]; usage: Usage
   );
 }
 
-/** Marks Novena's own translation of a CN name, until Global names it officially. */
-function Unofficial() {
+/** Marks a name this server's game data doesn't give yet: the wiki's (linked), or Novena's own translation of CN's. */
+function Unofficial({ wiki }: { wiki?: string }) {
+  if (wiki) return <a class="badge unofficial" href={wiki} rel="noopener" title="The Arknights Terra Wiki's name: the announced Global name, or the community's until there is one. The game's own name replaces it once this server lists it.">wiki name</a>;
   return <span class="badge unofficial" title="Novena's own translation: Global hasn't named this yet. The official name replaces it when it's announced.">unofficial</span>;
 }
