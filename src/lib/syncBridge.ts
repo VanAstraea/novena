@@ -22,10 +22,16 @@ async function call<T>(path: string, init: RequestInit = {}, timeout = 4000): Pr
   try {
     res = await fetch(BRIDGE + path, {
       ...init, signal: ctrl.signal, cache: "no-store",
+      // tells Chrome up front that this request is for the player's own computer, so it asks for "Local network access"
+      // instead of failing; other browsers ignore it
+      ...({ targetAddressSpace: "loopback" } as RequestInit),
       headers: { ...(init.body ? { "Content-Type": "application/json" } : {}), ...(key ? { Authorization: `Bearer ${key}` } : {}) },
     });
   } catch {
-    throw new BridgeError("Couldn't reach Novena Sync. Is it open on this computer? If your browser asked to allow access to devices on your network, allow it.", "unreachable");
+    const local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+    throw new BridgeError(local
+      ? "Couldn't reach Novena Sync. Is it open on this computer?"
+      : "Couldn't reach Novena Sync. Is it open on this computer? If it is, your browser is blocking this page from reaching it: click the icon at the left of the address bar, open Site settings, set \"Local network access\" to Allow, then reload and connect again.", "unreachable");
   } finally {
     clearTimeout(timer);
   }
