@@ -31,8 +31,10 @@ website never asks for a login and never sees one.
    check it against the `SHA256SUMS` file next to it if you like, unzip it, and open **Novena Sync**.
    Windows may warn that the app is unrecognised (it isn't code-signed yet): choose *More info → Run anyway*.
    macOS: right-click the app, *Open*.
-2. Read the notice, pick your server, enter your Yostar account email, then the code Yostar emails you. Your game
-   account needs an email linked to it (in the game's settings) if you normally sign in with Google, Apple or as a guest.
+2. Read the notice, pick your server, enter your Yostar account email, then the code Yostar emails you. If you
+   normally sign in to the game with Google, Apple, Facebook or as a guest, first bind an email in the game (User Center →
+   *Bind Email*, the option that sends a code), and use only that email: with an email that isn't bound, the game
+   creates a new, empty account for it instead of finding yours.
 3. Sync, either way:
    - **From Novena:** My account → Import / export → Novena Sync → *Connect*, enter the six-digit code the app shows
      (once), then *Sync now* whenever you like while the app is open.

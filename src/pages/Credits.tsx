@@ -120,6 +120,11 @@ export default function Credits() {
       </section>
 
       <section class="card">
+        <h2>Imports from other tools</h2>
+        <p>Novena reads rosters kept on <a href="https://www.krooster.com" rel="noopener">Krooster</a> by neeia (<a href="https://github.com/neeia/ak-roster" rel="noopener">source</a>): you open your own public profile there and paste it here. Novena never contacts Krooster itself.</p>
+      </section>
+
+      <section class="card">
         <h2>Novena Sync (optional app)</h2>
         <p>The desktop companion signs in with <a href="https://github.com/thesadru/arkprts" rel="noopener">ArkPRTS</a> by thesadru (MIT), the community's unofficial Arknights client, and keeps its session with <a href="https://github.com/jaraco/keyring" rel="noopener">keyring</a> (MIT). Every package it bundles is listed with its license in the <code>NOTICES.txt</code> inside each download.</p>
               <p>What it keeps from the game data: operators (with the outfit each wears), the depot and currencies, consumables, recruitment slots, the base (rooms, teams, morale, production, drones) and sanity. Never names, ids, friends, visitors, mail or purchases.</p>

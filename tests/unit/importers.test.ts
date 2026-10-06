@@ -52,3 +52,24 @@ describe("Novena Sync files", () => {
     expect(parseRoster(raw, OPS).recruit).toEqual([{ slot: 2, state: 1, tags: [1, 2], picked: [2], start: -1, finish: -1 }]);
   });
 });
+
+describe("Krooster profiles", () => {
+  // The shape krooster.com/api/u/<username> returns (neeia/ak-roster, src/pages/api/u/[user].tsx).
+  const profile = { data: { account: { username: "doc" }, supports: [], roster: {
+    char_202_demkni: { op_id: "char_202_demkni", elite: 2, level: 80, potential: 2, skill_level: 7, masteries: [0, 3, 0], modules: { uniequip_002_demkni: 2 }, favorite: true, skin: "char_202_demkni_epoque#1" },
+    char_002_amiya: { op_id: "char_002_amiya", elite: 1, level: 50, potential: 6, skill_level: 4, masteries: [], modules: { uniequip_002_amiya: 0 }, favorite: false, skin: null },
+    char_9999_nobody: { op_id: "char_9999_nobody", elite: 0, level: 1, potential: 1, skill_level: 1, masteries: [], modules: {}, favorite: false, skin: null },
+  } } };
+
+  it("are read, with module ids turned into letters and unknown operators skipped", () => {
+    const r = parseRoster(profile, OPS);
+    expect(r.format).toBe("Krooster profile");
+    expect(r.skipped).toBe(1);
+    expect(r.ops.char_202_demkni).toEqual({ id: "char_202_demkni", elite: 2, level: 80, pot: 2, skillLevel: 7, masteries: [0, 3, 0], modules: { X: 2 } });
+    expect(r.ops.char_002_amiya).toEqual({ id: "char_002_amiya", elite: 1, level: 50, pot: 6, skillLevel: 4, masteries: [], modules: {} });
+  });
+
+  it("are read when only the roster is pasted", () => {
+    expect(Object.keys(parseRoster(profile.data.roster, OPS).ops)).toEqual(["char_202_demkni", "char_002_amiya"]);
+  });
+});

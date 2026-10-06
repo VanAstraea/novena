@@ -720,6 +720,13 @@ button.linkish:hover { color: var(--text); }
 .op-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 12px; }
 .card > .op-filters:first-child { margin-top: 0; }
 
+/* --- import from Krooster */
+.btn.disabled { opacity: 0.5; pointer-events: none; }
+.krooster .steps { margin: 0; padding-left: 1.3em; display: grid; gap: 12px; }
+.krooster .steps li::marker { color: var(--accent); font-weight: 700; }
+.krooster .row.tight input { flex: 1 1 160px; min-width: 0; }
+.krooster textarea { min-height: 72px; font-family: ui-monospace, monospace; font-size: 0.8rem; }
+
 /* --- gaps: archetypes the roster covers poorly */
 .gaps td { vertical-align: middle; }
 .gap-name { display: block; font-weight: 700; color: var(--text); }

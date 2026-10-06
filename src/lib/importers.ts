@@ -1,7 +1,8 @@
 // Roster imports. Accepted, detected by shape:
 //   - Novena roster files (this site's own export)
 //   - a raw `account/syncData` JSON (what other community tools save), or Novena Sync's cut-down copy of one
-//   - Krooster's operator export (an object keyed by char id with owned / promotion / potential / mastery / module)
+//   - a Krooster profile (what krooster.com/api/u/<username> shows: Krooster has no roster export, but profiles are public)
+//   - Krooster's older operator export (an object keyed by char id with owned / promotion / potential / mastery / module)
 import type { OpIndex } from "../types";
 import type { Account, RosterOp } from "../state";
 
@@ -94,7 +95,24 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
       consumables: Object.keys(consumables).length ? consumables : undefined, recruit: recruitSlots(user.recruit), base: baseState(user.building, data.synced), sanity };
   }
 
-  // Krooster: { char_x: { id, owned, promotion, potential, level, skillLevel, mastery: [..], module: {id|letter: n} } }
+  // Krooster profile: { data: { account, supports, roster: { char_x: { op_id, elite, level, potential, skill_level,
+  // masteries: [..], modules: { uniequip_…: n } } } } }, or just the roster. Its skins are avatar ids, so they're left out.
+  const kroster = data?.data?.roster ?? data?.roster ?? data;
+  const krows = Array.isArray(kroster) ? kroster : kroster && typeof kroster === "object" ? Object.values(kroster) : [];
+  if (krows.length && krows.every((v: any) => v && typeof v === "object" && typeof v.op_id === "string")) {
+    for (const v of krows as any[]) {
+      const modules: Record<string, number> = {};
+      for (const [k, n] of Object.entries(v.modules || {})) {
+        const letter = /^[A-Z]$/i.test(k) ? k.toUpperCase() : letters.get(k);
+        if (letter && Number(n) > 0) modules[letter] = Number(n);
+      }
+      put({ id: v.op_id, elite: v.elite, level: v.level, pot: v.potential, skillLevel: v.skill_level,
+        masteries: Array.isArray(v.masteries) ? v.masteries : [], modules });
+    }
+    return { ops: out, format: "Krooster profile", skipped };
+  }
+
+  // Krooster's older export: { char_x: { id, owned, promotion, potential, level, skillLevel, mastery: [..], module: {id|letter: n} } }
   const values = Array.isArray(data) ? data : data && typeof data === "object" ? Object.values(data) : [];
   if (values.length && values.every((v: any) => v && typeof v === "object" && "owned" in v)) {
     for (const v of values as any[]) {
@@ -110,7 +128,7 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
     return { ops: out, format: "Krooster export", skipped };
   }
 
-  throw new Error("Couldn't read this file: it isn't a Novena roster, game sync data or a Krooster export.");
+  throw new Error("Couldn't read this file: it isn't a Novena roster, a Novena Sync file, game sync data or a Krooster profile.");
 }
 
 export function exportRoster(a: Account, server: string) {

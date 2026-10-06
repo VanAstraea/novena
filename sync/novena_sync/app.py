@@ -33,6 +33,11 @@ NOTICE = (
     "Your email and the code Yostar sends are never stored. The session they create is kept in your computer's "
     "credential store until you sign out. Entering your roster by hand on the website is the risk-free option."
 )
+BIND_NOTE = (
+    "Sign in to the game with Google, Apple, Facebook or as a guest? First bind an email in the game: User Center → "
+    "Bind Email (the option that sends you a code). Use only an email that's already bound: with any other email the "
+    "game makes a new, empty account for it instead of finding yours."
+)
 
 
 if sys.platform == "win32":  # crisp text on scaled displays; sizes below are scaled to match
@@ -169,6 +174,7 @@ class App:
             if not self.vault.persistent:
                 ttk.Label(f, text="No credential store found: you'll sign in again next launch.", style="PanelMuted.TLabel").pack(anchor="w", pady=(6, 0))
             return
+        ttk.Label(f, text=BIND_NOTE, style="Panel.TLabel", wraplength=self.wrap, justify="left").pack(anchor="w", pady=(10, 0))
         ttk.Label(f, text="Yostar account email", style="PanelMuted.TLabel").pack(anchor="w", pady=(10, 2))
         email = ttk.Entry(f, width=40)
         email.pack(anchor="w")
@@ -179,7 +185,7 @@ class App:
         code.pack(anchor="w")
         sign = ttk.Button(f, text="Sign in", style="Gold.TButton")
         sign.pack(anchor="w", pady=(6, 0))
-        self.account_msg = ttk.Label(f, text="Your account needs an email linked to it in the game's settings.", style="PanelMuted.TLabel", wraplength=self.wrap)
+        self.account_msg = ttk.Label(f, text="Use the email bound to your game account.", style="PanelMuted.TLabel", wraplength=self.wrap)
         self.account_msg.pack(anchor="w", pady=(8, 0))
         server = self.settings.server
         msg = self.account_msg

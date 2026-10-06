@@ -16,7 +16,7 @@ import { EXP, LMD, sanity } from "../lib/costs";
 import { diff, type Change } from "../lib/progress";
 import { operators } from "../lib/data";
 import { date, fmt } from "../lib/format";
-import { applyImport, importFile, updateAccount } from "../lib/accountImport";
+import { applyImport, importFile, importText, updateAccount } from "../lib/accountImport";
 import { exportRoster, parseRoster } from "../lib/importers";
 import { pref, setPref } from "../lib/storage";
 import { BridgeError, forget, hello, isPaired, pair, SYNC_SERVERS, syncNow } from "../lib/syncBridge";
@@ -281,7 +281,7 @@ function Import({ ops }: { ops: OpIndex[] }) {
       <SyncCard ops={ops} />
       <section class="card">
         <h2>Import a file</h2>
-        <p>Accepted: a Novena roster file, a Novena Sync file, game sync data (syncData JSON), or a Krooster operator export.</p>
+        <p>Accepted: a Novena roster file, a Novena Sync file, game sync data (syncData JSON), or a saved Krooster profile.</p>
         <p class="muted">For your depot, the easiest way is screenshots: <a href={href("/roster", { tab: "depot" })}>Depot → Import from screenshots</a>.</p>
         <div class="row" style={{ marginBottom: "10px" }}>
           <div class="seg" role="group" aria-label="Import mode">
@@ -293,18 +293,56 @@ function Import({ ops }: { ops: OpIndex[] }) {
           onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
           onDrop={(e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer?.files?.[0]; if (f) void onFile(f); }}>
           <span>Drop a file here, or <u>choose one</u></span>
-          <input type="file" accept=".json,application/json" class="sr-only"
+          <input type="file" accept=".json,.txt,application/json,text/plain" class="sr-only"
             onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void onFile(f); }} />
         </label>
         {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
         <Explain>The file is read in your browser; nothing is uploaded.</Explain>
       </section>
+      <KroosterImport ops={ops} mode={mode} />
       <section class="card">
         <h2>Export</h2>
         <p>Download this server's roster and depot as a file you can import elsewhere or keep.</p>
         <button onClick={exportIt} disabled={!Object.keys(account.value.ops).length}>Export roster</button>
       </section>
     </div>
+  );
+}
+
+/** From Krooster: it has no roster export, but every profile is public at krooster.com/api/u/<username>. Browsers
+ *  won't let this page read it directly, so you open it yourself and paste what it shows (or save it and drop it in). */
+function KroosterImport({ ops, mode }: { ops: OpIndex[]; mode: "replace" | "merge" }) {
+  const [name, setName] = useState("");
+  const [text, setText] = useState("");
+  const [msg, setMsg] = useState<Msg>(null);
+  const url = `https://www.krooster.com/api/u/${encodeURIComponent(name.trim().toLowerCase())}`;
+  const go = () => {
+    try { setMsg({ ok: true, text: importText(text, ops, server.value, mode, "That isn't what your Krooster profile page shows") }); setText(""); }
+    catch (e) { setMsg({ ok: false, text: (e as Error).message }); }
+  };
+  return (
+    <section class="card krooster">
+      <h2>From Krooster</h2>
+      <ol class="steps">
+        <li>
+          <label class="field"><span>Your Krooster username</span>
+            <span class="row tight">
+              <input type="text" value={name} onInput={(e) => setName((e.target as HTMLInputElement).value)} placeholder="username" autocomplete="off" spellcheck={false} />
+              <a class={`btn${name.trim() ? "" : " disabled"}`} href={name.trim() ? url : undefined} target="_blank" rel="noopener noreferrer" aria-disabled={!name.trim()}>Open my profile</a>
+            </span>
+          </label>
+        </li>
+        <li>On the page that opens, select everything (Ctrl+A, or ⌘A on a Mac) and copy it.</li>
+        <li>
+          <label class="field"><span>Paste it here</span>
+            <textarea rows={3} value={text} onInput={(e) => setText((e.target as HTMLTextAreaElement).value)} placeholder='{"data":{"account":…' spellcheck={false} />
+          </label>
+          <button class="primary" disabled={!text.trim()} onClick={go} style={{ marginTop: "8px" }}>Import from Krooster</button>
+        </li>
+      </ol>
+      {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
+      <Explain>Krooster profiles are public, so no sign-in is needed. The page opens on Krooster's site; Novena only reads what you paste. Krooster keeps your depot separately; for that, use Depot → Import from screenshots. (Saving the page and dropping the file into "Import a file" works too.)</Explain>
+    </section>
   );
 }
 
