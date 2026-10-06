@@ -100,7 +100,6 @@ export function SearchDialog() {
       if (s >= 55) out.push({ key: `s${st.id}`, label: `${st.code} (${st.ap} sanity)`, kind: "Stage", to: href("/farming", { stage: st.id }), score: s - 5 });
     }
     for (const p of PAGES) {
-      if (p.hidden) continue;
       const s = Math.max(matchScore(q, p.title), ...(p.keywords || []).map((k) => matchScore(q, k)));
       if (s) out.push({ key: p.path, label: p.title, kind: "Page", to: href(p.path), score: s + 1 });
     }
