@@ -140,7 +140,7 @@ export default function Today() {
 
 /** The account at a glance: totals, what's next, what changed since an earlier day, and progress over time. */
 function Overview() {
-  useEffect(() => { void autoPriorities(); }, []);
+  useEffect(() => { if (hasRoster.value) void autoPriorities(); }, [hasRoster.value]); // after the account has loaded, like Home
   const s = server.value;
   const st = useAsync(() => Promise.all([operators(s), costTable(s), loadStages(s), loadUpcoming(s).catch(() => null)]), [s]);
   const a = account.value;
