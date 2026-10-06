@@ -988,3 +988,16 @@ button.linkish:hover { color: var(--text); }
 .key-alts a.alt-mine { color: var(--good); font-weight: 600; }
 .key-more { margin-top: 10px; }
 .key-more > summary { cursor: pointer; color: var(--muted); font-size: 0.86rem; margin-bottom: 10px; }
+
+/* Priorities: leaving operators out (the ✕ beside Today's and Home's next steps, ticking steps to leave out several) */
+.leave-row { display: flex; align-items: center; gap: 6px; }
+.leave-row .op-cell { flex: 1 1 auto; }
+button.leave-x { flex: none; min-height: 0; padding: 2px 7px; color: var(--muted); font-weight: 400; line-height: 1.2; }
+.acct-next li .leave-x { margin-left: auto; }
+table.cards tr.picked td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+@media (min-width: 561px) { table.cards th.pick, table.cards td.pick { width: 34px; text-align: center; } }
+@media (max-width: 560px) {
+  table.cards td.pick:empty { display: none; }
+  table.cards td.pick input { justify-self: start; }
+  .next-grid { grid-template-columns: minmax(0, 1fr); } /* Today's three cards, one under another, so the ✕ has room */
+}

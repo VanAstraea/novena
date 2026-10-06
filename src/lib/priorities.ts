@@ -2,10 +2,12 @@
 // import or a sync, and when a page that shows it finds none for the current roster, so players don't have to know to
 // press a button. The last result is kept per server in this browser, so it's there straight away on the next visit.
 import { effect, signal } from "@preact/signals";
+import { undoable } from "../components/Toast";
 import { itemsSig, metaSig } from "../components/ui";
 import { costTable, goalStates, guidebook, lastPlan, rosterStates, runPlan } from "./account";
 import { operators } from "./data";
 import { SUPPORT_SLOTS, type PlanResult } from "./planner";
+import { filtersOn as anyFilter, planFilters, readFilters, suggestable, type PrioFilters } from "./prioFilters";
 import { getItem, pref, setItem, setPref } from "./storage";
 import { contentLevels, effectiveWeights } from "./weights";
 import { account, hasRoster, server, targets } from "../state";
@@ -17,12 +19,27 @@ export function setPrioSettings(top: number, support: boolean) {
   setPref("prioTop", String(top)); setPref("prioSupport", support ? "1" : "");
 }
 
-/** What the player wants suggested: rarities, classes, kinds of upgrade, a sanity cap per step, operators left out. */
-export interface PrioFilters { rarity: number[]; cls: string[]; kinds: { promote: boolean; skill: boolean; mastery: boolean; module: boolean }; maxSanity: number; skip: string[] }
-export const NO_FILTERS: PrioFilters = { rarity: [], cls: [], kinds: { promote: true, skill: true, mastery: true, module: true }, maxSanity: 0, skip: [] };
-export const prioFilters = signal<PrioFilters>((() => { try { return { ...NO_FILTERS, ...JSON.parse(pref("prioFilters", "{}")) }; } catch { return NO_FILTERS; } })());
+/** What the player wants suggested (lib/prioFilters.ts): classes, kinds of upgrade, a sanity cap, what to leave out. */
+export { NO_FILTERS, TIERS, type PrioFilters } from "./prioFilters";
+export const prioFilters = signal<PrioFilters>((() => { try { return readFilters(JSON.parse(pref("prioFilters", "{}"))); } catch { return readFilters({}); } })());
 export function setPrioFilters(f: PrioFilters) { prioFilters.value = f; setPref("prioFilters", JSON.stringify(f)); }
-export const filtersOn = (f = prioFilters.value) => !!(f.rarity.length || f.cls.length || f.maxSanity || f.skip.length || Object.values(f.kinds).some((v) => !v));
+export const filtersOn = (f = prioFilters.value) => anyFilter(f);
+/** Whether an operator may be suggested now; an older result is trimmed with it while the new one builds. */
+export const mayRaise = (op: { id: string; rarity: number; cls: string }) => suggestable(prioFilters.value, op.id, op);
+
+/** Leave operators out of the priorities (the plan rebuilds without them), with a few seconds to take it back. */
+export function leaveOut(ops: { id: string; name: string }[]) {
+  const f = prioFilters.value, ids = ops.map((o) => o.id).filter((id) => !f.skip.includes(id));
+  if (!ids.length) return;
+  setPrioFilters({ ...f, skip: [...f.skip, ...ids] });
+  void autoPriorities();
+  const names = ops.map((o) => o.name);
+  const who = names.length > 3 ? `${names.length} operators` : names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : names[0];
+  undoable(`${who} left out of priorities.`, () => {
+    setPrioFilters({ ...prioFilters.value, skip: prioFilters.value.skip.filter((id) => !ids.includes(id)) });
+    void autoPriorities();
+  });
+}
 
 /** Working: the phase it's in. */
 export const prioStatus = signal<string | null>(null);
@@ -50,6 +67,7 @@ let running: Promise<void> | null = null;
 
 export async function buildPriorities(): Promise<void> {
   if (running) return running;
+  let again = false;
   running = (async () => {
     prioError.value = "";
     prioStatus.value = "Loading the guidebook";
@@ -67,15 +85,17 @@ export async function buildPriorities(): Promise<void> {
         fixed: opsList.filter((o) => o.obtain === "is").map((o) => o.id),
         weights: effectiveWeights(),
         top: prioTop.value, support: prioSupport.value ? SUPPORT_SLOTS : 0, goals: goalStates(targets.value, states, costs, ops),
-        ...planFilters(ops),
+        ...planFilters(prioFilters.value, Object.keys(account.value.ops), ops),
       }, (phase, done, total) => (prioStatus.value = total > 1 ? `${phase} (${done}/${total})` : phase));
       lastPlan.value = { key, result };
       void setItem(`priorities.${s}`, { key, result });
+      again = priorityKey() !== key; // something changed while it worked (an operator left out, say): once more
     } catch (e) {
       prioError.value = (e as Error).message;
     } finally {
       prioStatus.value = null;
       running = null;
+      if (again) void buildPriorities();
     }
   })();
   return running;
@@ -97,16 +117,4 @@ let soon = 0;
 export function prioritiesSoon(ms = 1500) {
   clearTimeout(soon);
   soon = window.setTimeout(() => void autoPriorities(), ms);
-}
-
-/** The planner's share of the filters: which operators it may raise, which kinds of upgrade, the sanity cap. */
-function planFilters(ops: Map<string, { rarity: number; cls: string }>) {
-  const f = prioFilters.value;
-  if (!filtersOn(f)) return {};
-  const skip = new Set(f.skip);
-  const only = Object.keys(account.value.ops).filter((id) => {
-    const o = ops.get(id);
-    return o && !skip.has(id) && (!f.rarity.length || f.rarity.includes(Math.max(3, o.rarity))) && (!f.cls.length || f.cls.includes(o.cls));
-  });
-  return { only, kinds: f.kinds, maxSanity: f.maxSanity || undefined };
 }

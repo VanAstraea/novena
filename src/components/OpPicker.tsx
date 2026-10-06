@@ -1,27 +1,30 @@
-// A searchable operator picker (combobox): type a name, pick with the arrows and Enter, or click.
-import { useId, useMemo, useState } from "preact/hooks";
+// A searchable operator picker (combobox): type a name, pick with the arrows and Enter, or click. `again`: it stays
+// ready for the next name, for adding several in a row.
+import { useId, useMemo, useRef, useState } from "preact/hooks";
 import { best } from "../lib/search";
 import type { OpIndex } from "../types";
 import { Avatar, Stars } from "./ui";
 
-export function OpPicker({ ops, onPick, label = "Add an operator", placeholder = "Operator name…", exclude = [] }: {
-  ops: OpIndex[]; onPick: (op: OpIndex) => void; label?: string; placeholder?: string; exclude?: string[];
+export function OpPicker({ ops, onPick, label = "Add an operator", placeholder = "Operator name…", exclude = [], again = false }: {
+  ops: OpIndex[]; onPick: (op: OpIndex) => void; label?: string; placeholder?: string; exclude?: string[]; again?: boolean;
 }) {
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
   const id = useId();
+  const input = useRef<HTMLInputElement>(null);
   const results = useMemo(() => (q.trim() ? best(q, ops.filter((o) => !exclude.includes(o.id)), (o) => [o.name, o.cn, o.alt], 8) : []),
     [q, ops, exclude]);
   const pick = (op: OpIndex) => {
     onPick(op);
     setQ("");
     setSel(0);
+    if (again) input.current?.focus();
   };
   return (
     <div class="picker" style={{ position: "relative", maxWidth: "420px" }}>
       <label class="field">
         <span>{label}</span>
-        <input type="search" role="combobox" list={undefined} aria-expanded={results.length > 0} aria-controls={`${id}-list`}
+        <input ref={input} type="search" role="combobox" list={undefined} aria-expanded={results.length > 0} aria-controls={`${id}-list`}
           aria-activedescendant={results.length ? `${id}-${sel}` : undefined} value={q} placeholder={placeholder}
           autocomplete="off" onInput={(e) => { setQ((e.target as HTMLInputElement).value); setSel(0); }}
           onKeyDown={(e) => {
