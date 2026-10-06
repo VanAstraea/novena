@@ -1,4 +1,4 @@
-// Pull planner (after ako's pulls.py): savings, a steady-income estimate, and the banners coming from CN.
+// Banners & pulls (after ako's pulls.py): savings, a steady-income estimate, and the banners coming from CN.
 import { Await, Explain, OpLink, useAsync } from "../components/ui";
 import { operators, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
 import { date, fmt, pct, relative } from "../lib/format";
@@ -19,7 +19,7 @@ export default function Pulls() {
   const now = (withPrime: boolean) => (sv.orundum + (withPrime ? sv.prime * ORUNDUM_PER_PRIME : 0)) / ORUNDUM_PER_PULL + sv.permits;
   return (
     <div class="stack fade-in">
-      <h1>Pull planner</h1>
+      <h1>Banners &amp; pulls</h1>
       <section class="card">
         <h2>Your savings</h2>
         <div class="row" style={{ alignItems: "flex-end" }}>

@@ -88,7 +88,7 @@ function Hero({ stage, altarRef, settled }: { stage: "idle" | "reveal"; altarRef
           <span>Find an operator, item or stage</span><kbd>Ctrl K</kbd>
         </button>
         <nav class="quick" aria-label="Popular tools" data-in style={{ "--d": 4 }}>
-          <a href={href("/planner")}>Planner</a><a href={href("/farming")}>Farming</a><a href={href("/recruit")}>Recruit</a><a href={href("/rankings")}>Rankings</a>
+          <a href={href("/planner")}>Materials</a><a href={href("/farming")}>Farming</a><a href={href("/recruit")}>Recruit</a><a href={href("/rankings")}>Rankings</a>
         </nav>
       </div>
       <HeroToday />

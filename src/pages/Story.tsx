@@ -1,4 +1,4 @@
-// Story & events: what the main story, the Side Story and Intermezzo archives and Annihilation pay out once, and the
+// Story & archives: what the main story, the Side Story and Intermezzo archives and Annihilation pay out once, and the
 // free operators with where to get each one now. Read from the game's tables; it doesn't see what you've cleared.
 import type { ComponentChildren } from "preact";
 import { useMemo } from "preact/hooks";
@@ -20,7 +20,7 @@ export default function Story() {
   const view = (route.value.query.get("view") || "free") as View;
   return (
     <div class="stack fade-in story">
-      <h1>Story &amp; events</h1>
+      <h1>Story &amp; archives</h1>
       <p class="muted" style={{ marginTop: "-6px" }}>What the main story, the Side Story and Intermezzo archives and Annihilation pay out once, and every free operator with where to get them now.</p>
       <Await state={st} what="story data">
         {([data, ops]) => {

@@ -1,6 +1,7 @@
 // Settings and the single-file backup. Everything here works on this browser's storage only.
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { Explain, GuideLink } from "../components/ui";
+import { WeightsControl } from "../components/Weights";
 import { clearAll, getItem, keys, setItem, setPref } from "../lib/storage";
 import { href, navigate } from "../lib/router";
 import { SERVERS, server, theme, type Theme } from "../state";
@@ -26,6 +27,10 @@ function download(name: string, text: string) {
 export default function Settings() {
   const [msg, setMsg] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Priorities, Rankings and Roster gaps link here to change what you play
+  useEffect(() => {
+    if (location.hash === "#what-you-play") setTimeout(() => document.getElementById("what-you-play")?.scrollIntoView({ block: "start" }), 0);
+  }, []);
 
   const exportAll = async () => {
     const b = await makeBackup();
@@ -84,6 +89,11 @@ export default function Settings() {
         <p style={{ marginTop: "12px" }}>
           <button onClick={() => { setPref("introSeen", ""); navigate(href("/", { intro: 1 })); }}>Play the intro again</button>
         </p>
+      </section>
+      <section class="card" id="what-you-play">
+        <h2>What you play</h2>
+        <p class="muted">How much each kind of content counts when Priorities scores upgrades, when Rankings' "All" ranks operators and when Roster gaps weighs archetypes. Normal everywhere is the default mix.</p>
+        <WeightsControl />
       </section>
     </div>
   );

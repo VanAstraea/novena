@@ -80,7 +80,7 @@ function Shops({ ops }: { ops: OpIndex[] }) {
         if (!shops.events.length) return <p class="muted">No event shop is recorded for the events running or coming here.</p>;
         return (
           <div class="stack">
-            {needs && needs.from === "none" && <p class="note">Set targets in the <a href={href("/planner")}>Upgrade planner</a> (or build a <a href={href("/plan")}>Plan</a>) to see which offers cover what you're short of.</p>}
+            {needs && needs.from === "none" && <p class="note">Set targets in the <a href={href("/planner")}>Materials planner</a> (or build a <a href={href("/plan")}>Plan</a>) to see which offers cover what you're short of.</p>}
             {shops.events.map((e) => <ShopCard key={e.id} e={e} values={items.values} short={needs?.short || {}} />)}
             <Explain>Shops come from Yituliu's record of every CN event shop; this server runs the same events later with the same shops. An offer's value is the sanity its items are worth (the planner's material values); "per token" ranks offers by value for the tokens. "You need" is how many purchases would cover what your plan is still short of after your depot (crafting included).</Explain>
           </div>

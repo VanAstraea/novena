@@ -279,7 +279,7 @@ main { max-width: 1560px; margin: 0 auto; padding: 24px 28px 40px; min-height: 7
 @media (max-width: 560px) {
   main { padding: 12px; }
   .top-row { padding: 0 12px; }
-  .bottom-nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  .bottom-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); background: var(--bar); border-top: 1px solid var(--border); backdrop-filter: blur(10px); }
   .bottom-nav a { display: grid; justify-items: center; gap: 3px; padding: 4px 0; color: var(--muted); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.02em; text-decoration: none; }
   .bottom-nav a[aria-current="page"] { color: var(--accent); }
@@ -584,9 +584,13 @@ dialog.search::backdrop { background: rgba(0, 0, 0, 0.6); }
 @media (max-width: 560px) {
   .toasts { bottom: calc(76px + env(safe-area-inset-bottom)); }
 }
-.weights { margin-top: 10px; }
-.weights summary { cursor: pointer; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-.weights-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 6px 18px; margin-top: 8px; }
+.weights { margin-top: 4px; }
+/* the one-line reminder of it on Priorities, Rankings and Roster gaps, linking to Settings */
+.weights-chip { margin: 10px 0 0; font-size: 0.86rem; color: var(--muted); }
+.weights-chip strong { color: var(--text); font-weight: 600; }
+.card > .weights-chip:first-child { margin-top: 0; }
+#what-you-play { scroll-margin-top: 72px; }
+.weights-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 6px 18px; }
 .weights-label { min-width: 110px; font-size: 0.86rem; }
 .chart { position: relative; }
 .chart-tip { position: absolute; right: 14px; top: 12px; margin: 0; font-size: 0.8rem; color: var(--muted); }
@@ -977,8 +981,8 @@ button.mark-btn:disabled { opacity: 0.4; }
 .credits pre { white-space: pre-wrap; font-size: 0.78rem; color: var(--muted); max-height: 260px; overflow: auto; background: var(--surface-2); border: 1px solid var(--border); padding: 10px 12px; }
 .pkg-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2px 18px; }
 
-/* --- story & events ------------------------------------------------------------------------------------------- */
-/* Story & events: the ways to get a free operator as a plain list, and the operators a row names side by side */
+/* --- story & archives ----------------------------------------------------------------------------------------- */
+/* Story & archives: the ways to get a free operator as a plain list, and the operators a row names side by side */
 .story-ways { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .story-ops { display: inline-flex; flex-wrap: wrap; gap: 6px 14px; }
 

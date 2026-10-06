@@ -3,7 +3,7 @@
 import { useMemo, useState } from "preact/hooks";
 import { CommunityMarks } from "../components/Marks";
 import { toast } from "../components/Toast";
-import { WeightsControl } from "../components/Weights";
+import { WeightsChip } from "../components/Weights";
 import { Avatar, Await, Explain, GIcon, metaSig, SortTh, useAsync } from "../components/ui";
 import { loadSample } from "../lib/accountImport";
 import { parse } from "../lib/build";
@@ -20,7 +20,7 @@ export default function Gaps() {
   const st = useAsync(() => Promise.all([operators(s), loadUsage()]), [s]);
   return (
     <div class="stack fade-in">
-      <h1>Gaps</h1>
+      <h1>Roster gaps</h1>
       <p class="muted" style={{ marginTop: "-6px" }}>Archetypes community clears lean on that your roster covers poorly, and the quickest ways to fill each one.</p>
       <Await state={st} what="usage data">
         {([ops, usage]) => hasRoster.value ? <Table ops={ops} usage={usage} /> : (
@@ -49,7 +49,7 @@ function Table({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
   return (
     <>
       <div class="card">
-        <WeightsControl compact />
+        <WeightsChip />
         <label class="row tight" style={{ marginTop: 10 }}>
           <input type="checkbox" checked={here} onChange={(e) => setQuery({ here: (e.target as HTMLInputElement).checked ? "1" : "" })} /> Only suggest operators on this server
         </label>
@@ -114,7 +114,7 @@ function Chip({ o, fill = false }: { o: GapOption; fill?: boolean }) {
       {!fill && o.owned && !o.built && <small>unbuilt</small>}
       {fill && o.owned && o.todo && <CommunityMarks b={{ ...o.todo, moduleStage: 1 }} op={o.op} />}
       {fill && !o.owned && <small>get · {pct(o.share, 0)}{o.here ? "" : " · CN only"}</small>}
-      {fill && o.owned && o.todo && !goal && <button class="small ghost gap-goal" title="Make it a goal in the Upgrade planner" aria-label={`Make ${o.op.name}'s community build a goal`} onClick={() => makeGoal(o)}>+ goal</button>}
+      {fill && o.owned && o.todo && !goal && <button class="small ghost gap-goal" title="Make it a goal in the Materials planner" aria-label={`Make ${o.op.name}'s community build a goal`} onClick={() => makeGoal(o)}>+ goal</button>}
       {fill && goal && <small class="good-text" title={goal.text}>goal</small>}
     </span>
   );
@@ -126,5 +126,5 @@ function makeGoal(o: GapOption) {
   const text = had ? `${had.text}, ${step}` : step;
   try { parse(`${o.op.name} ${text}`); } catch (e) { toast((e as Error).message, { kind: "bad" }); return; }
   saveTargets([...targets.value.filter((t) => t.id !== o.op.id), { id: o.op.id, text }]);
-  toast(`${o.op.name}: ${step} is a goal now.`, { link: { href: href("/planner"), label: "Open the planner" } });
+  toast(`${o.op.name}: ${step} is a goal now.`, { link: { href: href("/planner"), label: "Open Materials" } });
 }

@@ -31,7 +31,7 @@ export const recruit = (s: Server) => load<RecruitFile>(`${s}/recruit.json`);
 export const upcoming = (s: Server) => load<UpcomingFile>(`${s}/upcoming.json`);
 export const integrated = (s: Server) => load<ISFile>(`${s}/is.json`);
 export const shops = (s: Server) => load<ShopsFile>(`${s}/shops.json`);
-/** Story & events, or null until the daily build first publishes it (a missing file, or the dev server's page in its place). */
+/** Story & archives, or null until the daily build first publishes it (a missing file, or the dev server's page in its place). */
 export const progress = (s: Server) => load<ProgressFile>(`${s}/progress.json`).catch((e: Error) => {
   if (e instanceof SyntaxError || / \(404\)$/.test(e.message)) return null;
   throw e;
