@@ -25,7 +25,7 @@ const TREE: NavNode[] = [
   { label: "Operators", children: [{ label: "Database" }, { label: "Compare" }, { label: "Rankings" }] },
   { label: "Events", children: [{ label: "Now & upcoming" }, { label: "Banners & pulls" }, { label: "Story & archives" }, { label: "Contingency Contract" }] },
   { label: "Tools", children: [{ label: "Recruitment" }, { label: "Integrated Strategies" }] },
-  { label: "Footer", children: [{ label: "Import guide" }, { label: "Settings & backup" }, { label: "About" }, { label: "Credits" }] },
+  { label: "Help & settings", children: [{ label: "Import guide" }, { label: "Settings & backup" }, { label: "About" }, { label: "Credits" }] },
 ];
 
 /** The tasks, numbered by their place here (that number is in the codes: add new ones at the end). Each right answer
@@ -35,7 +35,7 @@ const TASKS: { text: string; answers: string[][] }[] = [
   { text: "Find out what to spend today's sanity on.", answers: [["Plan", "3 Farming", "Today's runs"], ["Today"]] },
   { text: "Check when the next limited banner is expected and how much to save.", answers: [["Events", "Banners & pulls"]] },
   { text: "See which free operators from Side Stories you're still missing.", answers: [["Events", "Story & archives"]] },
-  { text: "Bring your account in from Krooster.", answers: [["Footer", "Import guide"], ["My account", "Roster"]] },
+  { text: "Bring your account in from Krooster.", answers: [["Help & settings", "Import guide"], ["My account", "Roster"]] },
   { text: "Compare two operators' skills side by side.", answers: [["Operators", "Compare"]] },
   { text: "See which kinds of operators (archetypes) your roster is weak in.", answers: [["Plan", "1 Priorities", "By archetype"]] },
   { text: "Plan who works where in your base.", answers: [["My account", "Base"]] },
