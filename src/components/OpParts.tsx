@@ -4,6 +4,7 @@ import { useState } from "preact/hooks";
 import { add, LMD, masteryCost, moduleCost, promotionCost, sanity, skillLevelCost, levelCost, type Cost } from "../lib/costs";
 import { art } from "../lib/data";
 import { CATEGORY_NAMES, fmt, pct, ROOM_NAMES } from "../lib/format";
+import { statText } from "../lib/modules";
 import { clampSpec, statsAt, type BuildSpec } from "../lib/stats";
 import type { Category, ISFile, OpDetail, Skill, UsageRow } from "../types";
 import { Explain, GIcon, Items, itemsSig, metaSig, Range, Rich } from "./ui";
@@ -227,7 +228,7 @@ export function ModulesView({ d }: { d: OpDetail }) {
                 {m.stages.map((s, i) => (
                   <tr key={i}>
                     <td data-label="Stage">{i + 1}</td>
-                    <td data-label="Stats">{Object.entries(s.attrs).map(([k, v]) => `${k.toUpperCase()} ${v > 0 ? "+" : ""}${v}`).join(", ") || "–"}</td>
+                    <td data-label="Stats">{statText(s.attrs) || "–"}</td>
                     <td data-label="Trait / talent">
                       {s.trait.map((t, j) => <p key={j}><Rich html={t} /></p>)}
                       {s.talents.map((t, j) => <p key={`t${j}`}><strong>{t.name}</strong>: <Rich html={t.desc} /></p>)}

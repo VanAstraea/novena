@@ -1,8 +1,10 @@
 // A build drawn with the game's own icons: the elite badge, the mastery triangle per skill and each module's type
-// icon with its stage as pips. Shared by the roster, plans, rankings and anywhere else a build is shown.
+// icon with its stage as pips (hover or tap a module for what it does). Shared by the roster, plans, rankings and
+// anywhere else a build is shown.
 import { art } from "../lib/data";
 import type { OpState } from "../lib/costs";
 import type { OpIndex } from "../types";
+import { moduleInfoProps } from "./ModuleInfo";
 
 /** The game's mastery triangle for one skill; dim when not mastered. */
 export function MasteryMark({ m, i, size = 24 }: { m: number; i: number; size?: number }) {
@@ -13,15 +15,20 @@ export function MasteryMark({ m, i, size = 24 }: { m: number; i: number; size?: 
   );
 }
 
-/** A module's type icon with its stage as three pips; dim when not unlocked. */
-export function ModuleMark({ op, k, stage, size = 24 }: { op?: OpIndex; k: string; stage: number; size?: number }) {
+/** A module's type icon with its stage as three pips; dim when not unlocked. Given the operator, it's a button that
+ *  shows what the module does (ModuleInfo), stressing stage `hl` (the stage shown, unless said otherwise). Pass
+ *  `info={false}` where the mark sits inside another button. */
+export function ModuleMark({ op, k, stage, size = 24, hl = stage, info = true }: { op?: OpIndex; k: string; stage: number; size?: number; hl?: number; info?: boolean }) {
   const type = op?.modTypes?.[op.mods.indexOf(k)];
-  return (
-    <span class={`mark${stage ? "" : " off"}`} title={`Module ${k}: ${stage ? `stage ${stage}` : "not unlocked"}`}>
+  const label = `Module ${k}: ${stage ? `stage ${stage}` : "not unlocked"}`;
+  const body = (
+    <>
       {type ? <img class="gicon" src={art.moduleType(type)} alt={`Module ${k}`} width={size} height={size} loading="lazy" /> : <b class="mod-letter">{k}</b>}
       <span class="pips" aria-hidden="true">{[1, 2, 3].map((n) => <i key={n} class={n <= stage ? "on" : ""} />)}</span>
-    </span>
+    </>
   );
+  if (!op || !info) return <span class={`mark${stage ? "" : " off"}`} title={label}>{body}</span>;
+  return <button type="button" class={`mark mark-info${stage ? "" : " off"}`} aria-label={`${label}. What it does`} {...moduleInfoProps(op.id, k, hl)}>{body}</button>;
 }
 
 /** Elite badge and level. */
