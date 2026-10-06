@@ -9,7 +9,7 @@ import { Await, CutHead, Divider, Explain, itemName, itemsSig, metaSig, OpLink, 
 import { costTable, lastPlan } from "../lib/account";
 import { LMD, sanity } from "../lib/costs";
 import { diff } from "../lib/progress";
-import { autoPriorities, filtersOn, prioStatus } from "../lib/priorities";
+import { autoPriorities, filtersOn, leaveOut, mayRaise, prioStatus } from "../lib/priorities";
 import { setTimerAlerts, timerAlerts, timerRows } from "../lib/timers";
 import { expiring } from "../lib/consumables";
 import { operators, stages as loadStages, upcoming as loadUpcoming } from "../lib/data";
@@ -161,7 +161,7 @@ function Overview() {
         {([list, costs, stg, up]) => {
           const byId = new Map(list.map((o) => [o.id, o]));
           const weekday = gameDay(s).weekday;
-          const steps = (lastPlan.value?.result.steps || []).slice(0, 4);
+          const steps = (lastPlan.value?.result.steps || []).filter((x) => { const op = byId.get(x.id); return !op || mayRaise(op); }).slice(0, 4);
           const today = new Date().toDateString();
           const earlier = snaps.filter((x) => x.roster && new Date(x.t).toDateString() !== today);
           const base = earlier[earlier.length - 1];
@@ -174,7 +174,7 @@ function Overview() {
                 <section class="card">
                   <h2 class="label">Next priorities{filtersOn() ? " · filtered" : ""}</h2>
                   {steps.length ? (
-                    <ul>{steps.map((x, i) => { const op = byId.get(x.id); return <li key={i}>{op ? <OpLink op={op} sub={<BuildMarks s={x.after} from={x.before} op={op} />} /> : x.id}</li>; })}</ul>
+                    <ul>{steps.map((x, i) => { const op = byId.get(x.id); return <li key={i}>{op ? <div class="leave-row"><OpLink op={op} sub={<BuildMarks s={x.after} from={x.before} op={op} />} /><button class="ghost small leave-x" title="Leave out of priorities" aria-label={`Leave ${op.name} out of priorities`} onClick={() => leaveOut([op])}>✕</button></div> : x.id}</li>; })}</ul>
                   ) : targets.value.length ? (
                     <ul>{targets.value.slice(0, 4).map((t) => { const op = byId.get(t.id); return <li key={t.id}>{op ? <OpLink op={op} sub={t.text} /> : t.text}</li>; })}</ul>
                   ) : <p class="muted">{prioStatus.value ? `Working out what to raise next: ${prioStatus.value.toLowerCase()}…` : "Nothing to suggest yet."}</p>}

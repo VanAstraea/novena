@@ -976,3 +976,16 @@ button.linkish:hover { color: var(--text); }
 /* Story & events: the ways to get a free operator as a plain list, and the operators a row names side by side */
 .story-ways { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .story-ops { display: inline-flex; flex-wrap: wrap; gap: 6px 14px; }
+
+/* Priorities: leaving operators out (the ✕ beside Today's and Home's next steps, ticking steps to leave out several) */
+.leave-row { display: flex; align-items: center; gap: 6px; }
+.leave-row .op-cell { flex: 1 1 auto; }
+button.leave-x { flex: none; min-height: 0; padding: 2px 7px; color: var(--muted); font-weight: 400; line-height: 1.2; }
+.acct-next li .leave-x { margin-left: auto; }
+table.cards tr.picked td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+@media (min-width: 561px) { table.cards th.pick, table.cards td.pick { width: 34px; text-align: center; } }
+@media (max-width: 560px) {
+  table.cards td.pick:empty { display: none; }
+  table.cards td.pick input { justify-self: start; }
+  .next-grid { grid-template-columns: minmax(0, 1fr); } /* Today's three cards, one under another, so the ✕ has room */
+}

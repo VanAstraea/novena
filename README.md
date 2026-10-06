@@ -56,7 +56,8 @@ With your roster (typed in, imported, or a made-up sample roster to try things f
   apply. They're read on your device and never uploaded, and nothing touches the game.
 - **Priorities:** the upgrades that unlock the most community clears per sanity, your planner targets first, with a
   "doable now" check against your depot counted all together. Built by itself after an import or sync; each step can
-  become a goal or open the farming plan for what it's short of. The top three also show on Home and Today.
+  become a goal or open the farming plan for what it's short of. Leave out operators you don't want to raise, one at
+  a time or several at once, or whole rarities. The top three also show on Home and Today.
 - **Sanity Dump:** what today's sanity should go into, aimed at the materials you hold least against what your plan
   and your strongest operators' community builds need.
 - **Today:** your account at a glance, a sanity timer, timers from your last sync (recruitment, factories, drones)

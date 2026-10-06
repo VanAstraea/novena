@@ -10,7 +10,7 @@ import { gameDay, nextDailyReset, nextWeeklyReset } from "../lib/time";
 import { BuildMarks } from "../components/Marks";
 import { lastPlan } from "../lib/account";
 import { importFile, loadSample } from "../lib/accountImport";
-import { autoPriorities, filtersOn, prioStatus } from "../lib/priorities";
+import { autoPriorities, filtersOn, leaveOut, mayRaise, prioStatus } from "../lib/priorities";
 import { account, hasRoster, SERVERS, server } from "../state";
 import type { OpIndex } from "../types";
 
@@ -109,7 +109,7 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
   const list = Object.values(a.ops);
   useEffect(() => { if (hasRoster.value) void autoPriorities(); }, [hasRoster.value]);
   const byId = new Map((ops || []).map((o) => [o.id, o]));
-  const next = (lastPlan.value?.result.steps || []).slice(0, 3);
+  const next = (lastPlan.value?.result.steps || []).filter((st) => { const op = byId.get(st.id); return !op || mayRaise(op); }).slice(0, 3);
   const onFile = async (f: File) => {
     if (!ops) return;
     try { setMsg({ ok: true, text: await importFile(f, ops, s, "replace") }); } catch (e) { setMsg({ ok: false, text: (e as Error).message }); }
@@ -147,7 +147,8 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
                   {next.map((st, i) => {
                     const op = byId.get(st.id);
                     return op ? (
-                      <li key={i}><a href={href(`/operator/${op.id}`)} data-panel={op.id}><Avatar op={op} size="sm" /><span class="op-name">{op.name}</span></a><BuildMarks s={st.after} from={st.before} op={op} /></li>
+                      <li key={i}><a href={href(`/operator/${op.id}`)} data-panel={op.id}><Avatar op={op} size="sm" /><span class="op-name">{op.name}</span></a><BuildMarks s={st.after} from={st.before} op={op} />
+                        <button class="ghost small leave-x" title="Leave out of priorities" aria-label={`Leave ${op.name} out of priorities`} onClick={() => leaveOut([op])}>✕</button></li>
                     ) : null;
                   })}
                 </ol>
