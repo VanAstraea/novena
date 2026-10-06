@@ -34,7 +34,10 @@ export async function importFile(f: File, ops: OpIndex[], server: string, mode: 
 /** Import pasted or read text (a file's contents, or a Krooster profile copied from the browser). */
 export function importText(text: string, ops: OpIndex[], server: string, mode: "replace" | "merge", what = "That isn't JSON"): string {
   let json: unknown;
-  try { json = JSON.parse(text.trim()); } catch { throw new Error(`${what}. Novena reads its own roster files, Novena Sync files, game sync data and Krooster profiles.`); }
+  // A copy of a whole browser page can carry a stray label around the data (Chrome's "Pretty-print"): read from the
+  // first { to the last }.
+  const body = text.slice(Math.max(0, text.indexOf("{")), text.lastIndexOf("}") + 1) || text;
+  try { json = JSON.parse(body); } catch { throw new Error(`${what}. Novena reads its own roster files, Novena Sync files, game sync data and Krooster profiles.`); }
   const r = parseRoster(json, ops);
   if (r.server && r.server !== server) throw new Error(`This file is from the ${r.server.toUpperCase()} server; switch to it first (top right).`);
   return applyImport(r, mode);

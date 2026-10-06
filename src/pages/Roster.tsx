@@ -293,7 +293,7 @@ function Import({ ops }: { ops: OpIndex[] }) {
           onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
           onDrop={(e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer?.files?.[0]; if (f) void onFile(f); }}>
           <span>Drop a file here, or <u>choose one</u></span>
-          <input type="file" accept=".json,.txt,application/json,text/plain" class="sr-only"
+          <input type="file" class="sr-only"
             onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void onFile(f); }} />
         </label>
         {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
@@ -332,7 +332,13 @@ function KroosterImport({ ops, mode }: { ops: OpIndex[]; mode: "replace" | "merg
             </span>
           </label>
         </li>
-        <li>On the page that opens, select everything (Ctrl+A, or ⌘A on a Mac) and copy it.</li>
+        <li>
+          The page that opens is your Krooster roster as text. Copy all of it:
+          <ul class="muted">
+            <li>Chrome, Edge, Safari: Ctrl+A, then Ctrl+C (⌘A, ⌘C on a Mac). On a phone: long-press the text, Select all, Copy.</li>
+            <li>Firefox: click <em>Raw Data</em> at the top, then <em>Copy</em>.</li>
+          </ul>
+        </li>
         <li>
           <label class="field"><span>Paste it here</span>
             <textarea rows={3} value={text} onInput={(e) => setText((e.target as HTMLTextAreaElement).value)} placeholder='{"data":{"account":…' spellcheck={false} />
@@ -340,8 +346,9 @@ function KroosterImport({ ops, mode }: { ops: OpIndex[]; mode: "replace" | "merg
           <button class="primary" disabled={!text.trim()} onClick={go} style={{ marginTop: "8px" }}>Import from Krooster</button>
         </li>
       </ol>
+      <p class="muted" style={{ marginTop: "10px" }}>Or save that page instead (Ctrl+S, or Firefox's <em>Save</em> button) and drop the file into "Import a file".</p>
       {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
-      <Explain>Krooster profiles are public, so no sign-in is needed. The page opens on Krooster's site; Novena only reads what you paste. Krooster keeps your depot separately; for that, use Depot → Import from screenshots. (Saving the page and dropping the file into "Import a file" works too.)</Explain>
+      <Explain>Krooster profiles are public, so no sign-in is needed. The page opens on Krooster's site; Novena only reads what you paste. Krooster doesn't share depots on profiles; for yours, use Depot → Import from screenshots.</Explain>
     </section>
   );
 }
