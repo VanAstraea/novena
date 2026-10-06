@@ -693,6 +693,46 @@ details[open] > summary.cut { margin-bottom: 12px; border-bottom: 1px solid var(
 .morale { display: block; width: 36px; height: 4px; background: var(--surface-3); }
 .morale i { display: block; height: 100%; background: var(--good); }
 .morale i.low { background: var(--bad); }
+/* the base map: rooms on the game's slot grid (two rows to a floor). The map scrolls sideways on narrow screens; the
+   page doesn't. Each kind of room has a tint (a top rule and a faint wash) mid-toned to work on both themes; text
+   stays in the theme's own colours. */
+.bm-bar { gap: 8px 14px; }
+.bmap-wrap { overflow-x: auto; padding: 2px 0 6px; }
+.bmap { --col: 30px; --gap: 4px; display: grid; gap: var(--gap); grid-template-columns: repeat(var(--cols), minmax(var(--col), 1fr));
+  grid-template-rows: repeat(var(--rows), 42px); min-width: calc(var(--cols) * (var(--col) + var(--gap))); }
+.bm-room { --tint: #6f93b5; position: relative; display: flex; flex-direction: column; gap: 3px; min-width: 0; overflow: hidden; padding: 5px 7px;
+  border: 1px solid var(--border); border-top: 2px solid var(--tint); background: var(--surface); background: color-mix(in srgb, var(--tint) 8%, var(--surface));
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); }
+.bm-trading { --tint: #c9a23a; } .bm-manufacture { --tint: #d27a3c; } .bm-power { --tint: #62a84e; }
+.bm-control { --tint: var(--ornament); } .bm-dormitory { --tint: #9479d6; }
+.bm-room.faded .bm-ops { opacity: 0.5; }
+.bm-head { display: flex; justify-content: space-between; gap: 6px; font-family: var(--serif); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); white-space: nowrap; }
+.bm-head span:first-child { overflow: hidden; text-overflow: ellipsis; }
+.bm-head span + span { color: var(--muted); font-weight: 400; }
+.bm-line { display: flex; align-items: center; gap: 4px; min-width: 0; font-size: 0.76rem; line-height: 1.2; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.bm-line .item.bare { padding: 0; border: 0; background: none; flex: none; }
+.bm-line .item img, .bm-line .item .ph { width: 16px; height: 16px; }
+.bm-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.bm-eff { color: var(--accent); font-weight: 700; margin-right: 2px; }
+.bm-ops { display: flex; flex-wrap: wrap; gap: 4px; padding-bottom: 6px; }
+.bm-op { position: relative; display: block; line-height: 0; }
+.bm-op .avatar.sm { width: 30px; height: 30px; font-size: 0.62rem; }
+.bm-op.moving .avatar { outline: 2px solid var(--accent); outline-offset: 1px; }
+.bm-op:focus-visible .avatar { outline: 2px solid var(--accent-strong); outline-offset: 1px; }
+.bm-morale { position: absolute; left: 0; right: 0; bottom: -6px; height: 3px; background: var(--surface-3); }
+.bm-morale i { display: block; height: 100%; background: var(--good); }
+.bm-morale.mid i { background: var(--warn); } .bm-morale.low i { background: var(--bad); }
+.bm-empty { width: 30px; height: 30px; border: 1px dashed var(--line); border-radius: 2px; }
+.bm-pass { opacity: 0.55; background: repeating-linear-gradient(-45deg, var(--border) 0 3px, transparent 3px 8px); }
+@media (max-width: 560px) {
+  .bmap { --col: 22px; --gap: 3px; grid-template-rows: repeat(var(--rows), 36px); }
+  .bm-room { padding: 3px 4px; gap: 2px; }
+  .bm-head { font-size: 0.58rem; letter-spacing: 0.03em; }
+  .bm-line { font-size: 0.68rem; }
+  .bm-ops { gap: 3px; }
+  .bm-op .avatar.sm, .bm-empty { width: 22px; height: 22px; }
+}
 
 .timers { list-style: none; margin: 0; padding: 0; display: grid; }
 .timers li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--border); }

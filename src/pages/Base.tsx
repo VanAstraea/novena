@@ -1,13 +1,14 @@
+import type { ComponentChildren } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import { Avatar, Await, CutHead, Explain, ItemIcon, itemName, Tabs, useAsync } from "../components/ui";
-import { Evaluator, LAYOUTS, production, PRODUCT_LABEL, ROOM_LABEL, rotation, skillsAt, standardLayout, type BaseFile, type Room, type RoomLevels, type Team } from "../lib/base";
+import { Evaluator, gameOrder, LAYOUTS, movesFrom, production, PRODUCT_LABEL, ROOM_LABEL, rotation, shiftBySlot, skillsAt, standardLayout, type BaseFile, type BaseLayout, type Room, type RoomLevels, type Team } from "../lib/base";
 import { load, operators } from "../lib/data";
 import { DEFAULT_DORMS, dormPlan, dormRate, drains, lasts, MAX_MORALE, type DormSettings } from "../lib/morale";
 import { pref, setPref } from "../lib/storage";
 import { CLASSES, hm, trainersByClass, workshopPicks } from "../lib/training";
 import { duration, fmt, relative } from "../lib/format";
 import { href } from "../lib/router";
-import { account, dronesFullAt, hasRoster, server } from "../state";
+import { account, dronesFullAt, hasRoster, server, type BaseRoom } from "../state";
 import type { OpIndex } from "../types";
 
 export default function Base() {
@@ -34,9 +35,10 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
     return LAYOUTS[mine] ? mine : "243";
   });
   // Room levels per layout: saved once you change them, otherwise your base's own (Novena Sync), otherwise all level 3.
+  // in the game's order, so Trading Post 1 is the top-left one, as on the map of your base
   const syncedLevels = (): RoomLevels => ({
-    trade: synced?.rooms.filter((r) => r.room === "TRADING").map((r) => r.level) || [],
-    mfg: synced?.rooms.filter((r) => r.room === "MANUFACTURE").map((r) => r.level) || [],
+    trade: gameOrder(synced?.rooms || [], data.layout).filter((r) => r.room === "TRADING").map((r) => r.level),
+    mfg: gameOrder(synced?.rooms || [], data.layout).filter((r) => r.room === "MANUFACTURE").map((r) => r.level),
   });
   const [levels, setLevels] = useState<RoomLevels>(() => { try { return { ...syncedLevels(), ...JSON.parse(pref(`baseLevels.${layout}`, "{}")) }; } catch { return syncedLevels(); } });
   const changeLayout = (l: string) => {
@@ -120,7 +122,7 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
         { key: "unlocks", label: `Skills to unlock${unlocks.length ? ` (${unlocks.length})` : ""}` },
       ]} />
       {(view === "teams" || view === "dorms") && plan.length > 1 && <Tabs label="Shifts" value={tab} onChange={setTab} tabs={plan.map((_, i) => ({ key: "ABC"[i], label: `Shift ${"ABC"[i]}` }))} />}
-      {view === "now" && synced && <BaseNow data={data} ops={ops} />}
+      {view === "now" && synced && <BaseNow data={data} ops={ops} plan={plan} layout={layout} skills={skills} dorms={dorms} />}
       {view === "teams" && <>
       <div class="table-wrap">
         <table class="cards">
@@ -265,12 +267,23 @@ const ROOM_NAME: Record<string, string> = {
 const ROOM_ORDER = ["CONTROL", "TRADING", "MANUFACTURE", "POWER", "MEETING", "HIRE", "TRAINING", "WORKSHOP", "DORMITORY"];
 const STRATEGY: Record<string, string> = { O_GOLD: "LMD orders", O_DIAMOND: "Orundum orders" };
 
-/** Your base as Novena Sync last saw it: every room, its team and their morale, what it's making and when it's done. */
-function BaseNow({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
+// short names for the map, whose rooms are narrow (the full name is in each room's tooltip)
+const MAP_NAME: Record<string, string> = {
+  CONTROL: "Control Center", TRADING: "Trading", MANUFACTURE: "Factory", POWER: "Power", MEETING: "Reception",
+  HIRE: "Office", WORKSHOP: "Workshop", TRAINING: "Training", DORMITORY: "Dorm",
+};
+
+const until = (t: number | undefined, now: number) => (t && t > now ? `in ${duration((t - now) * 1000)}` : t && t > 0 ? "done" : "");
+const moraleClass = (m: number) => (m < 6 ? "low" : m < 12 ? "mid" : "");
+
+/** Your base as Novena Sync last saw it: every room, its team and their morale, what it's making and when it's done.
+ *  Drawn as the game lays the base out when the base data has its slot grid; as a list of rooms otherwise. */
+function BaseNow({ data, ops, plan, layout, skills, dorms }: {
+  data: BaseFile; ops: Map<string, OpIndex>; plan: [Room, Team][][]; layout: string; skills: Map<string, Set<string>>; dorms: DormSettings;
+}) {
   const b = account.value.base!;
   const now = Date.now() / 1000;
   const rooms = [...b.rooms].sort((x, y) => ROOM_ORDER.indexOf(x.room) - ROOM_ORDER.indexOf(y.room) || x.slot.localeCompare(y.slot));
-  const until = (t?: number) => (t && t > now ? `in ${duration((t - now) * 1000)}` : t && t > 0 ? "done" : "");
   const d = b.drones;
   const dronesFull = d ? dronesFullAt(d) / 1000 : 0;
   return (
@@ -279,38 +292,147 @@ function BaseNow({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
         <p class="muted" style={{ margin: 0 }}>As of your last sync, {relative(b.at)}. Morale is as the game counted it then.</p>
         {d && <p style={{ margin: 0 }}>Drones <strong>{d.value}</strong> / {d.max}{dronesFull > now ? <span class="muted"> · full in about {duration((dronesFull - now) * 1000)}</span> : d.value >= d.max ? <span class="warn-text"> · full: use them</span> : null}</p>}
       </div>
-      <div class="rooms">
-        {rooms.map((r) => {
-          const product = r.room === "MANUFACTURE" && r.formula ? data.formulas?.[r.formula] : undefined;
-          return (
-            <section key={r.slot} class="room card">
-              <div class="room-head"><strong>{ROOM_NAME[r.room] || r.room}</strong><span class="muted">Level {r.level}</span></div>
-              {product && (
-                <p class="room-line"><ItemIcon id={product} bare /> {itemName(product)}<span class="muted"> · {r.made ?? 0}{r.capacity ? ` / ${r.capacity}` : ""} made</span>
-                  {until(r.done) && <span class={until(r.done) === "done" ? "warn-text" : "muted"}> · {until(r.done) === "done" ? "stopped: collect and restart" : `keeps running ${until(r.done).replace("in ", "for ")}`}</span>}</p>
-              )}
-              {r.room === "TRADING" && (
-                <p class="room-line">{STRATEGY[r.strategy || ""] || "Orders"}<span class="muted"> · {r.orders ?? 0}{r.limit ? ` / ${r.limit}` : ""} ready{until(r.done) && until(r.done) !== "done" ? ` · next ${until(r.done)}` : ""}</span>
-                  {r.limit && (r.orders ?? 0) >= r.limit ? <span class="warn-text"> · full</span> : null}</p>
-              )}
-              {r.room === "DORMITORY" && r.comfort !== undefined && <p class="room-line muted">Ambience {fmt(r.comfort)}</p>}
-              {r.team.length ? (
-                <ul class="room-team">
-                  {r.team.map((t) => {
-                    const op = ops.get(t.charId);
+      {data.layout ? <BaseMap data={data} map={data.layout} ops={ops} plan={plan} layout={layout} skills={skills} dorms={dorms} />
+        : <div class="rooms">{rooms.map((r) => <RoomCard key={r.slot} r={r} data={data} ops={ops} now={now} />)}</div>}
+    </>
+  );
+}
+
+function RoomCard({ r, data, ops, now }: { r: BaseRoom; data: BaseFile; ops: Map<string, OpIndex>; now: number }) {
+  const product = r.room === "MANUFACTURE" && r.formula ? data.formulas?.[r.formula] : undefined;
+  const left = until(r.done, now);
+  return (
+    <section class="room card">
+      <div class="room-head"><strong>{ROOM_NAME[r.room] || r.room}</strong><span class="muted">Level {r.level}</span></div>
+      {product && (
+        <p class="room-line"><ItemIcon id={product} bare /> {itemName(product)}<span class="muted"> · {r.made ?? 0}{r.capacity ? ` / ${r.capacity}` : ""} made</span>
+          {left && <span class={left === "done" ? "warn-text" : "muted"}> · {left === "done" ? "stopped: collect and restart" : `keeps running ${left.replace("in ", "for ")}`}</span>}</p>
+      )}
+      {r.room === "TRADING" && (
+        <p class="room-line">{STRATEGY[r.strategy || ""] || "Orders"}<span class="muted"> · {r.orders ?? 0}{r.limit ? ` / ${r.limit}` : ""} ready{left && left !== "done" ? ` · next ${left}` : ""}</span>
+          {r.limit && (r.orders ?? 0) >= r.limit ? <span class="warn-text"> · full</span> : null}</p>
+      )}
+      {r.room === "DORMITORY" && r.comfort !== undefined && <p class="room-line muted">Ambience {fmt(r.comfort)}</p>}
+      {r.team.length ? (
+        <ul class="room-team">
+          {r.team.map((t) => {
+            const op = ops.get(t.charId);
+            return (
+              <li key={t.charId} title={`${op?.name || t.charId}: morale ${t.morale.toFixed(1)} of 24`}>
+                {op ? <Avatar op={op} size="sm" /> : null}
+                <span class="morale"><i style={{ width: `${Math.min(100, (t.morale / 24) * 100)}%` }} class={t.morale < 6 ? "low" : ""} /></span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : <p class="muted" style={{ margin: 0 }}>Nobody assigned.</p>}
+    </section>
+  );
+}
+
+/** The base drawn to the game's own slot grid (after ako's base map): each room where the game puts it, top floor
+ *  first, with its team and their morale. "Now" is the base at the sync; a shift lays that shift's planned teams onto
+ *  your rooms (each kind's rooms in the game's order take the plan's rooms of that kind in order), rings whoever
+ *  would move in from elsewhere and puts the dorm plan's resters in the dorms. */
+function BaseMap({ data, map, ops, plan, layout, skills, dorms }: {
+  data: BaseFile; map: BaseLayout; ops: Map<string, OpIndex>; plan: [Room, Team][][]; layout: string; skills: Map<string, Set<string>>; dorms: DormSettings;
+}) {
+  const b = account.value.base!;
+  const now = Date.now() / 1000;
+  const [show, setShow] = useState(-1); // -1: now; otherwise the shift shown
+  const rooms = useMemo(() => gameOrder(b.rooms, map), [b, map]);
+  const count = (k: string) => rooms.filter((r) => r.room === k).length;
+  const mine = `${count("TRADING")}${count("MANUFACTURE")}${count("POWER")}`;
+  const fits = mine === layout; // the plan's rooms only map onto a base with the same ones
+  const k = fits && show < plan.length ? show : -1;
+  const planned = useMemo(() => (k >= 0 ? shiftBySlot(plan[k], rooms) : new Map<string, [Room, Team]>()), [k, plan, rooms]);
+  const dormRooms = rooms.filter((r) => r.room === "DORMITORY");
+  const rest = useMemo(() => (k >= 0 && plan.length > 1
+    ? dormPlan(data, skills, plan, k, Object.keys(account.value.ops), { ...dorms, dorms: dormRooms.length || dorms.dorms }) : null), [k, plan, dorms, rooms]);
+  const resting = new Map<string, string[]>(); // dorm slot -> its helpers and resters
+  rest?.dorms.forEach((dm, i) => { if (dormRooms[i]) resting.set(dormRooms[i].slot, [...dm.helpers.map((h) => h.id), ...dm.resting.map((x) => x.id)]); });
+  const moraleNow = new Map(b.rooms.flatMap((r) => r.team.map((t) => [t.charId, t.morale] as const)));
+  const moves = k >= 0 ? movesFrom(planned, rooms) : 0;
+  const placed = rooms.filter((r) => map.slots[r.slot]);
+  const unplaced = rooms.filter((r) => !map.slots[r.slot]);
+  const annex = placed.some((r) => map.annex.includes(r.slot));
+  const cols = Math.max(1, ...placed.map((r) => map.slots[r.slot][1] + map.slots[r.slot][3]));
+  const at = (row: number, col: number, h: number, w: number) => ({ gridColumn: `${col + 1} / span ${w}`, gridRow: `${row + 1} / span ${h}` });
+  const dash = (s: string) => s.split("").join("-");
+  return (
+    <>
+      <div class="row bm-bar">
+        <div class="seg" role="group" aria-label="Show the base">
+          <button aria-pressed={k < 0} onClick={() => setShow(-1)}>Now</button>
+          {fits && plan.map((_, i) => <button key={i} aria-pressed={k === i} onClick={() => setShow(i)}>Shift {"ABC"[i]}</button>)}
+        </div>
+        {k >= 0 && <span class="muted">{moves ? `${moves} move${moves === 1 ? "" : "s"} from now` : "Nobody moves from now"}</span>}
+        {!fits && <span class="muted">The plan is for {dash(layout)} and your base is {dash(mine)}{LAYOUTS[mine] ? `: choose ${dash(mine)} as the layout above to see its shifts here.` : ", so its shifts can't be drawn here."}</span>}
+      </div>
+      <div class="bmap-wrap">
+        <div class="bmap" style={{ "--cols": cols, "--rows": map.rows }}>
+          {map.passages.filter(([, c, , w, extra]) => c + w <= cols && (!extra || annex)).map(([row, col, h, w], i) => <div key={`p${i}`} class="bm-pass" style={at(row, col, h, w)} />)}
+          {placed.map((r) => {
+            const [row, col, h, w, floor] = map.slots[r.slot];
+            const here = new Set(r.team.map((t) => t.charId));
+            const entry = planned.get(r.slot);
+            const dorm = r.room === "DORMITORY";
+            const left = until(r.done, now);
+            const item = r.room === "MANUFACTURE" && r.formula ? data.formulas?.[r.formula] : undefined;
+            let ids = r.team.map((t) => t.charId);
+            let faded = false;
+            let line: ComponentChildren = null;
+            let status = "";
+            if (k < 0) {
+              if (item) {
+                status = left === "done" ? "stopped: collect and restart" : left ? `keeps running ${left.replace("in ", "for ")}` : "";
+                line = <><ItemIcon id={item} bare /><span class={left === "done" ? "warn-text" : ""}>{r.made ?? 0}{r.capacity ? `/${r.capacity}` : ""}</span><span class="bm-name">{itemName(item)}</span></>;
+              } else if (r.room === "TRADING") {
+                const full = !!r.limit && (r.orders ?? 0) >= r.limit;
+                status = `${STRATEGY[r.strategy || ""] || "Orders"}${full ? ", full" : left && left !== "done" ? `, next ${left}` : ""}`;
+                line = <span class={full ? "warn-text" : ""}>{r.orders ?? 0}{r.limit ? ` / ${r.limit}` : ""} ready{r.strategy === "O_DIAMOND" ? " · Orundum" : ""}</span>;
+              } else if (dorm && r.comfort !== undefined) line = <>Ambience {fmt(r.comfort)}</>;
+            } else if (entry) {
+              ids = entry[1].members;
+              line = <>{entry[1].efficiency ? <b class="bm-eff">+{fmt(entry[1].efficiency)}%</b> : null}{PRODUCT_LABEL[entry[0].product] || entry[0].product}</>;
+            } else if (dorm && rest) {
+              ids = resting.get(r.slot) || [];
+              line = ids.length ? "Resting" : "Free";
+            } else {
+              faded = true;
+              line = dorm ? "Nobody rests with one shift" : "Not in the plan";
+            }
+            const cap = Math.max(data.layout?.capacity[r.room]?.[r.level - 1] ?? 0, r.team.length, ids.length);
+            return (
+              <section key={r.slot} class={`bm-room bm-${r.room.toLowerCase()}${faded ? " faded" : ""}`} style={at(row, col, h, w)}
+                aria-label={ROOM_NAME[r.room] || r.room} title={`${ROOM_NAME[r.room] || r.room} · ${floor || "1F"} · level ${r.level}${status ? ` · ${status}` : ""}`}>
+                <div class="bm-head"><span>{MAP_NAME[r.room] || r.room}</span><span>Lv {r.level}</span></div>
+                {line && <div class="bm-line">{line}</div>}
+                <div class="bm-ops">
+                  {ids.map((id) => {
+                    const op = ops.get(id);
+                    const morale = k < 0 ? r.team.find((t) => t.charId === id)?.morale : k === 0 ? moraleNow.get(id) : undefined; // shift A starts now
+                    const ring = k >= 0 && !!entry && !here.has(id);
+                    const name = op?.name || id;
                     return (
-                      <li key={t.charId} title={`${op?.name || t.charId}: morale ${t.morale.toFixed(1)} of 24`}>
-                        {op ? <Avatar op={op} size="sm" /> : null}
-                        <span class="morale"><i style={{ width: `${Math.min(100, (t.morale / 24) * 100)}%` }} class={t.morale < 6 ? "low" : ""} /></span>
-                      </li>
+                      <a key={id} class={`bm-op${ring ? " moving" : ""}`} href={href(`/operator/${id}`)} data-panel={id}
+                        title={`${name}${morale !== undefined ? ` · morale ${morale.toFixed(1)} of 24` : ""}${ring ? " · moves in" : ""}`}>
+                        {op ? <Avatar op={op} size="sm" /> : <span class="avatar sm">{name.slice(0, 2)}</span>}
+                        {morale !== undefined && <i class={`bm-morale ${moraleClass(morale)}`}><i style={{ width: `${Math.max(0, Math.min(100, (morale / 24) * 100))}%` }} /></i>}
+                      </a>
                     );
                   })}
-                </ul>
-              ) : <p class="muted" style={{ margin: 0 }}>Nobody assigned.</p>}
-            </section>
-          );
-        })}
+                  {Array.from({ length: Math.max(0, cap - ids.length) }, (_, i) => <span key={`e${i}`} class="bm-empty" aria-hidden="true" />)}
+                </div>
+              </section>
+            );
+          })}
+        </div>
       </div>
+      {unplaced.length > 0 && <div class="rooms">{unplaced.map((r) => <RoomCard key={r.slot} r={r} data={data} ops={ops} now={now} />)}</div>}
+      <Explain>Your rooms where the game puts them, top floor first. The bar under each operator is their morale at the sync (of 24): green from 12, amber from 6, red below. {fits
+        ? "In a shift, each kind of room takes the plan's rooms of that kind in the game's order (top floor first, then left to right); a gold ring marks an operator who'd move in from elsewhere, and the dorms hold who should rest while that shift works (going to rest isn't counted as a move)."
+        : "Choose the layout your base has to see the plan's shifts on the map."}</Explain>
     </>
   );
 }

@@ -19,6 +19,18 @@ export interface BaseFile {
   dorm: Record<string, [number, number, number, number]>; // everyone, one, own, per dorm level
   train: Record<string, [number, string[], string | null, number | null, number]>; // speed %, classes, branch, level, extra %
   workshop: Record<string, [string, number]>; // materials, byproduct rate %
+  layout?: BaseLayout; // missing in files from before the base map
+}
+
+/** The base's slot grid from the game's tables, top floor first: each slot's [row, col, height, width, floor];
+ *  passages (lifts and corridors) as [row, col, height, width], with a fifth 1 when they're in the annex, which only
+ *  shows once a room is built there; and how many operators each kind of room holds per level. */
+export interface BaseLayout {
+  rows: number; cols: number;
+  slots: Record<string, [number, number, number, number, string]>;
+  passages: number[][];
+  annex: string[];
+  capacity: Record<string, number[]>;
 }
 
 export interface Room { facility: Facility; product: string; slots: number }
@@ -178,3 +190,35 @@ export function rotation(rooms: Room[], ev: Evaluator, roster: Set<string>, shif
 
 /** Production points: Trading Posts', Factories' and Power Plants' percent bonuses plus the Control Center's buffs. */
 export const production = (a: [Room, Team][]) => a.filter(([r]) => ["Trade", "Mfg", "Power", "Control"].includes(r.facility)).reduce((s, [, t]) => s + t.efficiency, 0);
+
+/** The room kind Novena Sync names each facility by. */
+export const SYNC_ROOM: Record<Facility, string> = { Trade: "TRADING", Mfg: "MANUFACTURE", Power: "POWER", Control: "CONTROL", Reception: "MEETING", Office: "HIRE" };
+
+/** Synced rooms in the game's order: top floor first, then left to right, as the game (and MAA) number rooms of a
+ *  kind. Rooms the layout doesn't place go last. */
+export function gameOrder<T extends { slot: string }>(rooms: T[], layout?: BaseLayout): T[] {
+  if (!layout) return rooms;
+  const at = (r: T) => layout.slots[r.slot] || [99, 99];
+  return [...rooms].sort((a, b) => at(a)[0] - at(b)[0] || at(a)[1] - at(b)[1]);
+}
+
+/** One shift of the plan laid onto your base: each facility's planned rooms, in order, go to your rooms of that kind
+ *  in the order given (the game's, so the first Trading Post planned is the top-left one, matching its level). */
+export function shiftBySlot(shift: [Room, Team][], rooms: { slot: string; room: string }[]): Map<string, [Room, Team]> {
+  const out = new Map<string, [Room, Team]>();
+  for (const [f, kind] of Object.entries(SYNC_ROOM) as [Facility, string][]) {
+    const mine = rooms.filter((r) => r.room === kind);
+    shift.filter(([r]) => r.facility === f).forEach((entry, i) => { if (mine[i]) out.set(mine[i].slot, entry); });
+  }
+  return out;
+}
+
+/** How many operators a shift puts into a room they aren't in now. */
+export function movesFrom(planned: Map<string, [Room, Team]>, rooms: { slot: string; team: { charId: string }[] }[]): number {
+  let n = 0;
+  for (const r of rooms) {
+    const here = new Set(r.team.map((t) => t.charId));
+    n += planned.get(r.slot)?.[1].members.filter((m) => !here.has(m)).length || 0;
+  }
+  return n;
+}

@@ -37,6 +37,25 @@ def test_workshop_skills():
     assert base.parse_workshop("When in the Workshop, Morale cost of recipes -1") is None
 
 
+def test_base_layout_flips_rows_and_keeps_passages_apart():
+    def slot(category, row, col, h, w, storey="", cost=None):
+        return {"category": category, "cleanCostId": cost or category, "offset": {"row": row, "col": col},
+                "size": {"row": h, "col": w}, "storeyId": storey}
+    b = {"layouts": {"v0": {"slots": {
+        "slot_1": slot("OUTPUT", 0, 0, 2, 4, "B1"), "slot_2": slot("ELEVATOR", 0, 4, 2, 1, "B1"),
+        "slot_3": slot("SPECIAL", 2, 5, 4, 8), "slot_4": slot("CORRIDOR", 0, 5, 2, 2, "B1", "CORRIDOR_P"),
+        "slot_5": slot("CUSTOM_P", 0, 7, 2, 6, "B1"),
+    }}}, "rooms": {"TRADING": {"phases": [{"maxStationedNum": 1}, {"maxStationedNum": 2}]}, "ELEVATOR": {"phases": [{"maxStationedNum": 0}]}}}
+    out = base.layout(b)
+    assert (out["rows"], out["cols"]) == (6, 13)
+    assert out["slots"]["slot_3"] == [0, 5, 4, 8, ""]  # the top floor comes first
+    assert out["slots"]["slot_1"] == [4, 0, 2, 4, "B1"]
+    assert out["passages"] == [[4, 4, 2, 1], [4, 5, 2, 2, 1]]
+    assert out["annex"] == ["slot_5"]
+    assert out["capacity"] == {"TRADING": [1, 2]}
+    assert base.layout({}) == {"rows": 0, "cols": 0, "slots": {}, "passages": [], "annex": [], "capacity": {}}
+
+
 def test_morale_and_dorm_effects():
     infrast = {
         "Trade": {"skills": {"a": {"desc": ["进驻贸易站时，订单获取效率+20%，心情每小时消耗-0.25"]},
