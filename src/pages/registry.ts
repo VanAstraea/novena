@@ -9,6 +9,8 @@ export interface PageDef {
   group?: string; // the section it sits in: the header shows sections, the strip under it that section's pages
   short?: string;
   keywords?: string[]; // other words people search it by, old names included
+  views?: { label: string; query: Record<string, string>; keywords: string[] }[]; // views searched by their own words
+  moved?: boolean; // an old address that only forwards to a new one: left out of search
   load: () => Promise<{ default: ComponentType<{ params: Record<string, string> }> }>;
 }
 
@@ -20,11 +22,12 @@ export const PAGES: PageDef[] = [
   { path: "/roster", group: "account", title: "My roster", short: "Roster", nav: "account", keywords: ["account", "import", "depot", "inventory"], load: () => import("./Roster") },
   { path: "/base", group: "account", title: "Base (RIIC) optimizer", short: "Base", nav: "account", keywords: ["riic", "infrastructure", "shifts", "trading post", "factory"], load: () => import("./Base") },
   // Plan
-  { path: "/plan", group: "plan", title: "Priorities: what to raise next", short: "Priorities", nav: "main", keywords: ["priority", "priorities", "plan", "next", "progression", "guides"], load: () => import("./Plan") },
+  { path: "/plan", group: "plan", title: "Priorities: what to raise next", short: "Priorities", nav: "main", keywords: ["priority", "priorities", "plan", "next", "progression", "guides"],
+    views: [{ label: "Roster gaps: Priorities by archetype", query: { view: "archetypes" }, keywords: ["gaps", "roster gaps", "archetypes", "coverage", "missing", "who to build", "weak"] }],
+    load: () => import("./Plan") },
   { path: "/planner", group: "plan", title: "Materials planner", short: "Materials", nav: "main", keywords: ["upgrade planner", "planner", "materials", "cost", "elite", "mastery", "module", "craft", "goals"], load: () => import("./Planner") },
   { path: "/farming", group: "plan", title: "Farming planner", short: "Farming", nav: "main", keywords: ["stages", "drops", "sanity", "penguin"], load: () => import("./Farming") },
   { path: "/dump", group: "plan", title: "Sanity Dump", short: "Sanity Dump", nav: "main", keywords: ["today", "what to farm", "spend sanity"], load: () => import("./Dump") },
-  { path: "/gaps", group: "plan", title: "Roster gaps", short: "Roster gaps", nav: "main", keywords: ["gaps", "archetypes", "coverage", "missing", "who to build", "weak"], load: () => import("./Gaps") },
   // Operators
   { path: "/operators", group: "operators", title: "Operators", short: "Database", nav: "main", keywords: ["database", "list", "filter"], load: () => import("./Operators") },
   { path: "/operator/:id", group: "operators", title: "Operator", load: () => import("./Operator") },
@@ -42,6 +45,8 @@ export const PAGES: PageDef[] = [
   { path: "/settings", title: "Settings & backup", keywords: ["export", "import", "backup", "privacy", "theme", "what you play", "content"], load: () => import("./Settings") },
   { path: "/about", title: "About", keywords: ["privacy", "feedback", "support"], load: () => import("./About") },
   { path: "/credits", title: "Credits", keywords: ["sources", "license", "licenses", "credits", "attribution", "copyright", "fonts"], load: () => import("./Credits") },
+  // Old addresses
+  { path: "/gaps", title: "Roster gaps", moved: true, load: () => import("./Gaps") }, // Priorities by archetype now
 ];
 
 /** The header's sections, in order; each opens on its first page. */
@@ -66,7 +71,14 @@ export function match(path: string): { page: PageDef; params: Record<string, str
   return null;
 }
 
-/** How well a search matches a page: by its title, its label in the strip or the other names it goes by. */
-export function pageScore(q: string, page: PageDef): number {
-  return Math.max(matchScore(q, page.title), page.short ? matchScore(q, page.short) : 0, ...(page.keywords || []).map((k) => matchScore(q, k)));
+/** How well a search matches a page: by its title, its label in the strip or the other names it goes by; and, unless
+ *  `own`, by its views. */
+export function pageScore(q: string, page: PageDef, own = false): number {
+  if (page.moved) return 0;
+  return Math.max(matchScore(q, page.title), page.short ? matchScore(q, page.short) : 0, ...(page.keywords || []).map((k) => matchScore(q, k)),
+    ...(own ? [] : (page.views || []).map((v) => viewScore(q, v))));
+}
+
+export function viewScore(q: string, view: NonNullable<PageDef["views"]>[number]): number {
+  return Math.max(matchScore(q, view.label), ...view.keywords.map((k) => matchScore(q, k)));
 }

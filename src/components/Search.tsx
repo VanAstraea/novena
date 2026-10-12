@@ -9,7 +9,7 @@ import { pref } from "../lib/storage";
 import { account, server, theme } from "../state";
 import { rememberOperator } from "./OperatorPanel";
 import type { OpIndex, StageRow } from "../types";
-import { pageScore, PAGES } from "../pages/registry";
+import { pageScore, PAGES, viewScore } from "../pages/registry";
 import { Avatar, ItemIcon, itemsSig } from "./ui";
 
 // Pages people look for by what's on them, opened on the right tab; and things to do.
@@ -100,8 +100,12 @@ export function SearchDialog() {
       if (s >= 55) out.push({ key: `s${st.id}`, label: `${st.code} (${st.ap} sanity)`, kind: "Stage", to: href("/farming", { stage: st.id }), score: s - 5 });
     }
     for (const p of PAGES) {
-      const s = pageScore(q, p);
+      const s = pageScore(q, p, true);
       if (s) out.push({ key: p.path, label: p.title, kind: "Page", to: href(p.path), score: s + 1 });
+      for (const v of p.views || []) {
+        const vs = viewScore(q, v);
+        if (vs) out.push({ key: `v${p.path}${v.label}`, label: v.label, kind: "Page", to: href(p.path, v.query), score: vs + 1 });
+      }
     }
     for (const [label, path, query, words] of SUBPAGES) {
       const s = Math.max(matchScore(q, label), ...words.map((w) => matchScore(q, w)));
