@@ -24,19 +24,36 @@
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preload" href="/fonts/alegreya-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/cinzel-400-900-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/cormorant-garamond-300-700-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preconnect" href="https://raw.githubusercontent.com" />
     <script>
-      // The home page's hero art is large (4.7 MB from the community mirror): on the home page, start it downloading
-      // now, while the scripts load, instead of when the page first renders.
+      // Page-dependent preloads. Cormorant: the home page shows only its italic above the fold ("Ora et labora"), the
+      // other pages its upright cut (tabs, panel titles). The hero art: on the home page, start it downloading now,
+      // while the scripts load, instead of when the page first renders, but only on a fast connection, so that on a
+      // slow one it doesn't hold up the scripts and fonts (Home.tsx loads it after them, or on Save-Data and 2G only
+      // when asked). The small art (1.3 MB) unless the first-visit intro will play: that needs the full 4.7 MB file.
+      // Keep in step with Home.tsx.
       (function () {
-        var p = location.pathname;
-        if (p === "/" || p === "/novena/" || p === "/novena") {
+        var p = location.pathname, home = p === "/" || p === "/novena/" || p === "/novena";
+        function preload(as, href, more) {
           var l = document.createElement("link");
-          l.rel = "preload"; l.as = "image"; l.setAttribute("fetchpriority", "high");
-          l.href = "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/skin/char_4193_lemuen_ambienceSynesthesia%237b.png";
+          l.rel = "preload"; l.as = as; l.href = href;
+          for (var k in more) l.setAttribute(k, more[k]);
           document.head.appendChild(l);
         }
+        var font = document.querySelector('link[as="font"]').getAttribute("href").replace(/[^/]*$/, "");
+        preload("font", font + (home ? "cormorant-garamond-500-italic-latin.woff2" : "cormorant-garamond-300-700-latin.woff2"), { type: "font/woff2", crossorigin: "" });
+        if (!home) return;
+        var c = navigator.connection || {};
+        if (c.saveData || /2g/.test(c.effectiveType || "") || c.downlink < 5) return;
+        var intro = /[?&]intro=1/.test(location.search);
+        try {
+          intro = intro || (!/[?&]intro=0/.test(location.search) && !navigator.webdriver && innerWidth >= 900 && innerHeight >= 560 &&
+            !matchMedia("(prefers-reduced-motion: reduce)").matches && localStorage.getItem("novena.introSeen") === null);
+        } catch (e) {}
+        preload("image", intro
+          ? "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/skin/char_4193_lemuen_ambienceSynesthesia%237b.png"
+          : "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/cn/assets/dyn/arts/characters/char_4193_lemuen/char_4193_lemuen_ambiencesynesthesia%237b.png",
+          { fetchpriority: "high" });
       })();
     </script>
     <script>

@@ -1169,3 +1169,14 @@ a.tl-op { cursor: pointer; }
   .tl-op .avatar.sm { width: 38px; height: 38px; }
   .tl-zone { padding: 4px; }
 }
+
+/* --- home: the hero art held back on Save-Data or a 2G connection (Home.tsx) ----------------------------------- */
+/* Where the art would be, under the halo ring; on narrow screens, where the art is only a backdrop, at the foot. */
+.hero-ask { position: absolute; left: 67%; top: 46%; transform: translate(-50%, -50%); z-index: 1; width: min(320px, 28vw); margin: 0; text-align: center; font-size: 0.86rem; color: var(--muted); }
+.hero-ask p { margin: 0 0 10px; }
+.hero-ask .hero-art-ask { background: rgba(22, 20, 18, 0.6); border-color: var(--line); color: var(--accent-strong); }
+.hero-ask .hero-art-ask:hover { background: rgba(22, 20, 18, 0.85); border-color: var(--accent); color: var(--accent-strong); }
+@media (max-width: 1100px) {
+  .hero-ask { left: 6vw; top: auto; bottom: 18px; transform: none; width: auto; right: 6vw; text-align: left; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+  .hero-ask p { margin: 0; }
+}
