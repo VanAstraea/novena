@@ -20,11 +20,7 @@ export function Depot() {
   return (
     <>
     <DepotImport />
-    <section class="card krooster">
-      <div class="card-head"><h2>From another planner</h2><GuideLink m="planner" /></div>
-      <p class="muted">Kept your depot on Krooster or Penguin Statistics? Bring it over without screenshots.</p>
-      <DepotPaste />
-    </section>
+    <PlannerCard />
     <section class="card">
       <div class="row" style={{ justifyContent: "space-between" }}>
         <h2 style={{ margin: 0 }}>Depot</h2>
@@ -42,6 +38,17 @@ export function Depot() {
       <Explain>Enter what you hold. The planners subtract it and craft from it where they can. Battle Records count as EXP.</Explain>
     </section>
     </>
+  );
+}
+
+/** The depot from another planner, on its own card: here and on the Import / export tab. */
+export function PlannerCard() {
+  return (
+    <section class="card krooster">
+      <div class="card-head"><h2>From another planner</h2><GuideLink m="planner" /></div>
+      <p class="muted">Kept your depot on Krooster or Penguin Statistics? Bring it over without screenshots.</p>
+      <DepotPaste />
+    </section>
   );
 }
 

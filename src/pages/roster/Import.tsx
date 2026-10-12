@@ -1,22 +1,85 @@
-// The roster's Import / export tab: Novena Sync, a file, Krooster, and exporting.
-import { useState } from "preact/hooks";
+// The roster's Import / export tab: one panel to bring your account in (pick a way, see its card: Novena Sync, Krooster,
+// a planner's depot, a file, depot screenshots or by hand), and exporting below it.
+import type { ComponentChildren } from "preact";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { DepotImport } from "../../components/DepotImport";
 import { Explain, GuideLink } from "../../components/ui";
 import { date } from "../../lib/format";
 import { applyImport, importFile, importText } from "../../lib/accountImport";
 import { exportRoster, parseRoster } from "../../lib/importers";
+import { isWay, WAYS, type Way } from "../../lib/importWays";
 import { pref, setPref } from "../../lib/storage";
 import { BridgeError, forget, hello, isPaired, pair, SYNC_SERVERS, syncNow } from "../../lib/syncBridge";
 import { REPO_URL } from "../../config";
-import { href } from "../../lib/router";
+import { href, route, setQuery } from "../../lib/router";
 import { account, server } from "../../state";
 import type { OpIndex } from "../../types";
-import { DepotPaste, type Msg } from "./Depot";
+import { DepotPaste, PlannerCard, type Msg } from "./Depot";
 
 const apply = applyImport;
 
+type Mode = "replace" | "merge";
+
+// The guide's ways, less moving between browsers: that's Export below, then a file (so ?m=move opens the file card).
+const CHOICES = WAYS.filter((w) => w.key !== "move");
+const WAY_KEY = "importWay";
+const chosen = (m: string | null): Way | null => {
+  const k = isWay(m) ? m : pref(WAY_KEY, "");
+  return k === "move" ? "file" : isWay(k) ? k : isPaired() ? "sync" : null;
+};
+
 export function Import({ ops }: { ops: OpIndex[] }) {
+  const m = route.value.query.get("m");
+  const way = chosen(m);
+  const [mode, setMode] = useState<Mode>("replace");
+  const below = useRef<HTMLDivElement>(null);
+  // a link straight to one way (from Home or the guide) counts as picking it, for next time
+  useEffect(() => { if (isWay(m)) setPref(WAY_KEY, m); }, [m]);
+  const choose = (k: Way) => {
+    setPref(WAY_KEY, k);
+    setQuery({ m: k });
+    requestAnimationFrame(() => below.current?.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
+  };
+  const modes = <ModeSwitch mode={mode} setMode={setMode} />;
+  return (
+    <div class="stack">
+      <section class="card">
+        <div class="card-head"><h2>Bring your account in</h2><GuideLink label="Compare them in the guide" /></div>
+        <p class="muted">Pick a way to see its steps here. Whichever you pick, what you bring stays in this browser.</p>
+        <ul class="guide-ways import-ways">
+          {CHOICES.map((w) => (
+            <li key={w.key} class={w.key === way ? "on" : ""}>
+              <a href={href("/roster", { tab: "import", m: w.key })} aria-current={w.key === way ? "true" : undefined} onClick={(e) => { e.preventDefault(); choose(w.key); }}>{w.name}</a>
+              <span class="guide-brings"><span class="sr-only">Brings: </span>{w.brings.map((b) => <span key={b} class="badge">{b}</span>)}</span>
+              <small class="muted">{w.key === "file" ? `${w.effort}: game sync data, a Novena file, a saved Krooster page or a depot export` : w.effort}</small>
+            </li>
+          ))}
+        </ul>
+        <Explain>Mix them as you like: Novena Sync or a Krooster profile for operators, screenshots or a planner for the depot, and a quick edit by hand for anything that changed since. Your base comes only with Novena Sync; recruitment slots and sanity with Novena Sync or a sync data file.</Explain>
+      </section>
+      <div ref={below} class="import-way">
+        {way === "sync" ? <SyncCard ops={ops} /> : way === "krooster" ? <KroosterImport ops={ops} mode={mode} modes={modes} /> : way === "planner" ? <PlannerCard />
+          : way === "file" ? <FileCard ops={ops} mode={mode} modes={modes} /> : way === "screenshots" ? <DepotImport /> : way === "hand" ? <HandCard /> : null}
+      </div>
+      <ExportCard />
+    </div>
+  );
+}
+
+/** Replace the roster with what comes in, or add to it. Shared by the file and Krooster cards. */
+function ModeSwitch({ mode, setMode }: { mode: Mode; setMode: (m: Mode) => void }) {
+  return (
+    <div class="row" style={{ marginBottom: "10px" }}>
+      <div class="seg" role="group" aria-label="Import mode">
+        <button aria-pressed={mode === "replace"} onClick={() => setMode("replace")}>Replace roster</button>
+        <button aria-pressed={mode === "merge"} onClick={() => setMode("merge")}>Merge</button>
+      </div>
+    </div>
+  );
+}
+
+function FileCard({ ops, mode, modes }: { ops: OpIndex[]; mode: Mode; modes: ComponentChildren }) {
   const [msg, setMsg] = useState<Msg>(null);
-  const [mode, setMode] = useState<"replace" | "merge">("replace");
   const [over, setOver] = useState(false);
   const s = server.value;
   const onFile = async (f: File) => {
@@ -26,6 +89,42 @@ export function Import({ ops }: { ops: OpIndex[] }) {
       setMsg({ ok: false, text: (e as Error).message });
     }
   };
+  return (
+    <section class="card">
+      <div class="card-head"><h2>Import a file</h2><GuideLink m="file" /></div>
+      <p>Accepted: a Novena roster file, a Novena Sync file, game sync data (syncData JSON), a saved Krooster profile page, or a depot export from Krooster or Penguin Statistics.</p>
+      <p class="muted">For your depot, the easiest way is screenshots: <a href={href("/roster", { tab: "import", m: "screenshots" })}>Depot screenshots</a>.</p>
+      {modes}
+      <label class={`dropzone${over ? " over" : ""}`}
+        onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
+        onDrop={(e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer?.files?.[0]; if (f) void onFile(f); }}>
+        <span>Drop a file here, or <u>choose one</u></span>
+        <input type="file" class="sr-only"
+          onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void onFile(f); }} />
+      </label>
+      {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
+      <Explain>The file is read in your browser; nothing is uploaded.</Explain>
+    </section>
+  );
+}
+
+/** By hand: the editor is the Operators tab, so this points there (opening it in edit mode) and to the depot. */
+function HandCard() {
+  return (
+    <section class="card">
+      <div class="card-head"><h2>By hand</h2><GuideLink m="hand" /></div>
+      <p>A quick editor: search, tick, set elite and level in a few clicks. Add every 1–3★ or 4★ operator at once, or tick many to change them together.</p>
+      <div class="row">
+        <a class="btn primary" href={href("/roster")} onClick={() => setPref("rosterEdit", "1")}>Add or edit operators</a>
+        <a class="btn" href={href("/roster", { tab: "depot" })}>Type in the depot</a>
+      </div>
+      <Explain>No sign-in and nothing to install. Handy after any other way too, for whatever changed since.</Explain>
+    </section>
+  );
+}
+
+function ExportCard() {
+  const s = server.value;
   const exportIt = () => {
     const blob = new Blob([JSON.stringify(exportRoster(account.value, s), null, 1)], { type: "application/json" });
     const a = document.createElement("a");
@@ -34,42 +133,18 @@ export function Import({ ops }: { ops: OpIndex[] }) {
     a.click();
   };
   return (
-    <div class="grid two">
-      <SyncCard ops={ops} />
-      <section class="card">
-        <div class="card-head"><h2>Import a file</h2><GuideLink m="file" /></div>
-        <p>Accepted: a Novena roster file, a Novena Sync file, game sync data (syncData JSON), a saved Krooster profile page, or a depot export from Krooster or Penguin Statistics.</p>
-        <p class="muted">For your depot, the easiest way is screenshots: <a href={href("/roster", { tab: "depot" })}>Depot → Import from screenshots</a>.</p>
-        <div class="row" style={{ marginBottom: "10px" }}>
-          <div class="seg" role="group" aria-label="Import mode">
-            <button aria-pressed={mode === "replace"} onClick={() => setMode("replace")}>Replace roster</button>
-            <button aria-pressed={mode === "merge"} onClick={() => setMode("merge")}>Merge</button>
-          </div>
-        </div>
-        <label class={`dropzone${over ? " over" : ""}`}
-          onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
-          onDrop={(e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer?.files?.[0]; if (f) void onFile(f); }}>
-          <span>Drop a file here, or <u>choose one</u></span>
-          <input type="file" class="sr-only"
-            onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void onFile(f); }} />
-        </label>
-        {msg && <p role="status" class={msg.ok ? "good-text" : "bad-text"} style={{ marginTop: "8px" }}>{msg.text}</p>}
-        <Explain>The file is read in your browser; nothing is uploaded.</Explain>
-      </section>
-      <KroosterImport ops={ops} mode={mode} />
-      <section class="card">
-        <div class="card-head"><h2>Export</h2><GuideLink m="move" /></div>
-        <p>Download this server's roster and depot as a file you can import elsewhere or keep.</p>
-        <button onClick={exportIt} disabled={!Object.keys(account.value.ops).length}>Export roster</button>
-      </section>
-    </div>
+    <section class="card">
+      <div class="card-head"><h2>Export</h2><GuideLink m="move" /></div>
+      <p>Download this server's roster and depot as a file you can import elsewhere or keep.</p>
+      <button onClick={exportIt} disabled={!Object.keys(account.value.ops).length}>Export roster</button>
+    </section>
   );
 }
 
 /** From Krooster: it has no roster export, but every profile is public. Browsers won't let this page read Krooster
  *  directly, so you bring it over yourself: save your profile page and give Novena the file (the roster is inside it),
  *  or open the profile as text and paste it. */
-function KroosterImport({ ops, mode }: { ops: OpIndex[]; mode: "replace" | "merge" }) {
+function KroosterImport({ ops, mode, modes }: { ops: OpIndex[]; mode: Mode; modes: ComponentChildren }) {
   const [name, setName] = useState("");
   const [text, setText] = useState("");
   const [msg, setMsg] = useState<Msg>(null);
@@ -84,6 +159,7 @@ function KroosterImport({ ops, mode }: { ops: OpIndex[]; mode: "replace" | "merg
   return (
     <section class="card krooster">
       <div class="card-head"><h2>From Krooster</h2><GuideLink m="krooster" /></div>
+      {modes}
       <label class="field"><span>Your Krooster username</span>
         <input type="text" value={name} onInput={(e) => setName((e.target as HTMLInputElement).value)} placeholder="username" autocomplete="off" spellcheck={false} />
       </label>
@@ -95,7 +171,7 @@ function KroosterImport({ ops, mode }: { ops: OpIndex[]; mode: "replace" | "merg
           <label class="btn small">Choose the saved file
             <input type="file" class="sr-only" onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void done(() => importFile(f, ops, s, mode))(); }} />
           </label>
-          <span class="muted"> (the .html one; or drop it on "Import a file")</span>
+          <span class="muted"> (the .html one)</span>
         </li>
       </ol>
       <h3>Or copy and paste</h3>
@@ -171,7 +247,7 @@ function SyncCard({ ops }: { ops: OpIndex[] }) {
     setMsg({ ok: true, text: res.fresh ? text : `${text} That's your sync from moments ago: a fresh one is possible in ${Math.ceil(res.retryAfter / 60)} min.` });
   });
   return (
-    <section class="card sync-card" style={{ gridColumn: "1 / -1" }}>
+    <section class="card sync-card">
       <div class="row" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div class="card-head"><h2>Novena Sync <span class="badge">Optional app</span></h2><GuideLink m="sync" /></div>

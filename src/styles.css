@@ -1053,3 +1053,16 @@ button.mod-i[aria-expanded="true"] span { border-color: var(--accent); color: va
 .mod-line { display: grid; min-width: 0; font-size: 0.86rem; line-height: 1.35; }
 .mod-line strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mod-line .muted { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+/* --- roster: bring your account in (pages/roster/Import.tsx) -------------------------------------------------- */
+/* the guide's way cards, smaller: a chooser above the chosen way's card */
+.import-ways { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 8px; margin-top: 10px; }
+.import-ways li { gap: 6px; padding: 10px 12px; }
+.import-ways small { font-size: 0.82rem; }
+.import-way { scroll-margin-top: 80px; }
+.import-way:empty { display: none; }
+@media (min-width: 601px) { .import-ways { grid-template-columns: repeat(3, minmax(0, 1fr)); } } /* six ways: two even rows */
+@media (max-width: 600px) { /* on a phone, name and badges are enough to choose by; the steps say the rest */
+  .import-ways li { padding: 8px 10px; gap: 4px; }
+  .import-ways small { display: none; }
+}
