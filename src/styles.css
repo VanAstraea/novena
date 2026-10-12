@@ -1103,3 +1103,69 @@ button.mod-i[aria-expanded="true"] span { border-color: var(--accent); color: va
 /* Story & archives: what is left for you (from a synced story progress) */
 .stat .d.story-left { color: var(--text); font-weight: 600; margin-top: 2px; }
 .story-picks { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
+
+/* --- Tier lists (pages/Tiers.tsx) ------------------------------------------------------------------------------ */
+/* Each tier is a coloured label beside a box of operator chips; --tc is the tier's colour (one of the theme tokens,
+   with --accent-ink on it, which reads on every one of them in both themes). Chips drag by pointer (a long press on
+   touch), so they don't select text or open the long-press menu. The bar for a picked operator sticks to the bottom
+   of the screen, above the phone bar. */
+.tl-starts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; }
+.tl-starts button { display: grid; justify-items: start; align-content: start; gap: 4px; padding: 12px 14px; text-align: left; }
+.tl-starts small { color: var(--muted); font-weight: 500; letter-spacing: 0; }
+.tl-top { display: grid; gap: 12px; }
+.tl-title input { width: 100%; max-width: 520px; }
+.tl-link { display: grid; gap: 4px; }
+.tl-link input { width: 100%; font-size: 0.84rem; }
+.tl-shared-title { margin: 0 0 6px; }
+.tl-board { display: grid; gap: 6px; }
+.tl-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 6px; }
+.tl-label { display: flex; background: var(--tc); color: var(--accent-ink); min-height: 72px; }
+.tl-label.plain { color: var(--text); border: 1px solid var(--line); }
+.tl-label > .tl-name { all: unset; box-sizing: border-box; display: grid; place-content: center; justify-items: center; gap: 2px; width: 100%; padding: 6px; text-align: center; overflow-wrap: anywhere; font-size: 1.5rem; font-weight: 800; line-height: 1.1; cursor: pointer; }
+.tl-label > span.tl-name { cursor: default; }
+.tl-name small { color: inherit; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; }
+.tl-label > .tl-name:focus-visible { outline: 2px solid var(--text); outline-offset: -4px; }
+.tl-row.can-take .tl-label > .tl-name { box-shadow: inset 0 0 0 3px var(--accent-ink); }
+.tl-zone { display: grid; align-content: start; gap: 4px; min-width: 0; padding: 6px; background: var(--surface); border: 1px solid var(--border); }
+.tl-row.can-take .tl-zone { border-style: dashed; border-color: var(--line); cursor: pointer; }
+.tl-row.drop-on .tl-zone, .tl-pool-card.drop-on .tl-zone { border-color: var(--accent); background: var(--accent-soft); }
+.tl-pool-card .tl-zone { margin-top: 12px; max-height: 60vh; overflow-y: auto; }
+.tl-ops { display: flex; flex-wrap: wrap; gap: 4px; min-height: 58px; align-items: flex-start; }
+.tl-op {
+  all: unset; box-sizing: border-box; display: grid; justify-items: center; gap: 2px; width: 58px; padding: 3px 2px; border-radius: var(--radius);
+  border: 1px solid transparent; cursor: grab; color: var(--text); text-decoration: none; touch-action: manipulation;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+a.tl-op { cursor: pointer; }
+.tl-op:hover { border-color: var(--line); background: var(--surface-2); color: var(--text); text-decoration: none; }
+.tl-op:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 1px; }
+.tl-op[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+.tl-op .avatar { pointer-events: none; -webkit-user-drag: none; }
+.tl-nm { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.7rem; font-weight: 600; line-height: 1.2; }
+.tl-op.tl-dragging { opacity: 0.35; }
+.tl-ghost { position: fixed; left: 0; top: 0; z-index: 100; pointer-events: none; cursor: grabbing; background: var(--surface-2); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); }
+.tl-mark { align-self: stretch; width: 3px; min-height: 52px; margin: 0 -1px; border-radius: 2px; background: var(--accent); }
+.tl-empty { align-self: center; padding: 0 6px; color: var(--muted); font-size: 0.84rem; }
+.tl-note { margin: 0; padding: 0 4px; color: var(--muted); font-size: 0.84rem; }
+.tl-edit { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; padding: 12px; background: var(--surface-2); border: 1px solid var(--border); }
+.tl-edit .field.grow { flex: 1 1 220px; }
+.tl-edit .field.grow input { width: 100%; }
+.tl-swatches { display: flex; flex-wrap: wrap; gap: 4px; }
+.tl-swatch { min-height: 30px; width: 30px; padding: 0; background: var(--tc); border: 2px solid transparent; }
+.tl-swatch.plain { border-color: var(--line); }
+.tl-swatch:hover { background: var(--tc); border-color: var(--muted); }
+.tl-swatch[aria-pressed="true"] { background: var(--tc); border-color: var(--text); box-shadow: inset 0 0 0 2px var(--surface); }
+.tl-selbar.card { position: sticky; bottom: 12px; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 12px; clip-path: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+.tl-selbar.card::after { display: none; }
+.tl-selname { display: inline-flex; align-items: center; gap: 8px; }
+.tl-selmoves { display: flex; flex-wrap: wrap; gap: 4px; }
+.tl-selmoves button { box-shadow: inset 3px 0 0 var(--tc); }
+@media (max-width: 560px) {
+  .tl-selbar.card { bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .tl-row { grid-template-columns: 64px minmax(0, 1fr); gap: 4px; }
+  .tl-label { min-height: 60px; }
+  .tl-label > .tl-name { font-size: 1.15rem; padding: 4px; }
+  .tl-op { width: 50px; }
+  .tl-op .avatar.sm { width: 38px; height: 38px; }
+  .tl-zone { padding: 4px; }
+}

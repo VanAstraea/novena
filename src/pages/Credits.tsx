@@ -131,6 +131,7 @@ export default function Credits() {
       <section class="card">
         <h2>Ideas from other tools</h2>
         <p>Account stats and the cost to max everything: inspired by <a href="https://myrtle.moe" rel="noopener">myrtle.moe</a>.</p>
+        <p>Tier lists: inspired by <a href="https://myrtle.moe" rel="noopener">myrtle.moe</a>.</p>
       </section>
 
       <section class="card">

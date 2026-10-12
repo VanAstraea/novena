@@ -13,7 +13,7 @@ const BUDGET = {
   // by name, before the hash: the solver (Farming, Priorities, Sanity Dump) and the depot screenshot reader load only
   // when used
   chunks: { Roster: 15 * KB, highs: 34 * KB, "highs.wasm": 1320 * KB, worker: 540 * KB },
-  css: { index: 14.5 * KB, intro: 1.5 * KB },
+  css: { index: 15.5 * KB, intro: 1.5 * KB }, // index raised from 14.5 KB for the Tier lists page's rules
   data: {
     "en/base.json": 20.5 * KB, "en/costs.json": 32.5 * KB, "en/is.json": 9.5 * KB, "en/items.json": 12 * KB,
     "en/meta.json": 11.5 * KB, "en/operators.json": 21.5 * KB, "en/progress.json": 21 * KB, "en/ranges.json": 1 * KB,
