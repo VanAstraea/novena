@@ -1,6 +1,6 @@
 [project]
 name = "novena-sync"
-version = "0.1.0"
+version = "0.2.0"
 description = "Reads your Arknights account on your own computer and hands it to Novena. Read-only."
 license = "MIT"
 requires-python = ">=3.11"
