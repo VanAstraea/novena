@@ -2,7 +2,8 @@
 // values (each skill's efficiency per facility and product, plus skill groups like Texas + Lappland that only count
 // together). Rooms are filled greedily, production first; with N shifts, shift A gets the best teams from the whole
 // roster, shift B the best of who's left, and so on. The Control Center counts its unconditional base-wide buffs
-// (the highest of each kind), times the rooms they cover. Not modelled here (ako has them): morale, faction buffs,
+// (the highest of each kind), times the rooms they cover. Operators the player pins to a room and shift are placed there
+// first, and the greedy fill works around them. Not modelled here (ako has them): morale, faction buffs,
 // dorms and cross-shift balancing.
 
 export type Facility = "Trade" | "Mfg" | "Power" | "Control" | "Reception" | "Office";
@@ -34,7 +35,7 @@ export interface BaseLayout {
 }
 
 export interface Room { facility: Facility; product: string; slots: number }
-export interface Team { members: string[]; efficiency: number; group?: string; boosts?: Partial<Record<Facility, number>> }
+export interface Team { members: string[]; efficiency: number; group?: string; boosts?: Partial<Record<Facility, number>>; pinned?: string[] }
 
 export const LAYOUTS: Record<string, [number, number, number]> = { "243": [2, 4, 3], "153": [1, 5, 3], "252": [2, 5, 2], "333": [3, 3, 3] };
 export const PRODUCT_LABEL: Record<string, string> = { Money: "LMD", PureGold: "Pure Gold", CombatRecord: "Battle Records", all: "Drones", General: "Clues", HR: "Recruitment", Boost: "Base-wide buffs" };
@@ -100,22 +101,30 @@ export class Evaluator {
     return best[0] ?? null;
   }
 
-  bestTeam(room: Room, free: Set<string>): Team {
-    if (room.facility === "Control") return this.controlTeam(room, free);
+  /** The best team for a room from who's free. `fixed`: operators pinned here, always in the team (their own value
+   *  counted, and in skill combinations when they fit one); the free ones fill the rest. */
+  bestTeam(room: Room, free: Set<string>, fixed: string[] = []): Team {
+    fixed = fixed.slice(0, room.slots);
+    const pinned = fixed.length ? { pinned: fixed } : {};
+    if (room.facility === "Control") return { ...this.controlTeam(room, free, fixed), ...pinned };
     const fac = this.data.rooms[room.facility];
-    if (!fac) return { members: [], efficiency: 0 };
-    const singles = [...free].map((c) => [this.single(room.facility, c, room.product), c] as [number, string]).filter(([v]) => v > 0)
+    if (!fac) return { members: [...fixed], efficiency: 0, ...pinned };
+    const own = (c: string) => this.single(room.facility, c, room.product);
+    const singles = [...free].filter((c) => !fixed.includes(c)).map((c) => [own(c), c] as [number, string]).filter(([v]) => v > 0)
       .sort((a, b) => b[0] - a[0] || (a[1] < b[1] ? -1 : 1));
-    const top = singles.slice(0, room.slots);
-    let best: Team = { members: top.map(([, c]) => c), efficiency: top.reduce((s, [v]) => s + v, 0) };
+    const top = singles.slice(0, room.slots - fixed.length);
+    let best: Team = { members: [...fixed, ...top.map(([, c]) => c)], efficiency: fixed.reduce((s, c) => s + own(c), 0) + top.reduce((s, [v]) => s + v, 0), ...pinned };
+    const mine = new Set(fixed);
     for (const g of fac.groups) {
       if (Object.entries(g.conditions).some(([k, v]) => (this.env[k] || 0) < v)) continue;
-      const pool = new Set(free);
+      const pool = new Set([...free, ...fixed]);
       const members: string[] = [];
       let total = 0;
       let ok = true;
+      // a pinned operator takes a part they can hold before anyone free does
+      const holder = (part: Part) => this.holder(part, new Set([...pool].filter((c) => mine.has(c)))) ?? this.holder(part, pool);
       for (const part of g.necessary) {
-        const h = this.holder(part, pool);
+        const h = holder(part);
         if (!h) { ok = false; break; }
         members.push(h);
         pool.delete(h);
@@ -124,16 +133,23 @@ export class Evaluator {
       if (!ok || members.length > room.slots) continue;
       const extras: [number, string][] = [];
       for (const part of g.optional) {
-        const h = this.holder(part, pool);
+        const h = holder(part);
         if (h) extras.push([value(part[2], room.product, this.env), h]);
       }
-      extras.push(...singles.filter(([, c]) => pool.has(c)));
+      extras.push(...fixed.filter((c) => pool.has(c)).map((c) => [own(c), c] as [number, string]), ...singles.filter(([, c]) => pool.has(c)));
       extras.sort((a, b) => b[0] - a[0]);
+      // pinned operators go in first (at their best value here), then the best of the rest
+      for (const c of fixed) {
+        if (!pool.has(c)) continue;
+        members.push(c); pool.delete(c);
+        total += Math.max(0, ...extras.filter(([, x]) => x === c).map(([v]) => v));
+      }
+      if (members.length > room.slots) continue;
       for (const [v, c] of extras) {
         if (members.length >= room.slots) break;
         if (pool.has(c)) { members.push(c); pool.delete(c); total += v; }
       }
-      if (total > best.efficiency) best = { members, efficiency: total, group: g.desc };
+      if (total > best.efficiency) best = { members, efficiency: total, group: g.desc, ...pinned };
     }
     return best;
   }
@@ -147,9 +163,9 @@ export class Evaluator {
     return { members, efficiency: production, boosts };
   }
 
-  controlTeam(room: Room, free: Set<string>): Team {
+  controlTeam(room: Room, free: Set<string>, fixed: string[] = []): Team {
     const holders = [...free].filter((c) => [...(this.skills.get(c) || [])].some((s) => this.data.control[s])).sort();
-    let members: string[] = [];
+    let members: string[] = [...fixed];
     let current = this.controlValue(members);
     while (members.length < room.slots) {
       let best: Team | null = null;
@@ -166,22 +182,53 @@ export class Evaluator {
   }
 }
 
-export function assign(rooms: Room[], ev: Evaluator, roster: Set<string>): [Room, Team][] {
+const fillOrder = (rooms: Room[]) => [...rooms].sort((a, b) => ORDER[a.facility] - ORDER[b.facility] || Number(a.product !== "PureGold") - Number(b.product !== "PureGold"));
+
+/** Fills the rooms in order: production first, gold before records. `fixed(j)`: who's pinned to the j-th room of that
+ *  order (the order the result comes in). */
+export function assign(rooms: Room[], ev: Evaluator, roster: Set<string>, fixed: (j: number) => string[] = () => []): [Room, Team][] {
   const free = new Set(roster);
   const out: [Room, Team][] = [];
-  for (const room of [...rooms].sort((a, b) => ORDER[a.facility] - ORDER[b.facility] || Number(a.product !== "PureGold") - Number(b.product !== "PureGold"))) {
-    const team = ev.bestTeam(room, free);
+  for (const room of fillOrder(rooms)) {
+    const team = ev.bestTeam(room, free, fixed(out.length));
     team.members.forEach((m) => free.delete(m));
     out.push([room, team]);
   }
   return out;
 }
 
-export function rotation(rooms: Room[], ev: Evaluator, roster: Set<string>, shifts: number): [Room, Team][][] {
-  const free = new Set(roster);
+/** Operators the player placed by hand: `at` maps "shift.room" (the room's place in a shift's list, from 0) to who's
+ *  pinned there; `out` are kept out of the base altogether. */
+export interface Pins { at: Record<string, string[]>; out: string[] }
+export const NO_PINS: Pins = { at: {}, out: [] };
+
+/** The pins that apply to this rotation: shifts and rooms it has, operators you own, each operator once, no more than
+ *  a room holds. */
+export function activePins(pins: Pins, rooms: Room[], shifts: number, roster: Set<string>): Pins {
+  const seen = new Set<string>();
+  const out = pins.out.filter((c) => roster.has(c));
+  out.forEach((c) => seen.add(c));
+  const at: Record<string, string[]> = {};
+  for (const [key, ids] of Object.entries(pins.at)) {
+    const [s, j] = key.split(".").map(Number);
+    if (!(s >= 0 && s < shifts && rooms[j])) continue;
+    const list = ids.filter((c) => roster.has(c) && !seen.has(c)).slice(0, rooms[j].slots);
+    list.forEach((c) => seen.add(c));
+    if (list.length) at[key] = list;
+  }
+  return { at, out };
+}
+
+/** Shift A gets the best teams from everyone, shift B the best of who's left, and so on; pinned operators are placed
+ *  first where they're pinned and kept for that room, and the kept-out ones aren't used. */
+export function rotation(rooms: Room[], ev: Evaluator, roster: Set<string>, shifts: number, pins: Pins = NO_PINS): [Room, Team][][] {
+  const sorted = fillOrder(rooms); // the order rooms are filled and listed in
+  const p = activePins(pins, sorted, shifts, roster);
+  const reserved = new Set([...p.out, ...Object.values(p.at).flat()]);
+  const free = new Set([...roster].filter((c) => !reserved.has(c)));
   const out: [Room, Team][][] = [];
   for (let i = 0; i < shifts; i++) {
-    const a = assign(rooms, ev, free);
+    const a = assign(rooms, ev, free, (j) => p.at[`${i}.${j}`] || []);
     a.forEach(([, t]) => t.members.forEach((m) => free.delete(m)));
     out.push(a);
   }
@@ -202,15 +249,63 @@ export function gameOrder<T extends { slot: string }>(rooms: T[], layout?: BaseL
   return [...rooms].sort((a, b) => at(a)[0] - at(b)[0] || at(a)[1] - at(b)[1]);
 }
 
-/** One shift of the plan laid onto your base: each facility's planned rooms, in order, go to your rooms of that kind
- *  in the order given (the game's, so the first Trading Post planned is the top-left one, matching its level). */
-export function shiftBySlot(shift: [Room, Team][], rooms: { slot: string; room: string }[]): Map<string, [Room, Team]> {
+/** What a factory's product is made of in the game's items: gold, or any of the Battle Records. */
+const PRODUCT_ITEMS: Record<string, string[]> = { PureGold: ["3003"], CombatRecord: ["2001", "2002", "2003", "2004"] };
+
+export interface SyncedRoom { slot: string; room: string; level?: number; formula?: string; team?: { charId: string }[] }
+
+/** One shift of the plan laid onto your base. Each facility's planned rooms go to your rooms of that kind: a room
+ *  big enough for the team first, then (factories) one already making that product, then the fewest operators moving
+ *  in, then the order given (the game's: top floor first, then left to right). `formulas`: factory formula -> item. */
+export function shiftBySlot(shift: [Room, Team][], rooms: SyncedRoom[], formulas: Record<string, string> = {}): Map<string, [Room, Team]> {
   const out = new Map<string, [Room, Team]>();
   for (const [f, kind] of Object.entries(SYNC_ROOM) as [Facility, string][]) {
     const mine = rooms.filter((r) => r.room === kind);
-    shift.filter(([r]) => r.facility === f).forEach((entry, i) => { if (mine[i]) out.set(mine[i].slot, entry); });
+    const plan = shift.filter(([r]) => r.facility === f);
+    // cost of putting a planned room in one of yours: [doesn't fit, other product, operators moving in]
+    const cost = ([room, team]: [Room, Team], r: SyncedRoom): number[] => {
+      const here = new Set((r.team || []).map((t) => t.charId));
+      const item = r.formula ? formulas[r.formula] : undefined;
+      return [
+        (f === "Trade" || f === "Mfg") && r.level && room.slots > r.level ? 1 : 0,
+        f === "Mfg" && !(item && PRODUCT_ITEMS[room.product]?.includes(item)) ? 1 : 0,
+        team.members.filter((m) => !here.has(m)).length,
+      ];
+    };
+    for (const [i, j] of bestMatch(plan.map((e) => mine.map((r) => cost(e, r))))) out.set(mine[j].slot, plan[i]);
   }
   return out;
+}
+
+/** The pairing of rows (planned rooms) to columns (your rooms) with the lowest summed cost, costs compared in order
+ *  (the first number matters most); ties go to the earliest columns in order. Rooms of a kind are few (five at most),
+ *  so every pairing is tried. */
+export function bestMatch(costs: number[][][]): [number, number][] {
+  const n = costs.length;
+  const m = costs[0]?.length ?? 0;
+  const k = Math.min(n, m);
+  let best: { pairs: [number, number][]; total: number[] } | null = null;
+  const used = new Set<number>();
+  const pairs: [number, number][] = [];
+  const total = (ps: [number, number][]) => ps.reduce((acc, [i, j]) => acc.map((v, x) => v + (costs[i][j][x] || 0)), costs[0]?.[0]?.map(() => 0) ?? []);
+  const less = (a: number[], b: number[]) => { for (let x = 0; x < a.length; x++) if (a[x] !== b[x]) return a[x] < b[x]; return false; };
+  const walk = (i: number) => {
+    if (pairs.length === k || i === n) {
+      if (pairs.length < k) return;
+      const t = total(pairs);
+      if (!best || less(t, best.total)) best = { pairs: [...pairs], total: t };
+      return;
+    }
+    for (let j = 0; j < m; j++) {
+      if (used.has(j)) continue;
+      used.add(j); pairs.push([i, j]);
+      walk(i + 1);
+      used.delete(j); pairs.pop();
+    }
+    if (n - i > k - pairs.length) walk(i + 1); // more planned rooms than yours: this one can go unplaced
+  };
+  walk(0);
+  return (best as { pairs: [number, number][] } | null)?.pairs ?? [];
 }
 
 /** How many operators a shift puts into a room they aren't in now. */
