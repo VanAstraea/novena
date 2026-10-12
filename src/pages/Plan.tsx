@@ -1,12 +1,15 @@
 // Priorities: the upgrades that unlock the most followable community clears per sanity, goals first, with a
-// "doable now" depot check counted all together. It builds by itself (lib/priorities.ts); the button rebuilds.
+// "doable now" depot check counted all together. It builds by itself (lib/priorities.ts); the button rebuilds. A
+// second view lists the roster's gaps by archetype (components/ArchetypeGaps.tsx).
 import { useEffect, useState } from "preact/hooks";
+import { ArchetypeGaps } from "../components/ArchetypeGaps";
 import { BuildMarks } from "../components/Marks";
 import { toast, undoable } from "../components/Toast";
 import { parse } from "../lib/build";
 import { WeightsChip } from "../components/Weights";
-import { Avatar, Await, Explain, GIcon, Items, itemsSig, metaSig, useAsync } from "../components/ui";
+import { Avatar, Await, Explain, GIcon, Items, itemsSig, metaSig, Tabs, useAsync } from "../components/ui";
 import { lastPlan } from "../lib/account";
+import { loadSample } from "../lib/accountImport";
 import { autoPriorities, buildPriorities, filtersOn, freshPriorities, leaveOut, mayRaise, NO_FILTERS, prioError, prioFilters, prioStatus, prioSupport, prioTop, setPrioFilters, setPrioSettings, TIERS, type PrioFilters } from "../lib/priorities";
 import { OpPicker } from "../components/OpPicker";
 import { art } from "../lib/data";
@@ -16,19 +19,32 @@ import { Stock } from "../lib/crafting";
 import { operators, usage as loadUsage } from "../lib/data";
 import { fmt, pct } from "../lib/format";
 import { totalOf, type PlanResult, type PlanStep } from "../lib/planner";
-import { href } from "../lib/router";
+import { href, route, setQuery } from "../lib/router";
 import { account, hasRoster, saveTargets, server, targets } from "../state";
 import type { OpIndex } from "../types";
 
 
+type View = "steps" | "archetypes";
+
 export default function Plan() {
   const s = server.value;
   const st = useAsync(() => Promise.all([operators(s), loadUsage()]), [s]);
+  const view: View = route.value.query.get("view") === "archetypes" ? "archetypes" : "steps";
   return (
     <div class="stack fade-in">
       <h1>Priorities</h1>
-      <p class="muted" style={{ marginTop: "-6px" }}>What to raise next across your whole roster, for the content you play.</p>
-      {!hasRoster.value ? (
+      <p class="muted" style={{ marginTop: "-6px" }}>{view === "steps" ? "What to raise next across your whole roster, for the content you play."
+        : "Archetypes community clears lean on that your roster covers poorly, and the quickest ways to fill each one."}</p>
+      <Tabs label="Priorities views" value={view} onChange={(v) => setQuery({ view: v === "steps" ? "" : v })}
+        tabs={[{ key: "steps", label: "Steps" }, { key: "archetypes", label: "By archetype" }]} />
+      {view === "archetypes" ? (
+        <Await state={st} what="usage data">
+          {([ops, usage]) => hasRoster.value ? <ArchetypeGaps ops={ops} usage={usage} /> : (
+            <div class="card"><p>Import your roster under <a href={href("/roster")}>My roster</a> to see which archetypes your clears would struggle with.
+              Just looking? <button class="linkish" onClick={() => void loadSample(ops)}>Try it with a sample roster</button> <span class="muted">(made up; clear it any time)</span></p></div>
+          )}
+        </Await>
+      ) : !hasRoster.value ? (
         <div class="card"><p>Priorities score your roster against community clear guides, so they need your roster first. <a href={href("/roster", { tab: "import" })}>Add it under My roster</a>.</p></div>
       ) : (
         <Await state={st} what="operators">{([ops]) => <PlanView ops={new Map(ops.map((o) => [o.id, o]))} />}</Await>

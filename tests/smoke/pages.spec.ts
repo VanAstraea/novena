@@ -15,7 +15,8 @@ const PAGES: [string, RegExp][] = [
   ["/today", /Today/],
   ["/roster", /My roster/],
   ["/plan", /Priorities/],
-  ["/gaps", /Roster gaps/],
+  ["/plan?view=archetypes", /Priorities/],
+  ["/gaps", /Priorities/],
   ["/dump", /Sanity Dump/],
   ["/base", /Base/],
   ["/pulls", /Banners & pulls/],
@@ -48,6 +49,14 @@ for (const [path, heading] of PAGES) {
 test("skills tab shows every skill", async ({ page }) => {
   await page.goto("/operator/char_202_demkni?tab=skills");
   await expect(page.getByRole("heading", { name: /S3 · Calcification/ })).toBeVisible();
+});
+
+test("old Roster gaps addresses open Priorities by archetype", async ({ page }) => {
+  for (const old of ["/gaps", "/rankings?view=gaps"]) {
+    await page.goto(old);
+    await expect(page).toHaveURL(/\/plan\?view=archetypes$/);
+    await expect(page.getByRole("tab", { name: "By archetype" })).toHaveAttribute("aria-selected", "true");
+  }
 });
 
 test("search finds an operator with Ctrl+K", async ({ page }) => {

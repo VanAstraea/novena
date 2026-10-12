@@ -19,7 +19,7 @@ planners, recruitment calculator, community rankings, and a look at what's comin
 ## What it does
 
 The site has five sections: **My account** (Today, Roster, Base), **Plan** (Priorities, Materials, Farming, Sanity
-Dump, Roster gaps), **Operators** (Database, Compare, Rankings), **Events** (Upcoming, Banners & pulls, Story &
+Dump), **Operators** (Database, Compare, Rankings), **Events** (Upcoming, Banners & pulls, Story &
 archives) and **Tools** (Recruitment, Integrated Strategies). Settings & backup, the Import guide, About and Credits
 are in the footer. "What you play" (how much each kind of content counts) is one setting for the whole site, under
 Settings.
@@ -42,8 +42,6 @@ Useful without any account data:
 - **Recruitment calculator.** Pick your five tags; see every combination with its guaranteed rarity and the
   operators it can give. With Novena Sync, your four slots' tags are there to check in one click.
 - **Rankings.** Usage in community clears per content type and archetype.
-- **Roster gaps.** The archetypes community clears lean on that your roster covers poorly, who you have in each, and the
-  quickest ways to fill them: raise one you own to its community build (one click makes it a goal in Materials) or get one.
 - **Upcoming content.** Events, operators, modules and banners CN has had and your server hasn't, with estimated
   dates from the measured CN→server lag, the operators each event's guides use most, and the next Contingency Contract.
   Names Global hasn't announced get an unofficial English translation, marked as such, until the official one lands.
@@ -64,6 +62,9 @@ With your roster (typed in, imported, or a made-up sample roster to try things f
   "doable now" check against your depot counted all together. Built by itself after an import or sync; each step can
   become a goal or open the farming plan for what it's short of. Leave out operators you don't want to raise, one at
   a time or several at once, or whole rarities. The top three also show on Home and Today.
+- **Roster gaps (Priorities, By archetype):** the archetypes community clears lean on that your roster covers poorly,
+  who you have in each, and the quickest ways to fill them: raise one you own to its community build (one click makes
+  it a goal in Materials) or get one.
 - **Sanity Dump:** what today's sanity should go into, aimed at the materials you hold least against what your plan
   and your strongest operators' community builds need.
 - **Today:** your account at a glance, a sanity timer, timers from your last sync (recruitment, factories, drones)

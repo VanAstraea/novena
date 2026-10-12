@@ -23,7 +23,7 @@ describe("page search", () => {
     ["materials", "/planner"], ["upgrade planner", "/planner"],
     ["banners & pulls", "/pulls"], ["pull planner", "/pulls"],
     ["story & archives", "/story"], ["story & events", "/story"],
-    ["roster gaps", "/gaps"], ["gaps", "/gaps"],
+    ["roster gaps", "/plan"], ["gaps", "/plan"], ["archetypes", "/plan"],
     ["sanity dump", "/dump"], ["database", "/operators"], ["import guide", "/guide"], ["what you play", "/settings"],
   ])("finds %s", (q, path) => expect(top(q)).toBe(path));
 });

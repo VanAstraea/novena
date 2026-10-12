@@ -27,7 +27,7 @@ function download(name: string, text: string) {
 export default function Settings() {
   const [msg, setMsg] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  // Priorities, Rankings and Roster gaps link here to change what you play
+  // Priorities (both views) and Rankings link here to change what you play
   useEffect(() => {
     if (location.hash === "#what-you-play") setTimeout(() => document.getElementById("what-you-play")?.scrollIntoView({ block: "start" }), 0);
   }, []);
@@ -92,7 +92,7 @@ export default function Settings() {
       </section>
       <section class="card" id="what-you-play">
         <h2>What you play</h2>
-        <p class="muted">How much each kind of content counts when Priorities scores upgrades, when Rankings' "All" ranks operators and when Roster gaps weighs archetypes. Normal everywhere is the default mix.</p>
+        <p class="muted">How much each kind of content counts when Priorities scores upgrades and weighs archetypes, and when Rankings' "All" ranks operators. Normal everywhere is the default mix.</p>
         <WeightsControl />
       </section>
     </div>

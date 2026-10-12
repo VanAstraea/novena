@@ -1,4 +1,5 @@
-// Usage rankings from community clears, per content type and archetype. (The roster's archetype gaps are their own page.)
+// Usage rankings from community clears, per content type and archetype. (The roster's archetype gaps are a view of
+// Priorities.)
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { CommunityMarks } from "../components/Marks";
 import { OpFilters, RoleChips, useOpFilters } from "../components/OpFilters";
@@ -19,7 +20,7 @@ export default function Rankings() {
   const s = server.value;
   const st = useAsync(() => Promise.all([operators(s), loadUsage()]), [s]);
   const view = (route.value.query.get("view") || "operators") as View | "gaps";
-  useEffect(() => { if (view === "gaps") navigate(href("/gaps"), { replace: true }); }, [view]); // old links
+  useEffect(() => { if (view === "gaps") navigate(href("/plan", { view: "archetypes" }), { replace: true }); }, [view]); // old links
   return (
     <div class="stack fade-in">
       <h1>Rankings</h1>
@@ -142,7 +143,7 @@ function Archetypes({ ops, usage }: { ops: OpIndex[]; usage: UsageFile }) {
           </tbody>
         </table>
       </div>
-      <Explain>Used in: share of community clear guides that use at least one operator of the archetype. Roles group archetypes by the job they do in a team.{hasRoster.value ? <> Which of these your roster covers poorly: <a href={href("/gaps")}>Roster gaps</a>.</> : null}</Explain>
+      <Explain>Used in: share of community clear guides that use at least one operator of the archetype. Roles group archetypes by the job they do in a team.{hasRoster.value ? <> Which of these your roster covers poorly: <a href={href("/plan", { view: "archetypes" })}>Priorities by archetype</a>.</> : null}</Explain>
     </>
   );
 }
