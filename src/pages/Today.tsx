@@ -2,6 +2,7 @@
 // progress over time, the sanity timer, and the day's routine as a checklist. Ticks are kept per server and per game
 // day (weekly ones per game week) in this browser, and clear themselves at the reset.
 import { useEffect, useMemo, useState } from "preact/hooks";
+import { AccountGlance } from "../components/AccountGlance";
 import { BuildMarks } from "../components/Marks";
 import { Chart } from "../components/Chart";
 import { SanityTimer } from "../components/SanityTimer";
@@ -102,7 +103,7 @@ export default function Today() {
     <div class="stack fade-in">
       <h1>Today</h1>
       <WeekBand />
-      {hasRoster.value && <><Overview /><Divider /></>}
+      {hasRoster.value && <><Overview /><AccountGlance /><Divider /></>}
       <div class="today-cols">
       <aside class="today-side">
         <SanityTimer />
