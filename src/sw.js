@@ -5,7 +5,7 @@
 //
 //   app shell (index.html, scripts, styles, fonts, icons)   kept ready when installed; served from the cache
 //   other build files (the solver's wasm, the screenshot reader)   cached the first time they're used
-//   data files (data/v1/...)   the cached copy at once, refreshed in the background for next time
+//   data files (data/v1/...)   fetched fresh when online (the data changes daily), the cached copy when offline
 //   page addresses (/operator/..., /farming?...)   the cached app page, which routes in the browser
 const BUILD = /* BUILD */ { version: "dev", shell: [], assets: [] };
 
@@ -48,7 +48,7 @@ self.addEventListener("fetch", (event) => {
   if (req.mode === "navigate" && !/\.[a-z0-9]+$/i.test(url.pathname)) {
     event.respondWith(caches.match(at("index.html"), { cacheName: SHELL }).then((r) => r || fetch(req)));
   } else if (bare.startsWith(at("data/"))) {
-    event.respondWith(staleWhileRevalidate(event, req));
+    event.respondWith(networkFirst(event, req));
   } else if (shell.has(bare)) {
     event.respondWith(caches.match(bare, { cacheName: SHELL }).then((r) => r || fetch(req)));
   } else if (assets.has(bare)) {
@@ -67,15 +67,16 @@ async function cacheFirst(event, req, key) {
   return res;
 }
 
-/** The cached copy straight away (when there is one), with a fresh copy fetched for next time. */
-async function staleWhileRevalidate(event, req) {
+/** Today's copy from the network, kept for later; the last kept copy when there's no connection. */
+async function networkFirst(event, req) {
   const c = await caches.open(DATA);
-  const hit = await c.match(req, { ignoreSearch: true });
-  const fresh = fetch(req).then(async (res) => {
-    if (res.ok) await c.put(req.url.split(/[?#]/)[0], res.clone());
+  try {
+    const res = await fetch(req);
+    if (res.ok) event.waitUntil(c.put(req.url.split(/[?#]/)[0], res.clone()).catch(() => {}));
     return res;
-  });
-  if (!hit) return fresh;
-  event.waitUntil(fresh.catch(() => {})); // offline: the cached copy is all there is
-  return hit;
+  } catch (e) {
+    const hit = await c.match(req, { ignoreSearch: true });
+    if (hit) return hit;
+    throw e;
+  }
 }
