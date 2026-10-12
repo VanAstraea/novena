@@ -58,6 +58,12 @@ export const art = {
   splashes: (id: string, elite = 0) => [...(elite >= 2 ? [`${ART}/skin/${e(id)}_2b.png`] : []), `${ART}/skin/${e(id)}_1b.png`],
   /** An outfit's full art, by its skin file name ("char_4193_lemuen_ambienceSynesthesia#7b"). */
   skin: (file: string) => `${ART}/skin/${e(file)}.png`,
+  /** The same outfit art at about half the width and a quarter of the bytes (Lemuen's: 963 px wide, 1.3 MB against
+   * 2033 px, 4.7 MB), from the ArknightsAssets dump, which keeps it in lower case in a folder per operator. */
+  skinSmall: (file: string) => {
+    const op = /^char_\d+_[^_]+/.exec(file)?.[0] ?? file;
+    return `${DYN}/arts/characters/${e(op.toLowerCase())}/${e(file.toLowerCase())}.png`;
+  },
   /** An outfit's avatar, half-body portrait and full art, by the outfit id the game uses ("char_002_amiya@epoque#4"). */
   outfitAvatar: (skin: string) => `${ART}/avatar/${e(skin.replace("@", "_"))}.png`,
   outfitPortrait: (skin: string) => `${ART}/portrait/${e(skin.replace("@", "_"))}.png`,

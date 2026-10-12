@@ -16,17 +16,31 @@ import type { OpIndex } from "../types";
 
 
 // The hero: Lemuen in her alternate outfit, set like an altarpiece in a vaulted nave. The nave and the rose window
-// behind the account panel are Novena's own drawings (docs/design/bg/make_bg.py), not game art.
-const HERO_ART = art.skin("char_4193_lemuen_ambienceSynesthesia#7b");
+// behind the account panel are Novena's own drawings (docs/design/bg/make_bg.py), not game art. The art comes in two
+// sizes from the community mirrors: the hero shows the small one (1.3 MB); the full file (4.7 MB) is for the
+// first-visit intro's close-ups, and replaces the small one on big high-density screens once the page has settled.
+const HERO_FILE = "char_4193_lemuen_ambienceSynesthesia#7b";
+const HERO_ART = art.skinSmall(HERO_FILE);
+const HERO_FULL = art.skin(HERO_FILE);
+const SMALL_HEIGHT = 1016; // the small art's height in pixels
 const HERO_SCENE = `${BASE}bg/nave.svg`;
 const HALO = [0.491, 0.22]; // the halo above her head, as a share of the art's width and height
 const WORD = "NOVENA";
 const INTRO_KEY = "introSeen";
 
+// What the browser tells us about the connection (Chrome, Edge and Android do; elsewhere we assume a good one). Keep
+// in step with the preload script in index.html.
+type Connection = { saveData?: boolean; effectiveType?: string; downlink?: number };
+const connection = () => (navigator as Navigator & { connection?: Connection }).connection;
+/** Save-Data is on, or the connection is 2G: hold the art back until asked. */
+const savingData = () => { const c = connection(); return !!c && (!!c.saveData || /2g/.test(c.effectiveType ?? "")); };
+/** Fast enough for the big art without holding up anything else (downlink is in Mbit/s, and browsers cap it at 10). */
+const fastNet = () => !savingData() && !((connection()?.downlink ?? 10) < 5);
+
 function shouldPlayIntro(): boolean {
   const q = route.value.query.get("intro");
   if (q === "1") return true;
-  if (q === "0" || navigator.webdriver) return false;
+  if (q === "0" || navigator.webdriver || !fastNet()) return false; // on a slow connection the art wouldn't arrive in time
   if (matchMedia("(prefers-reduced-motion: reduce)").matches || innerWidth < 900 || innerHeight < 560) return false;
   return pref(INTRO_KEY, "") !== "1";
 }
@@ -56,8 +70,38 @@ function HeroToday() {
   );
 }
 
-function Hero({ stage, altarRef, settled }: { stage: "idle" | "reveal"; altarRef: { current: HTMLDivElement | null }; settled: boolean }) {
+function Hero({ stage, altarRef, settled, full }: { stage: "idle" | "reveal"; altarRef: { current: HTMLDivElement | null }; settled: boolean; full: boolean }) {
+  const [ask, setAsk] = useState(savingData);
+  const [src, setSrc] = useState(full ? HERO_FULL : HERO_ART); // the intro loads the full file: share it
   const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [go, setGo] = useState(() => full || fastNet());
+  const img = useRef<HTMLImageElement>(null);
+
+  // On a slow connection the art waits for the page's fonts (or 3 s at most), so the text settles first.
+  useEffect(() => {
+    if (go) return;
+    let gone = false;
+    Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 3000))]).then(() => !gone && setGo(true));
+    return () => { gone = true; };
+  }, []);
+
+  // A little after the small art is up, swap in the full file where the small one would look soft: a big high-density
+  // screen on a fast connection. It downloads in the background and replaces the small one only once it's ready. Not
+  // on narrow screens, where the art is a dimmed backdrop behind the text (the 1100px rule in styles.css).
+  useEffect(() => {
+    if (!loaded || src !== HERO_ART || !fastNet() || !matchMedia("(min-width: 1101px)").matches) return;
+    const box = img.current?.getBoundingClientRect();
+    if (!box || box.height * devicePixelRatio < SMALL_HEIGHT * 1.3) return;
+    let gone = false;
+    const t = setTimeout(() => {
+      const big = new Image();
+      big.src = HERO_FULL;
+      big.decode().then(() => { if (!gone) setSrc(HERO_FULL); }, () => {});
+    }, 1500);
+    return () => { gone = true; clearTimeout(t); };
+  }, [loaded, src]);
+
   return (
     <section class={`hero${stage === "reveal" ? " reveal" : ""}`} aria-labelledby="hero-h">
       <img class="hero-bg" src={HERO_SCENE} alt="" />
@@ -70,9 +114,12 @@ function Hero({ stage, altarRef, settled }: { stage: "idle" | "reveal"; altarRef
           <ellipse pathLength="1" cx="0" cy="0" rx="100" ry="16" />
           <ellipse pathLength="1" cx="0" cy="0" rx="118" ry="19" />
         </svg>
-        {!loaded && <div class="hero-wait" aria-hidden="true"><i /><i /></div>}
-        <img class={`hero-art${loaded ? " loaded" : ""}`} src={HERO_ART} alt="Lemuen in her alternate outfit, seated before a golden pipe organ"
-          {...{ fetchpriority: "high" }} decoding="async" onLoad={() => setLoaded(true)} />
+        {!ask && !loaded && !failed && <div class="hero-wait" aria-hidden="true"><i /><i /></div>}
+        {!ask && go && (
+          <img ref={img} class={`hero-art${loaded ? " loaded" : ""}`} src={src} alt="Lemuen in her alternate outfit, seated before a golden pipe organ"
+            {...{ fetchpriority: fastNet() ? "high" : "low" }} decoding="async" onLoad={() => setLoaded(true)}
+            onError={() => (src === HERO_ART ? setSrc(HERO_FULL) : setFailed(true))} />
+        )}
       </div>
       {settled && <Feathers />}
       <div class="hero-copy">
@@ -92,7 +139,14 @@ function Hero({ stage, altarRef, settled }: { stage: "idle" | "reveal"; altarRef
         </nav>
       </div>
       <HeroToday />
-      <p class="hero-credit" data-in style={{ "--d": 7 }}>Art: Lemuen, alternate outfit © Hypergryph, loaded from a community mirror.</p>
+      {ask ? (
+        <div class="hero-ask">
+          <p>Lemuen's outfit art is held back to save data.</p>
+          <button class="small hero-art-ask" onClick={() => setAsk(false)}>Show the art (1.3 MB)</button>
+        </div>
+      ) : (
+        <p class="hero-credit" data-in style={{ "--d": 7 }}>Art: Lemuen, alternate outfit © Hypergryph, loaded from a community mirror.</p>
+      )}
     </section>
   );
 }
@@ -217,7 +271,7 @@ export default function Home() {
       const root = document.createElement("div");
       document.body.append(root);
       runIntro(root, {
-        artSrc: HERO_ART,
+        artSrc: HERO_FULL,
         halo: () => {
           const r = altar.current!.getBoundingClientRect();
           return [r.left + r.width * HALO[0], r.top + r.height * HALO[1]];
@@ -237,7 +291,7 @@ export default function Home() {
   return (
     <div class="fade-in">
       {stage === "cover" && <div class="iv-cover" aria-hidden="true" />}
-      <Hero stage={stage === "reveal" ? "reveal" : "idle"} altarRef={altar} settled={settled} />
+      <Hero stage={stage === "reveal" ? "reveal" : "idle"} altarRef={altar} settled={settled} full={stage !== "idle"} />
       <AccountPanel ops={st.data ? st.data[0] : null} />
 
       <Divider />

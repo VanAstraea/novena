@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import ops from "../golden/ops.json";
 import { label, parse, reach } from "../../src/lib/build";
 import { fresh } from "../../src/lib/costs";
+import { art } from "../../src/lib/data";
 import { schedule } from "../../src/lib/farming";
 import { statsAt } from "../../src/lib/stats";
 import { gameDay, nextDailyReset, nextWeeklyReset } from "../../src/lib/time";
@@ -77,5 +78,13 @@ describe("schedule", () => {
     expect(days[2].weekday).toBe(4);
     expect(days[2].runs[0].code).toBe("PR-A-2");
     expect(last).toBe(2);
+  });
+});
+
+describe("art", () => {
+  it("finds an outfit's smaller art in the dump's lower-case folder", () => {
+    expect(art.skinSmall("char_4193_lemuen_ambienceSynesthesia#7b")).toBe(
+      "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/cn/assets/dyn/arts/characters/char_4193_lemuen/char_4193_lemuen_ambiencesynesthesia%237b.png",
+    );
   });
 });
