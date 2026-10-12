@@ -1,6 +1,6 @@
 // Loads the published data files. Each file is fetched once per page load; failures are not cached, so a retry
 // (or going back to the page) fetches again.
-import type { ISFile, ItemsFile, Manifest, Meta, OpDetail, OpIndex, ProgressFile, RecruitFile, Server, ShopsFile, StagesFile, UpcomingFile, UsageFile } from "../types";
+import type { EnemiesFile, EnemyAbilities, ISFile, ItemsFile, Manifest, Meta, OpDetail, OpIndex, ProgressFile, RecruitFile, Server, ShopsFile, StagesFile, UpcomingFile, UsageFile } from "../types";
 
 export const BASE = import.meta.env.BASE_URL;
 const ROOT = `${BASE}data/v1/`;
@@ -31,6 +31,8 @@ export const recruit = (s: Server) => load<RecruitFile>(`${s}/recruit.json`);
 export const upcoming = (s: Server) => load<UpcomingFile>(`${s}/upcoming.json`);
 export const integrated = (s: Server) => load<ISFile>(`${s}/is.json`);
 export const shops = (s: Server) => load<ShopsFile>(`${s}/shops.json`);
+export const enemies = (s: Server) => load<EnemiesFile>(`${s}/enemies.json`);
+export const enemyAbilities = (s: Server) => load<EnemyAbilities>(`${s}/enemy-abilities.json`);
 /** Story & archives, or null until the daily build first publishes it (a missing file, or the dev server's page in its place). */
 export const progress = (s: Server) => load<ProgressFile>(`${s}/progress.json`).catch((e: Error) => {
   if (e instanceof SyntaxError || / \(404\)$/.test(e.message)) return null;
@@ -43,7 +45,7 @@ export async function opMap(s: Server): Promise<Map<string, OpIndex>> {
 }
 
 // Images come from community mirrors of the game's art (they belong to Hypergryph/Yostar and aren't bundled here):
-// operator art and item, skill and base-skill icons from ArknightsGameResource; game UI icons (classes, branches,
+// operator art and item, skill, base-skill and enemy icons from ArknightsGameResource; game UI icons (classes, branches,
 // modules, elite, potential, mastery, rarity) from the ArknightsAssets dump. Backgrounds are Novena's own drawings, not game
 // scenes.
 const ART = "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main";
@@ -65,6 +67,7 @@ export const art = {
   item: (icon: string) => `${ART}/item/${e(icon)}.png`,
   skill: (icon: string) => `${ART}/skill/skill_icon_${e(icon)}.png`,
   riic: (icon: string) => `${ART}/building_skill/${e(icon)}.png`,
+  enemy: (id: string) => `${ART}/enemy/${e(id)}.png`,
   classIcon: (cls: string) => `${UI}/profession_large_hub/icon_profession_${e(cls.toLowerCase())}_large_white.png`,
   branchIcon: (branch: string) => `${UI}/ui/subprofessionicon/sub_${e(branch)}_icon.png`,
   elite: (n: number) => `${UI}/elite_hub/elite_${n}.png`,

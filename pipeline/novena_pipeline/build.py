@@ -18,6 +18,8 @@ Writes to NOVENA_OUT (default public/data/v1/). Layout:
     {server}/is.json              Integrated Strategies priorities per theme
     {server}/base.json            base skills: production, morale, dorms, Training Room and Workshop
     {server}/shops.json           event shops for events running or coming here
+    {server}/enemies.json         the enemy handbook: every enemy with its stats at each level variant
+    {server}/enemy-abilities.json each enemy's ability text (the enemy page loads it)
 """
 
 from __future__ import annotations
@@ -32,7 +34,7 @@ from novena_pipeline import OUT_DIR, SERVERS
 from novena_pipeline import gamedata as gd
 from novena_pipeline import items as items_mod
 from novena_pipeline import shops as shops_mod
-from novena_pipeline import base, guidebook, operators, progress, recruit, roguelike, upcoming, usage
+from novena_pipeline import base, enemies, guidebook, operators, progress, recruit, roguelike, upcoming, usage
 from novena_pipeline.sources import copilot, penguin, wikigg, yituliu
 
 DATA_VERSION = 1
@@ -113,6 +115,10 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
     log(f"  [{server}] {len(shop_data['events'])} event shops")
     write(out / server / "is.json", roguelike.build(server))
     write(out / server / "base.json", base.build(server))
+    enemy_index, enemy_abilities = enemies.build(server)
+    write(out / server / "enemies.json", enemy_index)
+    write(out / server / "enemy-abilities.json", enemy_abilities)
+    log(f"  [{server}] {len(enemy_index['enemies'])} enemies")
     log(f"  [{server}] done in {time.time() - t0:.1f}s")
     return {"penguin": int(fetched * 1000), "operators": len(index)}
 
@@ -157,6 +163,7 @@ def main(argv: list[str] | None = None) -> None:
     for server in servers:
         log(f"Server {server}")
         gd.table.cache_clear()
+        gd.level_file.cache_clear()
         manifest["servers"][server] = build_server(server, out, usage_data, jobs, yituliu_values)
     if wikigg.load.cache_info().currsize and wikigg.load().fetched:  # read for EN, JP or KR's Upcoming
         manifest["sources"]["wikigg"] = {"date": int(wikigg.load().fetched * 1000)}

@@ -12,6 +12,9 @@ const PAGES: [string, RegExp][] = [
   ["/rankings", /Rankings/],
   ["/upcoming", /Upcoming content/],
   ["/is", /Integrated Strategies/],
+  ["/enemies", /Enemy database/],
+  ["/enemies?level=BOSS&sort=hp&imm=stun", /Enemy database/],
+  ["/enemy/enemy_1501_demonk", /Sarkaz Centurion/],
   ["/today", /Today/],
   ["/roster", /My roster/],
   ["/plan", /Priorities/],
@@ -71,6 +74,15 @@ test("search finds an operator with Ctrl+K", async ({ page }) => {
   await page.getByRole("combobox", { name: "Search" }).fill("saria");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/operator\/char_202_demkni/);
+});
+
+test("search finds an enemy by name", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+k");
+  await page.getByRole("combobox", { name: "Search" }).fill("sarkaz centurion");
+  await page.getByRole("option", { name: /Sarkaz Centurion\s*Enemy/ }).click();
+  await expect(page).toHaveURL(/enemy\/enemy_1501_demonk/);
+  await expect(page.getByText("Attacks two targets simultaneously.")).toBeVisible();
 });
 
 test("farming plan solves in the browser", async ({ page }) => {

@@ -40,6 +40,8 @@ export const PAGES: PageDef[] = [
   // Tools
   { path: "/recruit", group: "tools", title: "Recruitment calculator", short: "Recruitment", nav: "main", keywords: ["tags", "recruitment", "recruit"], load: () => import("./Recruit") },
   { path: "/is", group: "tools", title: "Integrated Strategies", nav: "main", keywords: ["is", "roguelike", "rogue"], load: () => import("./IS") },
+  { path: "/enemies", group: "tools", title: "Enemy database", short: "Enemies", nav: "main", keywords: ["enemies", "enemy", "boss", "handbook"], load: () => import("./Enemies") },
+  { path: "/enemy/:id", group: "tools", title: "Enemy", load: () => import("./Enemy") },
   // Not in a section: linked from the footer and the gear menu (the Import guide also from the import cards and Home)
   { path: "/guide", title: "Import guide", keywords: ["import", "sync", "novena sync", "krooster", "depot", "screenshots", "syncdata", "penguin", "transfer", "backup", "how to"], load: () => import("./Guide") },
   { path: "/settings", title: "Settings & backup", keywords: ["export", "import", "backup", "privacy", "theme", "what you play", "content"], load: () => import("./Settings") },
@@ -72,9 +74,9 @@ export function match(path: string): { page: PageDef; params: Record<string, str
 }
 
 /** How well a search matches a page: by its title, its label in the strip or the other names it goes by; and, unless
- *  `own`, by its views. */
+ *  `own`, by its views. Pages of one thing (an operator, an enemy) are found by that thing instead. */
 export function pageScore(q: string, page: PageDef, own = false): number {
-  if (page.moved) return 0;
+  if (page.moved || page.path.includes(":")) return 0; // old addresses, and pages of one operator or enemy
   return Math.max(matchScore(q, page.title), page.short ? matchScore(q, page.short) : 0, ...(page.keywords || []).map((k) => matchScore(q, k)),
     ...(own ? [] : (page.views || []).map((v) => viewScore(q, v))));
 }

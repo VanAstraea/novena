@@ -25,5 +25,15 @@ describe("page search", () => {
     ["story & archives", "/story"], ["story & events", "/story"],
     ["roster gaps", "/plan"], ["gaps", "/plan"], ["archetypes", "/plan"],
     ["sanity dump", "/dump"], ["database", "/operators"], ["import guide", "/guide"], ["what you play", "/settings"],
+    ["enemies", "/enemies"], ["enemy", "/enemies"], ["boss", "/enemies"], ["handbook", "/enemies"], ["enemy database", "/enemies"],
   ])("finds %s", (q, path) => expect(top(q)).toBe(path));
+});
+
+describe("tools section", () => {
+  it("lists Recruitment, Integrated Strategies and Enemies", () => {
+    expect(PAGES.filter((p) => p.group === "tools" && p.nav).map((p) => p.short || p.title)).toEqual(["Recruitment", "Integrated Strategies", "Enemies"]);
+  });
+  it("leaves one operator's or enemy's page out of page search", () => {
+    for (const p of PAGES.filter((x) => x.path.includes(":"))) expect(pageScore(p.title, p), p.path).toBe(0);
+  });
 });

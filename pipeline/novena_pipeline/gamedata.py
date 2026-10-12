@@ -12,7 +12,8 @@ from typing import Any
 from novena_pipeline import CACHE_DIR
 from novena_pipeline.net import cached_json
 
-BASE_URL = "https://raw.githubusercontent.com/ArknightsAssets/ArknightsGamedata/master/{locale}/gamedata/excel/{table}.json"
+ROOT_URL = "https://raw.githubusercontent.com/ArknightsAssets/ArknightsGamedata/master/{locale}/gamedata/{path}.json"
+BASE_URL = ROOT_URL.replace("{path}", "excel/{table}")
 MAX_AGE = 20 * 3600  # the daily run refreshes everything
 PATCH_PROFESSION = {"WARRIOR": "Guard", "MEDIC": "Medic", "CASTER": "Caster"}
 
@@ -20,6 +21,13 @@ PATCH_PROFESSION = {"WARRIOR": "Guard", "MEDIC": "Medic", "CASTER": "Caster"}
 @cache
 def table(name: str, server: str) -> dict[str, Any]:
     return cached_json(CACHE_DIR / "gamedata" / server / f"{name}.json", BASE_URL.format(locale=server, table=name), MAX_AGE)
+
+
+@cache
+def level_file(path: str, server: str) -> dict[str, Any]:
+    """A file from the level data rather than the excel tables, e.g. "levels/enemydata/enemy_database"."""
+    name = path.replace("/", "_")
+    return cached_json(CACHE_DIR / "gamedata" / server / f"{name}.json", ROOT_URL.format(locale=server, path=path), MAX_AGE)
 
 
 def chars(server: str) -> dict[str, dict]:

@@ -296,3 +296,38 @@ export interface Manifest {
   servers: Partial<Record<Server, { penguin: number; operators: number }>>;
   sources: Record<string, { date: number; guides?: number; newest?: number }>;
 }
+
+/** One level variant of an enemy (stages pick one): stats as the game's enemy database lists them. */
+export interface EnemyStats {
+  hp: number;
+  atk: number;
+  def: number;
+  res: number;
+  erst?: number; // elemental resistance
+  edr?: number; // elemental damage resistance
+  wt: number; // weight
+  spd: number; // move speed
+  rng: number; // attack range in tiles (0 or less: melee or none)
+  int: number; // seconds between attacks
+  lp: number; // Life Points lost when it gets through
+  imm: string[]; // stun, silence, sleep, frozen, levitate, fear, palsy, attract, disarm
+}
+
+export interface EnemyRow {
+  id: string;
+  name: string;
+  code: string; // the handbook's index ("B2")
+  level: "NORMAL" | "ELITE" | "BOSS";
+  dmg: ("physical" | "arts" | "healing")[];
+  atk: "melee" | "ranged" | "both" | "none";
+  motion: "walk" | "fly";
+  tags?: string[]; // race ids
+  ab?: number; // how many ability lines (in enemy-abilities.json)
+  link?: string[]; // enemies it comes with
+  lv: EnemyStats[];
+}
+
+export interface EnemiesFile { races: Record<string, string>; enemies: EnemyRow[] }
+
+/** Each enemy's ability lines: plain, a heading, or one that Silence stops. */
+export type EnemyAbilities = Record<string, ([string] | [string, "title" | "silence"])[]>;

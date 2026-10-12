@@ -46,3 +46,8 @@ def test_server_files(server):
     assert len(rec["pool"]) > 100
     top = {t["id"] for t in rec["tags"]}
     assert {11, 14, 17, 28} <= top
+    foes = load(f"{server}/enemies.json")["enemies"]
+    assert len(foes) > 1000
+    slug = next(e for e in foes if e["id"] == "enemy_1007_slime")
+    assert slug["level"] == "NORMAL" and slug["lv"][0]["hp"] > 0
+    assert "enemy_1501_demonk" in load(f"{server}/enemy-abilities.json")
