@@ -6,27 +6,7 @@ import { Explain, Tabs } from "../components/ui";
 import { SYNC_SERVERS } from "../lib/syncBridge";
 import { href, route, setQuery } from "../lib/router";
 import { REPO_URL } from "../config";
-
-type Way = "sync" | "krooster" | "planner" | "file" | "screenshots" | "hand" | "move";
-
-const WAYS: { key: Way; tab: string; name: string; brings: string[]; effort: string; needs: string }[] = [
-  { key: "sync", tab: "Novena Sync", name: "Novena Sync app", brings: ["Roster", "Depot", "Currencies", "Base", "Recruitment", "Sanity"],
-    effort: "Set up once, then one click", needs: `A Windows or Mac computer, and a game account with a bound email (${SYNC_SERVERS.map((s) => s.toUpperCase()).join(", ")})` },
-  { key: "krooster", tab: "Krooster", name: "Krooster profile", brings: ["Roster", "Depot (second paste)"],
-    effort: "A few steps each time", needs: "Your roster kept up to date on Krooster" },
-  { key: "planner", tab: "Planner depot", name: "Depot from Krooster or Penguin Statistics", brings: ["Depot"],
-    effort: "Copy and paste", needs: "Your depot kept in Krooster's or Penguin Statistics' planner" },
-  { key: "file", tab: "Sync data file", name: "Game sync data file", brings: ["Roster", "Depot", "Currencies", "Recruitment", "Sanity"],
-    effort: "Drop a file", needs: "A syncData file saved by another community tool" },
-  { key: "screenshots", tab: "Screenshots", name: "Depot screenshots", brings: ["Depot"],
-    effort: "A few screenshots", needs: "The game, on any device" },
-  { key: "hand", tab: "By hand", name: "By hand", brings: ["Roster", "Depot"],
-    effort: "Longest the first time, then quick edits", needs: "Nothing: no sign-in, no risk" },
-  { key: "move", tab: "Another device", name: "Another browser or device", brings: ["Everything saved here"],
-    effort: "Export, then import", needs: "Novena open in both browsers" },
-];
-
-const isWay = (k: string | null): k is Way => WAYS.some((w) => w.key === k);
+import { isWay, WAYS, type Way } from "../lib/importWays";
 
 export default function Guide() {
   const m = route.value.query.get("m");
@@ -71,7 +51,7 @@ function Go({ children }: { children: ComponentChildren }) {
   return <div class="row guide-go">{children}</div>;
 }
 
-const IMPORT = href("/roster", { tab: "import" });
+const IMPORT = (m: Way) => href("/roster", { tab: "import", m });
 const DEPOT = href("/roster", { tab: "depot" });
 
 function SyncSteps() {
@@ -94,7 +74,7 @@ function SyncSteps() {
 
       <h3>2. Pair this browser (once)</h3>
       <ol class="steps">
-        <li>With the app open, open <a href={IMPORT}>My roster → Import / export</a> in a browser on the same computer and press <em>Connect to Novena Sync</em>.</li>
+        <li>With the app open, open <a href={IMPORT("sync")}>My roster → Import / export</a> in a browser on the same computer and press <em>Connect to Novena Sync</em>.</li>
         <li>Chrome may ask to let this page reach devices on your local network: allow it. Said no by mistake? Click the icon at the left of the address bar, open <em>Site settings</em>, set <em>Local network access</em> to Allow, then reload and connect again.</li>
         <li>Type the six-digit code the app shows under <em>Sync from Novena in your browser</em> and press <em>Pair</em>.</li>
       </ol>
@@ -115,7 +95,7 @@ function SyncSteps() {
         </ul>
       </details>
       <Go>
-        <a class="btn primary" href={IMPORT}>Go to Novena Sync</a>
+        <a class="btn primary" href={IMPORT("sync")}>Go to Novena Sync</a>
         <a class="btn" href={`${REPO_URL}/releases/latest`} rel="noopener">Download the app</a>
       </Go>
     </>
@@ -137,7 +117,7 @@ function KroosterSteps() {
   return (
     <>
       <h2>From Krooster</h2>
-      <p>Krooster has no roster export, but every profile is public, so no sign-in is needed. Browsers don't let Novena read Krooster directly, so you bring your profile over yourself, one of two ways. Both are on the <a href={IMPORT}>From Krooster</a> card: type your Krooster username there first, and its buttons open your profile on Krooster's site.</p>
+      <p>Krooster has no roster export, but every profile is public, so no sign-in is needed. Browsers don't let Novena read Krooster directly, so you bring your profile over yourself, one of two ways. Both are on the <a href={IMPORT("krooster")}>From Krooster</a> card: type your Krooster username there first, and its buttons open your profile on Krooster's site.</p>
       <h3>Save your profile page</h3>
       <ol class="steps">
         <li>Press <em>Open my Krooster profile</em> (krooster.com/u/&lt;username&gt;).</li>
@@ -150,12 +130,12 @@ function KroosterSteps() {
         <li>Copy all of it. Chrome, Edge, Safari: <kbd>Ctrl</kbd>+<kbd>A</kbd>, then <kbd>Ctrl</kbd>+<kbd>C</kbd> (<kbd>⌘</kbd>A, <kbd>⌘</kbd>C on a Mac); on a phone, long-press the text, Select all, Copy. Firefox: click <em>Raw Data</em> at the top, then <em>Copy</em>.</li>
         <li>Paste it in the box and press <em>Import from Krooster</em>.</li>
       </ol>
-      <p class="muted">Either way follows the <em>Replace roster</em> or <em>Merge</em> choice on the Import a file card. Outfits don't come over from Krooster.</p>
+      <p class="muted">Either way follows the <em>Replace roster</em> or <em>Merge</em> choice at the top of the From Krooster card. Outfits don't come over from Krooster.</p>
       <h3>Your depot</h3>
       <p>Profiles don't include the depot, so it's a separate paste. Only the items it lists change; your roster stays.</p>
       <KroosterDepot />
       <Go>
-        <a class="btn primary" href={IMPORT}>Go to From Krooster</a>
+        <a class="btn primary" href={IMPORT("krooster")}>Go to From Krooster</a>
         <a class="btn" href={DEPOT}>Paste a depot</a>
       </Go>
     </>
@@ -187,7 +167,7 @@ function FileSteps() {
       <p>Some community tools save your account's sync data (the game's <code>syncData</code>, as JSON). Novena reads that file.</p>
       <ol class="steps">
         <li>Set the server at the top right to the account's server: Novena can't tell it from this file.</li>
-        <li>On <a href={IMPORT}>Import / export</a>, choose <em>Replace roster</em> (swap in the file's roster and depot) or <em>Merge</em> (add the file's operators to yours; where both have one, the file's wins).</li>
+        <li>On <a href={IMPORT("file")}>Import / export</a>, choose <em>Replace roster</em> (swap in the file's roster and depot) or <em>Merge</em> (add the file's operators to yours; where both have one, the file's wins).</li>
         <li>Drop the file on <em>Import a file</em>, or click to choose it. The box on the Home page takes it too.</li>
       </ol>
       <p><strong>Brings:</strong> your operators (with their outfits), the depot and LMD, currencies, training vouchers and sanity potions, recruitment slots and sanity. The base comes only with Novena Sync.</p>
@@ -199,7 +179,7 @@ function FileSteps() {
         <li>A depot export from Krooster or Penguin Statistics (<a href={href("/guide", { m: "planner" })}>planner depot</a>).</li>
       </ul>
       <p class="muted">The file is read in your browser; nothing is uploaded. Operators this server doesn't have yet are skipped, and the message says how many. Replacing a roster can be undone from the message for a few seconds.</p>
-      <Go><a class="btn primary" href={IMPORT}>Go to Import a file</a></Go>
+      <Go><a class="btn primary" href={IMPORT("file")}>Go to Import a file</a></Go>
     </>
   );
 }
@@ -250,7 +230,7 @@ function MoveSteps() {
       <p>Novena has no accounts, so nothing moves between browsers by itself: you carry a file over (a cable, a cloud drive, an email to yourself).</p>
       <h3>One server's roster</h3>
       <ol class="steps">
-        <li>On <a href={IMPORT}>Import / export</a>, press <em>Export roster</em>. It saves this server's roster, depot and currencies as <code>novena-roster-&lt;server&gt;-&lt;date&gt;.json</code>.</li>
+        <li>On <a href={IMPORT("move")}>Import / export</a>, press <em>Export roster</em>. It saves this server's roster, depot and currencies as <code>novena-roster-&lt;server&gt;-&lt;date&gt;.json</code>.</li>
         <li>In the other browser, open Import / export, choose <em>Replace roster</em> or <em>Merge</em>, and drop the file on <em>Import a file</em>. A file from another server asks you to switch to it first (top right).</li>
       </ol>
       <h3>Everything</h3>
@@ -260,7 +240,7 @@ function MoveSteps() {
       </ol>
       <p class="muted">Clearing your browser's site data deletes what Novena saved, so a backup now and then is worth it.</p>
       <Go>
-        <a class="btn primary" href={IMPORT}>Export or import a roster</a>
+        <a class="btn primary" href={IMPORT("move")}>Export or import a roster</a>
         <a class="btn" href={href("/settings")}>Settings &amp; backup</a>
       </Go>
     </>

@@ -1069,3 +1069,16 @@ button.mod-i[aria-expanded="true"] span { border-color: var(--accent); color: va
    only gives certificates. */
 .owned-mark { display: inline-block; margin-left: 4px; padding: 0 4px; border: 1px solid var(--good); border-radius: 2px; color: var(--good); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; vertical-align: middle; }
 .owned-mark.maxed { border-color: var(--line); color: var(--muted); }
+
+/* --- roster: bring your account in (pages/roster/Import.tsx) -------------------------------------------------- */
+/* the guide's way cards, smaller: a chooser above the chosen way's card */
+.import-ways { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 8px; margin-top: 10px; }
+.import-ways li { gap: 6px; padding: 10px 12px; }
+.import-ways small { font-size: 0.82rem; }
+.import-way { scroll-margin-top: 80px; }
+.import-way:empty { display: none; }
+@media (min-width: 601px) { .import-ways { grid-template-columns: repeat(3, minmax(0, 1fr)); } } /* six ways: two even rows */
+@media (max-width: 600px) { /* on a phone, name and badges are enough to choose by; the steps say the rest */
+  .import-ways li { padding: 8px 10px; gap: 4px; }
+  .import-ways small { display: none; }
+}

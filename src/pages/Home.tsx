@@ -168,8 +168,8 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
             <p class="motto">Plans · gaps · a daily Sanity Dump</p>
             <p class="acct-lede">Novena plans around what you own: who to raise next, what you're short of, and the cheapest way to farm it. Your roster stays in this browser.</p>
             <ol class="acct-ways">
-              <li><strong>Novena Sync</strong><span>A small app for your computer that brings your operators, depot and base over in one click, whenever you like. Your sign-in never leaves your PC.</span><a href={href("/roster", { tab: "import" })}>Set it up →</a></li>
-              <li><strong>A file</strong><span>Game sync data, a Novena file from another browser, or your Krooster profile (<a href={href("/guide", { m: "krooster" })}>how</a>).</span>{drop}</li>
+              <li><strong>Novena Sync</strong><span>A small app for your computer that brings your operators, depot and base over in one click, whenever you like. Your sign-in never leaves your PC.</span><a href={href("/roster", { tab: "import", m: "sync" })}>Set it up →</a></li>
+              <li><strong>A file</strong><span>Game sync data, a Novena file from another browser, or your Krooster profile (<a href={href("/roster", { tab: "import", m: "krooster" })}>how</a>).</span>{drop}</li>
               <li><strong>By hand</strong><span>A quick editor: search, tick, set elite and level in a few clicks.</span><a href={href("/roster")}>Start adding →</a></li>
             </ol>
             <p class="acct-try">Not sure which? <GuideLink label="Compare them in the import guide" /></p>
