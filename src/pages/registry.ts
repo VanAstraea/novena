@@ -33,6 +33,7 @@ export const PAGES: PageDef[] = [
   { path: "/operator/:id", group: "operators", title: "Operator", load: () => import("./Operator") },
   { path: "/compare", group: "operators", title: "Compare", nav: "main", keywords: ["side by side", "versus"], load: () => import("./Compare") },
   { path: "/rankings", group: "operators", title: "Rankings", nav: "main", keywords: ["usage", "tier", "who to build", "meta"], load: () => import("./Rankings") },
+  { path: "/tiers", group: "operators", title: "Tier lists", nav: "main", keywords: ["tier list", "tierlist", "ranking list", "share", "tiers"], load: () => import("./Tiers") },
   // Events
   { path: "/upcoming", group: "events", title: "Upcoming content", short: "Upcoming", nav: "main", keywords: ["future", "events", "banners", "cc", "contingency contract", "leaks"], load: () => import("./Upcoming") },
   { path: "/pulls", group: "events", title: "Banners & pulls", short: "Banners & pulls", nav: "main", keywords: ["pull planner", "pulls", "orundum", "headhunting", "savings", "banners"], load: () => import("./Pulls") },

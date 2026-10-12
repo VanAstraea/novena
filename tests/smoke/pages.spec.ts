@@ -10,6 +10,7 @@ const PAGES: [string, RegExp][] = [
   ["/farming?items=30073:5", /Farming planner/],
   ["/recruit?tags=11,3,15", /Recruitment calculator/],
   ["/rankings", /Rankings/],
+  ["/tiers", /Tier lists/],
   ["/upcoming", /Upcoming content/],
   ["/is", /Integrated Strategies/],
   ["/today", /Today/],

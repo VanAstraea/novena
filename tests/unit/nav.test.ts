@@ -13,6 +13,9 @@ describe("site sections", () => {
       expect(pages.map((p) => p.path), s.label).toContain(s.home);
     }
   });
+  it("shows the Operators strip in order", () => {
+    expect(PAGES.filter((p) => p.group === "operators" && p.nav).map((p) => p.short || p.title)).toEqual(["Database", "Compare", "Rankings", "Tier lists"]);
+  });
   it("puts every page with a strip label in a section", () => {
     for (const p of PAGES.filter((x) => x.nav)) expect(SECTIONS.map((s) => s.id), p.path).toContain(p.group);
   });
@@ -25,5 +28,6 @@ describe("page search", () => {
     ["story & archives", "/story"], ["story & events", "/story"],
     ["roster gaps", "/plan"], ["gaps", "/plan"], ["archetypes", "/plan"],
     ["sanity dump", "/dump"], ["database", "/operators"], ["import guide", "/guide"], ["what you play", "/settings"],
+    ["tier list", "/tiers"], ["tierlist", "/tiers"], ["ranking list", "/tiers"], ["tier lists", "/tiers"],
   ])("finds %s", (q, path) => expect(top(q)).toBe(path));
 });
