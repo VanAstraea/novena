@@ -42,7 +42,7 @@ Useful without any account data:
 - **Recruitment calculator.** Pick your five tags; see every combination with its guaranteed rarity and the
   operators it can give. With Novena Sync, your four slots' tags are there to check in one click.
 - **Rankings.** Usage in community clears per content type and archetype.
-- **Upcoming content.** Events, operators, modules and banners CN has had and your server hasn't, with estimated
+- **Upcoming content.** Events, operators and modules CN has had and your server hasn't, with estimated
   dates from the measured CN→server lag, the operators each event's guides use most, and the next Contingency Contract.
   Names Global hasn't announced get an unofficial English translation, marked as such, until the official one lands.
 - **Event shop advisor.** Each running or coming event's shop (Yituliu's record of CN's shops), every offer valued in
@@ -75,7 +75,8 @@ With your roster (typed in, imported, or a made-up sample roster to try things f
 - **Progress with costs:** what you raised since an earlier day and exactly what it cost (materials, LMD, EXP).
 - **Items to use:** training vouchers with the five operators each is best spent on, potential tokens and whose
   potential they raise, and items that expire soonest.
-- **Banners & pulls:** savings, steady income and the banners coming.
+- **Banners & pulls:** the banners coming from CN (dates, featured operators, spark), then a pull planner: savings,
+  steady income and how many pulls you'll have by a date or a banner ("Plan for this" on any coming banner).
 - **Story & archives:** what the main story, the Side Story and Intermezzo archives and Annihilation pay out once,
   and every free operator with where to get them now.
 

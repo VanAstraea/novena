@@ -1,39 +1,27 @@
-// Upcoming content, with CN as the preview: events, operators, modules, banners and Contingency Contract.
+// Upcoming content, with CN as the preview: events, operators, modules and Contingency Contract. The coming banners
+// are on Banners & pulls.
 import { Fragment } from "preact";
+import { useEffect } from "preact/hooks";
 import { OpFilters, useOpFilters } from "../components/OpFilters";
 import { Await, Explain, ItemIcon, itemName, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
 import { CommunityMarks } from "../components/Marks";
+import { Eta, KIND, Unofficial } from "../components/UpcomingBanners";
 import { costTable } from "../lib/account";
 import { planNeeds } from "../lib/needs";
 import { ROLE_HINTS, ROLE_NAMES, ROLES, roleOf } from "../lib/roles";
 import { operators, shops as loadShops, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
-import { date, pct, relative } from "../lib/format";
-import { href, route, setQuery } from "../lib/router";
+import { date, pct } from "../lib/format";
+import { href, navigate, route, setQuery } from "../lib/router";
 import { account, hasRoster, server } from "../state";
-import type { KeyOp, OpIndex, ShopEvent, UpcomingFile, UsageFile, WikiDated } from "../types";
+import type { KeyOp, OpIndex, ShopEvent, UpcomingFile, UsageFile } from "../types";
 
-type View = "events" | "shops" | "operators" | "modules" | "banners" | "cc";
-
-const KIND: Record<string, string> = { limited: "Limited", collab: "Collaboration", special: "Special (pick rate-ups)", kernel: "Kernel" };
-
-/** A date: solid when this server's game data lists it, linked when the wiki dates it, otherwise an estimate. */
-function Eta({ eta, confirmed, cn, x }: { eta: string; confirmed?: boolean; cn?: string; x?: WikiDated }) {
-  const wiki = !confirmed && x?.dated_by === "wiki";
-  const late = !confirmed && !wiki && (x?.overdue || new Date(eta).getTime() < Date.now());
-  return (
-    <span>
-      {confirmed ? <strong>{date(eta)}</strong>
-        : wiki ? <><strong>{date(eta)}</strong> <a class="badge wiki" href={x!.wiki} rel="noopener" title="Dated by the Arknights Terra Wiki from an announcement or the game files, not Novena's estimate">dated by the wiki</a></>
-        : <>~{date(eta)} <span class="badge est" title="Estimated: CN's date plus the measured lag">estimate</span></>}
-      <br /><small class={late ? "warn-text" : "muted"}>{late ? "Expected already: may have been skipped or moved" : relative(eta)}{wiki && x!.end ? ` · until ${date(x!.end)}` : ""}{cn ? ` · CN ${date(cn)}` : ""}</small>
-    </span>
-  );
-}
+type View = "events" | "shops" | "operators" | "modules" | "cc";
 
 export default function Upcoming() {
   const s = server.value;
   const st = useAsync(() => Promise.all([loadUpcoming(s), operators(s), loadUsage()]), [s]);
   const view = (route.value.query.get("view") || "events") as View;
+  useEffect(() => { if ((view as string) === "banners") navigate(href("/pulls"), { replace: true }); }, [view]); // old links
   if (s === "cn") {
     return (
       <div class="stack fade-in"><h1>Upcoming content</h1>
@@ -52,13 +40,12 @@ export default function Upcoming() {
               <p class="note" role="note"><strong>Most of these dates are estimates, not announcements.</strong> CN runs months ahead, so a date marked <span class="badge est">estimate</span> is CN's date plus the lag measured over the last events both servers ran ({up.lag_days ?? "?"} days). Servers skip, swap and reorder things, collaborations especially. A date marked <span class="badge wiki">dated by the wiki</span> comes from the <a href="https://arknights.wiki.gg/wiki/Event" rel="noopener">Arknights Terra Wiki</a>: announced, or found in the game files. A date turns solid (no badge) once this server's own game data lists it; the official news and in-game notices come first.</p>
               <Tabs label="Upcoming sections" value={view} onChange={(v) => setQuery({ view: v === "events" ? "" : v })} tabs={[
                 { key: "events", label: `Events (${up.events.length})` }, { key: "shops", label: "Event shops" }, { key: "operators", label: `Operators (${up.operators.length})` },
-                { key: "modules", label: "Modules" }, { key: "banners", label: `Banners (${up.banners.length})` }, { key: "cc", label: "Contingency Contract" },
+                { key: "modules", label: "Modules" }, { key: "cc", label: "Contingency Contract" },
               ]} />
               {view === "events" && <Events up={up} byId={byId} />}
               {view === "shops" && <Shops ops={ops} />}
               {view === "operators" && <Operators up={up} byId={byId} usage={usage} />}
               {view === "modules" && <Modules up={up} byId={byId} usage={usage} />}
-              {view === "banners" && <Banners up={up} byId={byId} usage={usage} />}
               {view === "cc" && <CC up={up} ops={ops} usage={usage} />}
             </>
           );
@@ -230,7 +217,7 @@ function Operators({ up, byId, usage }: { up: UpcomingFile; byId: Map<string, Op
                   <td data-label="Operator"><OpLink op={op} sub={<Stars n={op.rarity} />} /></td>
                   <td data-label="Usage on CN" class="num">{u?.score ? pct(u.score) : "–"}</td>
                   <td data-label="Community build"><CommunityMarks b={b} op={op} /></td>
-                  <td data-label="Banner">{banner ? <><Eta eta={banner.eta} x={banner} /><br /><small>{KIND[banner.kind]}</small></> : <span class="muted">Not in a listed banner</span>}</td>
+                  <td data-label="Banner">{banner ? <><Eta eta={banner.eta} x={banner} /><br /><small><a href={href("/pulls") + `#banner-${banner.id}`}>{KIND[banner.kind] || banner.kind} banner</a></small></> : <span class="muted">Not in a listed banner</span>}</td>
                 </tr>
               );
             })}
@@ -274,30 +261,6 @@ function Modules({ up, byId, usage }: { up: UpcomingFile; byId: Map<string, OpIn
   );
 }
 
-function Banners({ up, byId, usage }: { up: UpcomingFile; byId: Map<string, OpIndex>; usage: UsageFile }) {
-  return (
-    <div class="stack">
-      {up.banners.map((b) => (
-        <div key={b.id} class="card">
-          <div class="row" style={{ justifyContent: "space-between" }}>
-            <span><strong>{KIND[b.kind] || b.kind}</strong>{b.name_en && <> · {b.name_en} <Unofficial wiki={b.name_by === "wiki" ? b.wiki : undefined} /></>} <span class="muted">{b.name_cn}</span></span>
-            <Eta eta={b.eta} cn={b.cn_open} x={b} />
-          </div>
-          <div class="row" style={{ marginTop: "8px" }}>
-            {b.featured.map((id) => {
-              const op = byId.get(id);
-              return op ? <OpLink key={id} op={op} sub={<>usage {pct(usage.ops[id]?.score || 0)}{account.value.ops[id] ? " · owned" : ""}</>} /> : null;
-            })}
-          </div>
-          {b.spark && <p class="muted" style={{ marginTop: "6px" }}>Limited banner: {b.spark} pulls guarantee the featured operator.</p>}
-        </div>
-      ))}
-      {!up.banners.length && <p class="muted">No listed banners in the next 200 days.</p>}
-      <Explain>Only banners whose featured 6★ the game's table names (limited, collaboration, special, Kernel); standard banners don't list theirs. Limited and collaboration banners this server already ran are left out.</Explain>
-    </div>
-  );
-}
-
 function CC({ up, ops, usage }: { up: UpcomingFile; ops: OpIndex[]; usage: UsageFile }) {
   const cc = up.cc;
   const top = ops.filter((o) => usage.ops[o.id]?.u?.cc).sort((a, b) => (usage.ops[b.id].u!.cc || 0) - (usage.ops[a.id].u!.cc || 0)).slice(0, 25);
@@ -323,10 +286,4 @@ function CC({ up, ops, usage }: { up: UpcomingFile; ops: OpIndex[]; usage: Usage
       </section>
     </div>
   );
-}
-
-/** Marks a name this server's game data doesn't give yet: the wiki's (linked), or Novena's own translation of CN's. */
-function Unofficial({ wiki }: { wiki?: string }) {
-  if (wiki) return <a class="badge unofficial" href={wiki} rel="noopener" title="The Arknights Terra Wiki's name: the announced Global name, or the community's until there is one. The game's own name replaces it once this server lists it.">wiki name</a>;
-  return <span class="badge unofficial" title="Novena's own translation: Global hasn't named this yet. The official name replaces it when it's announced.">unofficial</span>;
 }
