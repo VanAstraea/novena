@@ -7,7 +7,9 @@ export default defineConfig({
   timeout: 30_000,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
-  use: { baseURL: "http://localhost:4173" },
+  // The service worker stays out of the page tests (it would fill its caches during every test and serve the next
+  // test's pages); offline.spec.ts turns it back on to test it.
+  use: { baseURL: "http://localhost:4173", serviceWorkers: "block" },
   webServer: { command: "npx vite preview --port 4173 --strictPort", port: 4173, reuseExistingServer: !process.env.CI },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } } },
