@@ -85,11 +85,15 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
   const [dorms, setDorms] = useState<DormSettings>(() => { try { return { ...DEFAULT_DORMS, ...JSON.parse(pref("dorms", "{}")) }; } catch { return DEFAULT_DORMS; } });
   const saveDorms = (patch: Partial<DormSettings>) => { const next = { ...dorms, ...patch }; setDorms(next); setPref("dorms", JSON.stringify(next)); };
   const skills = useMemo(() => new Map(Object.values(roster).map((r) => [r.id, skillsAt(data, r.id, r.elite, r.level)])), [data, roster]);
+  // every dorm's level added up, for skills that grow with them (Narantuya's, some Trading Post and Office skills):
+  // your base's own when Novena Sync has seen it, otherwise the dorm settings
+  const syncedDorms = synced?.rooms.filter((r) => r.room === "DORMITORY") || [];
+  const dormLevels = syncedDorms.length ? syncedDorms.reduce((n, r) => n + (r.level || 0), 0) : dorms.dorms * dorms.level;
   const plan = useMemo(() => {
     const rooms = standardLayout(layout, gold, levels);
-    const ev = new Evaluator(data, skills, rooms);
+    const ev = new Evaluator(data, skills, rooms, dormLevels);
     return rotation(rooms, ev, new Set(Object.keys(roster)), shifts, pins);
-  }, [data, skills, layout, shifts, levels, gold, pins]);
+  }, [data, skills, layout, shifts, levels, gold, pins, dormLevels]);
   const names = (t: Team) => t.members.map((m) => `${ops.get(m)?.name || m}${t.pinned?.includes(m) ? " (pinned)" : ""}`).join(", ");
   const text = plan.map((a, i) => [`Shift ${"ABC"[i]} (${24 / shifts} h)`, ...a.map(([r, t]) => `  ${ROOM_LABEL[r.facility]} (${PRODUCT_LABEL[r.product] || r.product}): ${names(t) || "—"}`)].join("\n")).join("\n\n");
   const k = Math.max(0, "ABC".indexOf(tab));
@@ -99,7 +103,7 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
   const rest = useMemo(() => (plan.length > 1 ? dormPlan(data, skills, plan, k, Object.keys(roster), dorms) : null), [plan, k, dorms]);
   const avg = plan.reduce((s, a) => s + production(a), 0) / plan.length;
   // base skills a promotion away: for owned operators, what E1/E2 would add to the plan (single best room)
-  const unlocks = useMemo(() => unlockGains(data, roster, layout, shifts, avg, levels, gold, pins), [data, roster, layout, shifts, levels, gold, pins]);
+  const unlocks = useMemo(() => unlockGains(data, roster, layout, shifts, avg, levels, gold, pins, dormLevels), [data, roster, layout, shifts, levels, gold, pins, dormLevels]);
   const [nTrade, nMfg] = LAYOUTS[layout];
   const levelPick = (kind: keyof RoomLevels, i: number, label: string) => (
     <label key={`${kind}${i}`} class="field lvl"><span>{label}</span>
@@ -154,7 +158,7 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
         </table>
       </div>
       <PinsCard pins={pinOps} out={pins.out} ops={ops} />
-      <Explain>Skill values from MAA's curated base data; skill combinations (like Texas + Lappland) count when all their members are placed. Each shift takes the best teams from who's left. "Lasts" is how long a team works from full morale (24) before its first member runs out, with the game's default drain and the team's own morale skills; it's flagged when that's shorter than the shift. Faction buffs and conditional effects aren't modelled.</Explain>
+      <Explain>Skill values from MAA's curated base data; skill combinations (like Texas + Lappland) count when all their members are placed. Each shift takes the best teams from who's left. "Lasts" is how long a team works from full morale (24) before its first member runs out, with the game's default drain and the team's own morale skills; it's flagged when that's shorter than the shift. Skills that grow with dorm levels (Narantuya's, some Trading Post and Office skills) use your {dormLevels} dorm levels{syncedDorms.length ? ", from your last sync" : ", from the dorm settings"}. Faction buffs and other conditional effects aren't modelled.</Explain>
       </>}
       {view === "dorms" && (rest ? <DormCard plan={rest} shift={"ABC"[k]} ops={ops} dorms={dorms} save={saveDorms} />
         : <p class="note">With one shift, nobody rests: every team runs out of morale before the day is over. Two or three shifts let the others recover in the dorms.</p>)}
@@ -315,7 +319,7 @@ function RoomRow({ room, team, ops, hours, shiftHours, pinKey, pins }: { room: R
   );
 }
 
-function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite: number; level: number }>, layout: string, shifts: number, base: number, levels?: RoomLevels, gold?: number, pins?: Pins) {
+function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite: number; level: number }>, layout: string, shifts: number, base: number, levels?: RoomLevels, gold?: number, pins?: Pins, dormLevels = 20) {
   const rooms = standardLayout(layout, gold, levels);
   const out: { id: string; elite: number; gain: number }[] = [];
   const skills = new Map(Object.values(roster).map((r) => [r.id, skillsAt(data, r.id, r.elite, r.level)]));
@@ -326,7 +330,7 @@ function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite:
       if ([...next].every((s) => skills.get(r.id)!.has(s))) continue;
       const trial = new Map(skills);
       trial.set(r.id, next);
-      const ev = new Evaluator(data, trial, rooms);
+      const ev = new Evaluator(data, trial, rooms, dormLevels);
       const plan = rotation(rooms, ev, new Set(Object.keys(roster)), shifts, pins);
       const gain = plan.reduce((s, a) => s + production(a), 0) / plan.length - base;
       if (gain > 0.5) out.push({ id: r.id, elite: e, gain });

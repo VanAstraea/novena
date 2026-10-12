@@ -126,3 +126,14 @@ def test_annihilation_sums_one_time_orundum():
     out = progress.annihilation(campaign_table, {"stages": {"camp_r_01": {"name": "Outskirts", "code": "Kazimierz"}}})
     assert out == [{"id": "camp_r_01", "name": "Outskirts", "region": "Kazimierz", "orundum": 1500,
                     "rotation": ["1970-01-01T00:00:00Z", "1970-01-01T00:01:00Z"]}]
+
+
+def test_record_chars_come_from_main_story_records():
+    """Operators handed out by the main story's records (Episode 10 on), e.g. Delphine in Episode 13."""
+    from novena_pipeline.progress import record_chars
+    zone_table = {"zoneRecordGroupedData": {"main_13": {"zoneId": "main_13", "records": [{
+        "recordId": "main_13_note_1", "recordTitleName": "13-4",
+        "rewards": [{"bindStageId": "main_13-04", "recordReward": [{"id": "char_4110_delphn", "count": 1, "type": "CHAR"},
+                                                                      {"id": "3301", "count": 5, "type": "MATERIAL"}]}]}]}}}
+    assert record_chars(zone_table) == [("char_4110_delphn", {"kind": "record", "zone": "main_13", "record": "13-4", "stage": "main_13-04"})]
+    assert record_chars(None) == []

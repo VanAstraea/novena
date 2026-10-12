@@ -258,7 +258,8 @@ export type WelfareSource =
   | { kind: "retro"; id: string; stars: number | null } // null: the archive has no trial yet
   | { kind: "event"; id: string; name: string; start: string; end: string }
   | { kind: "shop"; id: string; name: string; start: string; end: string } // end: when the shop closes
-  | { kind: "stage"; stage: string; code: string; retro?: string };
+  | { kind: "stage"; stage: string; code: string; retro?: string }
+  | { kind: "record"; zone: string; record: string; stage: string }; // a main story record (Episode 10 on)
 export interface Retro {
   id: string;
   kind: "side" | "intermezzo";

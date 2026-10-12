@@ -109,6 +109,9 @@ function ways(sources: WelfareSource[], retros: Map<string, Retro>, now: number)
       if (start <= now && now < end) out.push({ text: <>Event shop: {src.name}, until {date(src.end)}</>, now: true, soon: false, sort: 0 });
       else if (start > now) out.push({ text: <>Event shop: {src.name}, from {date(src.start)}</>, now: false, soon: true, sort: 2 });
       else out.push({ text: <span class="muted">Came with an earlier event: sold in the {src.name} shop ({date(src.end)})</span>, now: false, soon: false, sort: 5 });
+    } else if (src.kind === "record") {
+      const ep = Number(src.zone.replace(/\D/g, ""));
+      out.push({ text: <>Main story: Episode {ep} record {src.record} (unlocked by clearing its stage)</>, now: true, soon: false, sort: 3 });
     } else {
       const r = src.retro ? retros.get(src.retro) : undefined;
       if (src.retro && !r) continue;
@@ -179,7 +182,7 @@ function Welfare({ data, ops, byId }: { data: ProgressFile; ops: OpIndex[]; byId
 function stageOps(data: ProgressFile): Map<string, string[]> {
   const out = new Map<string, string[]>();
   for (const [cid, srcs] of Object.entries(data.welfare)) {
-    for (const s of srcs) if (s.kind === "stage") out.set(s.stage, [...(out.get(s.stage) || []), cid]);
+    for (const s of srcs) if (s.kind === "stage" || s.kind === "record") out.set(s.stage, [...(out.get(s.stage) || []), cid]);
   }
   return out;
 }

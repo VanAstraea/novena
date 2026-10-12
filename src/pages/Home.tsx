@@ -157,7 +157,7 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
             <div class="acct-actions">
               <a class="pill primary" href={href("/today")}>Open my account <span aria-hidden="true">→</span></a>
               <a class="pill" href={href("/plan")}>All priorities</a>
-              <a class="pill" href={href("/roster", { tab: "import" })}>Sync again</a>
+              <a class="pill" href={href("/roster", { tab: "import", m: "sync" })}>Sync again</a>
             </div>
             {drop}
             <p class="acct-try"><GuideLink label="Step-by-step import guide" /></p>
@@ -170,7 +170,7 @@ function AccountPanel({ ops }: { ops: OpIndex[] | null }) {
             <ol class="acct-ways">
               <li><strong>Novena Sync</strong><span>A small app for your computer that brings your operators, depot and base over in one click, whenever you like. Your sign-in never leaves your PC.</span><a href={href("/roster", { tab: "import", m: "sync" })}>Set it up →</a></li>
               <li><strong>A file</strong><span>Game sync data, a Novena file from another browser, or your Krooster profile (<a href={href("/roster", { tab: "import", m: "krooster" })}>how</a>).</span>{drop}</li>
-              <li><strong>By hand</strong><span>A quick editor: search, tick, set elite and level in a few clicks.</span><a href={href("/roster")}>Start adding →</a></li>
+              <li><strong>By hand</strong><span>A quick editor: search, tick, set elite and level in a few clicks.</span><a href={href("/roster", { tab: "import", m: "hand" })}>Start adding →</a></li>
             </ol>
             <p class="acct-try">Not sure which? <GuideLink label="Compare them in the import guide" /></p>
             <p class="acct-try">Just looking? <button class="linkish" disabled={!ops} onClick={async () => { if (ops) { await loadSample(ops); setMsg({ ok: true, text: "Loaded a sample roster: look around Today, Priorities, Roster and Base." }); } }}>Try it with a sample roster</button> <span class="muted">(made up; clear it any time)</span></p>

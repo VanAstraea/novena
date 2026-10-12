@@ -84,8 +84,10 @@ function value(eff: Eff, product: string, env: Record<string, number>): number {
 
 export class Evaluator {
   env: Record<string, number>;
-  constructor(public data: BaseFile, public skills: Map<string, Set<string>>, rooms: Room[]) {
+  /** `dormLevels`: every dorm's level added up (4 dorms at level 5 = 20), for skills that grow with them. */
+  constructor(public data: BaseFile, public skills: Map<string, Set<string>>, rooms: Room[], dormLevels = 20) {
     this.env = Object.fromEntries((["Trade", "Mfg", "Power", "Control", "Reception", "Office"] as Facility[]).map((f) => [`NumOf${f}`, rooms.filter((r) => r.facility === f).length]));
+    this.env.DormLevels = dormLevels;
   }
 
   single(f: Facility, id: string, product: string): number {

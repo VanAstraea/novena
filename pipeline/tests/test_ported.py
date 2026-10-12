@@ -70,3 +70,12 @@ def test_morale_and_dorm_effects():
     assert morale["Control"]["c"] == [0.0, -0.05, 0.1]
     dorm = base.dorm_effects(infrast)
     assert dorm["d"] == [0.15, 0.0, 0.0, 0.01] and dorm["e"] == [0.0, 0.65, 0.0, 0.0]
+
+
+def test_dorm_scaled_skills_follow_dorm_levels():
+    """Skills that grow with every level of every dorm become a formula of the base's dorm levels."""
+    from novena_pipeline.base import dorm_scaled
+    assert dorm_scaled("进驻制造站时，每间宿舍每级为贵金属类配方的生产力+1%") == (0.0, 1.0)
+    assert dorm_scaled("进驻人力办公室时，人脉资源的联络速度+5%，每间宿舍每级额外+2%人脉资源的联络速度") == (5.0, 2.0)
+    assert dorm_scaled("进驻发电站时，每间宿舍每级为充能速度额外+0.5%") == (0.0, 0.5)
+    assert dorm_scaled("进驻会客室时，如果菲亚梅塔进驻在宿舍，则线索搜集速度额外提升10%") is None

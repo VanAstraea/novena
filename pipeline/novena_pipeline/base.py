@@ -193,6 +193,21 @@ def layout(b: dict) -> dict:
     return out
 
 
+MAX_DORM_LEVELS = 20  # 4 dorms at level 5, what MAA's values assume
+_PER_DORM = re.compile(r"每间宿舍每级(?:为[^+，；。]*)?(?:额外)?\+([\d.]+)%")
+_BEFORE = re.compile(r"\+([\d.]+)%[^+]*?每间宿舍每级")
+
+
+def dorm_scaled(desc: str) -> tuple[float, float] | None:
+    """(flat %, % per dorm level) for a skill whose text says it grows with every level of every dorm
+    ("每间宿舍每级…+1%"), e.g. Narantuya's Pure Gold skill or the dorm-scaled Trading Post and Office skills."""
+    m = _PER_DORM.search(desc)
+    if not m:
+        return None
+    flat = _BEFORE.search(desc)
+    return (float(flat.group(1)) if flat and flat.start() < m.start() else 0.0, float(m.group(1)))
+
+
 def build(server: str) -> dict:
     infrast = cached_json(CACHE_DIR / "sources" / "maa_infrast.json", MAA_URL, 20 * 3600)
     b = gd.table("building_data", server)
@@ -220,6 +235,18 @@ def build(server: str) -> dict:
             if buff.get("skillIcon"):
                 names[buff["skillIcon"]] = buff.get("buffName", buff["skillIcon"])
 
+    def efficient(s: dict) -> dict:
+        """A skill's value; one that grows with dorm levels becomes a formula of the base's real dorm levels."""
+        eff = s.get("efficient") or {}
+        scaled = dorm_scaled(" ".join(s.get("desc") or []))
+        if not scaled:
+            return eff
+        base, per = scaled
+        out = {}
+        for k, v in eff.items():  # MAA's number assumes 4 dorms at level 5 (20 levels): keep it unless the text agrees
+            out[k] = f"{base:g} + {per:g} * [DormLevels]" if isinstance(v, (int, float)) and abs(base + per * MAX_DORM_LEVELS - v) < 1e-6 else v
+        return out
+
     def part(p: dict) -> list:
         return [list(p.get("skills") or []), [cn_ids[n] for n in p.get("filter") or [] if n in cn_ids], p.get("efficient") or {}]
 
@@ -227,7 +254,7 @@ def build(server: str) -> dict:
     for fac in FACILITIES:
         f = infrast.get(fac) or {}
         rooms[fac] = {
-            "skills": {sid: s.get("efficient") or {} for sid, s in (f.get("skills") or {}).items() if s.get("efficient")},
+            "skills": {sid: efficient(s) for sid, s in (f.get("skills") or {}).items() if s.get("efficient")},
             "groups": [{"desc": g.get("desc", ""), "conditions": g.get("conditions") or {},
                         "necessary": [part(p) for p in g.get("necessary") or []],
                         "optional": [part(p) for p in g.get("optional") or []]} for g in f.get("skillsGroup") or []],

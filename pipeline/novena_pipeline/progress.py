@@ -183,10 +183,26 @@ def retros(retro_table: dict, event_chars: dict[str, list[str]]) -> list[dict]:
     return out
 
 
+def record_chars(zone_table: dict | None) -> list[tuple[str, dict]]:
+    """Operators given by the main story's records (Episode 10 on: Heidi, Morgan, Dagda, Delphine…): reading a record
+    unlocked by clearing its stage. Each comes with its episode's zone, the record's title and the stage it's bound to."""
+    out = []
+    for zone, g in ((zone_table or {}).get("zoneRecordGroupedData") or {}).items():
+        for rec in g.get("records") or []:
+            for rw in rec.get("rewards") or []:
+                for item in rw.get("recordReward") or []:
+                    if item.get("type") == "CHAR" and item.get("id"):
+                        out.append((item["id"], {"kind": "record", "zone": zone, "record": rec.get("recordTitleName") or "",
+                                                 "stage": rw.get("bindStageId") or ""}))
+    return out
+
+
 def welfare(zone_list: list[dict], retro_list: list[dict], event_chars: dict[str, list[str]], events: dict[str, dict],
-            stages: dict[str, dict], shop: dict[str, list[str]] | None = None) -> dict[str, list[dict]]:
+            stages: dict[str, dict], shop: dict[str, list[str]] | None = None,
+            records: list[tuple[str, dict]] | None = None) -> dict[str, list[dict]]:
     """Free operators and every way to get each: an archive trial, an event's missions or milestones or its shop (the
-    latest such event only), or a stage's first clear (main story or archive). `stages` looks up any stage by id."""
+    latest such event only), a stage's first clear (main story or archive), or a main story record. `stages` looks up
+    any stage by id."""
     out: dict[str, list[dict]] = {}
 
     def add(cid: str, src: dict) -> None:
@@ -211,6 +227,8 @@ def welfare(zone_list: list[dict], retro_list: list[dict], event_chars: dict[str
         for sid, code, f in part["stages"]:
             for cid in stage_chars(stages.get(sid) or {}) if f & CHAR else []:
                 add(cid, {"kind": "stage", "stage": sid, "code": code, **extra})
+    for cid, src in records or []:
+        add(cid, src)
     return out
 
 
@@ -236,7 +254,7 @@ def build(server: str) -> dict:
     retro_list = retros(retro_table, event_chars) if retro_table else []
     events = (activity_table or {}).get("basicInfo") or {}
     stages = {**((stage_table or {}).get("stages") or {}), **((retro_table or {}).get("stageList") or {})}
-    welf = welfare(zone_list, retro_list, event_chars, events, stages, shop_chars(stage_table, event_chars))
+    welf = welfare(zone_list, retro_list, event_chars, events, stages, shop_chars(stage_table, event_chars), record_chars(zone_table))
     crystal = None
     if retro_table:
         crystal = {"cap": retro_table.get("retroCoinMaxOfLevels") or {}, "perWeek": retro_table.get("retroCoinPerWeek"),
