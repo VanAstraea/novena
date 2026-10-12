@@ -104,6 +104,11 @@ function ways(sources: WelfareSource[], retros: Map<string, Retro>, now: number)
       if (start <= now && now < end) out.push({ text: <>Event: {src.name}, missions, until {date(src.end)}</>, now: true, soon: false, sort: 0 });
       else if (start > now) out.push({ text: <>Event: {src.name}, missions, from {date(src.start)}</>, now: false, soon: true, sort: 2 });
       else out.push({ text: <span class="muted">Last came with {src.name} ({date(src.end)})</span>, now: false, soon: false, sort: 5 });
+    } else if (src.kind === "shop") {
+      const start = new Date(src.start).getTime(), end = new Date(src.end).getTime();
+      if (start <= now && now < end) out.push({ text: <>Event shop: {src.name}, until {date(src.end)}</>, now: true, soon: false, sort: 0 });
+      else if (start > now) out.push({ text: <>Event shop: {src.name}, from {date(src.start)}</>, now: false, soon: true, sort: 2 });
+      else out.push({ text: <span class="muted">Came with an earlier event: sold in the {src.name} shop ({date(src.end)})</span>, now: false, soon: false, sort: 5 });
     } else {
       const r = src.retro ? retros.get(src.retro) : undefined;
       if (src.retro && !r) continue;
@@ -133,7 +138,7 @@ function Welfare({ data, ops, byId }: { data: ProgressFile; ops: OpIndex[]; byId
   const missing = hasRoster.value ? rows.filter((r) => !r.mine && r.open).length : null;
   return (
     <div class="stack">
-      <p>{rows.length} free operators: from archive trials, event missions and story stages. {open} can be had right now{missing !== null && <>, <strong>{missing}</strong> of them not in your roster</>}.</p>
+      <p>{rows.length} free operators: from archive trials, event missions and shops, and story stages. {open} can be had right now{missing !== null && <>, <strong>{missing}</strong> of them not in your roster</>}.</p>
       {hasRoster.value ? (
         <label class="row tight"><input type="checkbox" checked={missingOnly} onChange={(e) => setQuery({ missing: (e.target as HTMLInputElement).checked ? "1" : "" })} /> Missing only</label>
       ) : (

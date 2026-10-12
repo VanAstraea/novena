@@ -1064,3 +1064,8 @@ button.mod-i[aria-expanded="true"] span { border-color: var(--accent); color: va
 .glance-body h3 { margin: 0 0 6px; }
 .glance-filters { display: flex; flex-wrap: wrap; gap: 8px 18px; }
 .glance-preview { display: block; width: 100%; max-width: 600px; height: auto; margin-top: 12px; border: 1px solid var(--border); }
+
+/* Recruitment: operators you own carry a "✓ owned P#" mark (src/pages/Recruit.tsx); at P6 it fades, since another copy
+   only gives certificates. */
+.owned-mark { display: inline-block; margin-left: 4px; padding: 0 4px; border: 1px solid var(--good); border-radius: 2px; color: var(--good); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; vertical-align: middle; }
+.owned-mark.maxed { border-color: var(--line); color: var(--muted); }
