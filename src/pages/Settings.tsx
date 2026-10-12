@@ -4,6 +4,7 @@ import { Explain, GuideLink } from "../components/ui";
 import { WeightsControl } from "../components/Weights";
 import { clearAll, getItem, keys, setItem, setPref } from "../lib/storage";
 import { href, navigate } from "../lib/router";
+import { install, installed, installPrompt, iosSafari } from "../lib/pwa";
 import { SERVERS, server, theme, type Theme } from "../state";
 import type { Server } from "../types";
 
@@ -89,6 +90,15 @@ export default function Settings() {
         <p style={{ marginTop: "12px" }}>
           <button onClick={() => { setPref("introSeen", ""); navigate(href("/", { intro: 1 })); }}>Play the intro again</button>
         </p>
+      </section>
+      <section class="card" id="app">
+        <h2>Install & offline</h2>
+        {installed.value
+          ? <p>Novena is installed on this device.</p>
+          : installPrompt.value
+            ? <div class="row"><button class="primary" onClick={() => void install()}>Install the app</button><span class="muted">It opens in its own window, with an icon on your home screen or desktop.</span></div>
+            : iosSafari && <p>To install on iPhone or iPad: tap Share, then Add to Home Screen.</p>}
+        <p style={{ marginTop: "8px" }}><strong>Available offline.</strong> Once Novena has loaded, it keeps working without a connection: every page, the data you've already opened, and the farming solver after its first use. Operator and item art comes from other sites, so pictures may be missing.</p>
       </section>
       <section class="card" id="what-you-play">
         <h2>What you play</h2>

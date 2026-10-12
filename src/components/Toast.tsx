@@ -6,10 +6,11 @@ interface Toast { id: number; text: string; link?: { href: string; label: string
 const toasts = signal<Toast[]>([]);
 let next = 1;
 
-export function toast(text: string, opts: { link?: Toast["link"]; action?: Toast["action"]; kind?: Toast["kind"]; seconds?: number } = {}): void {
+/** `stay`: it waits for the reader (dismiss or act on it) instead of leaving after a few seconds. */
+export function toast(text: string, opts: { link?: Toast["link"]; action?: Toast["action"]; kind?: Toast["kind"]; seconds?: number; stay?: boolean } = {}): void {
   const t: Toast = { id: next++, text, link: opts.link, action: opts.action, kind: opts.kind || "good" };
   toasts.value = [...toasts.value.slice(-3), t];
-  setTimeout(() => (toasts.value = toasts.value.filter((x) => x.id !== t.id)), (opts.seconds || 5) * 1000);
+  if (!opts.stay) setTimeout(() => (toasts.value = toasts.value.filter((x) => x.id !== t.id)), (opts.seconds || 5) * 1000);
 }
 
 export function Toasts() {
