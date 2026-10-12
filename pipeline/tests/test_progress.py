@@ -102,6 +102,23 @@ def test_welfare_finds_trials_events_and_stages():
     assert "char_z" not in w  # its event isn't in basicInfo
 
 
+def test_story_collection_operators_come_from_the_event_shop():
+    stage_table = {"storylineStorySets": {
+        "set_mini": {"storySetType": "COLLECT", "coreRewardType": "CHAR", "coreRewardId": "char_s", "relevantActivityId": "act9mini"},
+        "set_missions": {"storySetType": "COLLECT", "coreRewardType": "CHAR", "coreRewardId": "char_m", "relevantActivityId": "act8mini"},
+        "set_skin": {"storySetType": "COLLECT", "coreRewardType": "CHAR_SKIN", "coreRewardId": "char_k@x#1", "relevantActivityId": "act7mini"},
+        "set_side": {"storySetType": "SS", "coreRewardType": "CHAR", "coreRewardId": "char_v", "relevantActivityId": "act6side"},
+    }}
+    event_chars = {"act8mini": ["char_m"]}
+    shop = progress.shop_chars(stage_table, event_chars)
+    assert shop == {"act9mini": ["char_s"]}  # missions already give char_m; a skin or a Side Story's lead isn't a shop's
+    events = {"act9mini": {"name": "Mini", "startTime": 100, "endTime": 200, "rewardEndTime": 260},
+              "act8mini": {"name": "Other", "startTime": 10, "endTime": 20}}
+    w = progress.welfare([], [], event_chars, events, {}, shop)
+    assert w["char_s"] == [{"kind": "shop", "id": "act9mini", "name": "Mini", "start": "1970-01-01T00:01:40Z", "end": "1970-01-01T00:04:20Z"}]
+    assert [s["kind"] for s in w["char_m"]] == ["event"]
+
+
 def test_annihilation_sums_one_time_orundum():
     campaign_table = {"campaigns": {"camp_r_01": {"breakLadders": [
         {"rewards": [{"id": "4003", "count": 500}, {"id": "4001", "count": 4000}]}, {"rewards": [{"id": "4003", "count": 1000}]}]}},

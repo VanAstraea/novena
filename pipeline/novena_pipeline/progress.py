@@ -4,7 +4,9 @@ Main story and supply stages pay Originite Prime on the first 3-star clear (stag
 give an operator. Side Stories and Intermezzi live on in the archive (retro_table): unlocking one costs an Event
 Crystal, and most have a trial (Record Restoration) whose stars, earned in the archive's stages, pay out the event's
 operator and their full potential. Annihilation maps pay orundum once per kill milestone. Free ("welfare") operators
-are gathered from all of these, plus event missions and milestones (activity_table), with where each one comes from.
+are gathered from all of these, plus event missions and milestones (activity_table) and the shops of the story
+collections (stage_table's storylineStorySets: a "COLLECT" set's core operator, when its event's missions don't give
+them, is the one its shop sold), with where each one comes from.
 
     {"zones": [{"id", "kind": "main" | "supply", "name", "title", "op", "stages": [[stage id, code, flags]]}],
      "retros": [{"id", "kind": "side" | "intermezzo", "index", "name", "start", "acts": [event ids], "op", "stars",
@@ -12,6 +14,7 @@ are gathered from all of these, plus event missions and milestones (activity_tab
                  "trail": {"start", "rewards": [[reward id, stars, type, item id]]} or null}],
      "welfare": {char id: [{"kind": "retro", "id", "stars" (null: no trial yet)}
                            | {"kind": "event", "id", "name", "start", "end"}
+                           | {"kind": "shop", "id", "name", "start", "end" (when the shop closes)}
                            | {"kind": "stage", "stage", "code", "retro"?}]},
      "annihilation": [{"id", "name", "region", "orundum", "rotation": [start, end] or null}],
      "crystal": {"cap": {player level: crystals}, "perWeek", "unlockCost"}}
@@ -121,6 +124,32 @@ def mission_chars(activity_table: dict | None) -> dict[str, list[str]]:
     return out
 
 
+def shop_chars(stage_table: dict | None, event_chars: dict[str, list[str]]) -> dict[str, list[str]]:
+    """Event id -> operators its shop sold. Event shops aren't in the client tables (nor in Yituliu's record, which
+    lists materials only), but the story archive names each story collection's core operator ("COLLECT" sets:
+    Children of Ursus, Rewinding Breeze, Preluding Lights...), and that operator came from the event's shop unless its
+    missions gave them."""
+    out: dict[str, list[str]] = {}
+    for s in ((stage_table or {}).get("storylineStorySets") or {}).values():
+        act, cid = s.get("relevantActivityId"), s.get("coreRewardId")
+        if s.get("storySetType") == "COLLECT" and s.get("coreRewardType") == "CHAR" and act and cid and cid not in event_chars.get(act, []):
+            if cid not in out.setdefault(act, []):
+                out[act].append(cid)
+    return out
+
+
+def latest_event(event_chars: dict[str, list[str]], events: dict[str, dict]) -> dict[str, str]:
+    """Operator -> the latest event (by start) that gives them."""
+    latest: dict[str, str] = {}
+    for act, chars in event_chars.items():
+        if act not in events:
+            continue
+        for cid in chars:
+            if cid not in latest or events[act].get("startTime", 0) > events[latest[cid]].get("startTime", 0):
+                latest[cid] = act
+    return latest
+
+
 def retros(retro_table: dict, event_chars: dict[str, list[str]]) -> list[dict]:
     """Every archive, Intermezzi first, each with its stages, Originite Prime, trial and operator."""
     zone_to = retro_table.get("zoneToRetro") or {}
@@ -155,9 +184,9 @@ def retros(retro_table: dict, event_chars: dict[str, list[str]]) -> list[dict]:
 
 
 def welfare(zone_list: list[dict], retro_list: list[dict], event_chars: dict[str, list[str]], events: dict[str, dict],
-            stages: dict[str, dict]) -> dict[str, list[dict]]:
-    """Free operators and every way to get each: an archive trial, an event's missions or milestones (its latest
-    event only), or a stage's first clear (main story or archive). `stages` looks up any stage by id."""
+            stages: dict[str, dict], shop: dict[str, list[str]] | None = None) -> dict[str, list[dict]]:
+    """Free operators and every way to get each: an archive trial, an event's missions or milestones or its shop (the
+    latest such event only), or a stage's first clear (main story or archive). `stages` looks up any stage by id."""
     out: dict[str, list[dict]] = {}
 
     def add(cid: str, src: dict) -> None:
@@ -171,16 +200,13 @@ def welfare(zone_list: list[dict], retro_list: list[dict], event_chars: dict[str
                 add(item, {"kind": "retro", "id": r["id"], "stars": stars})
         if not trail and r["char"]:
             add(r["char"], {"kind": "retro", "id": r["id"], "stars": None})
-    latest: dict[str, str] = {}
-    for act, chars in event_chars.items():
-        if act not in events:
-            continue
-        for cid in chars:
-            if cid not in latest or events[act].get("startTime", 0) > events[latest[cid]].get("startTime", 0):
-                latest[cid] = act
-    for cid, act in latest.items():
+    for cid, act in latest_event(event_chars, events).items():
         e = events[act]
         add(cid, {"kind": "event", "id": act, "name": e.get("name") or act, "start": _iso(e.get("startTime") or 0), "end": _iso(e.get("endTime") or 0)})
+    for cid, act in latest_event(shop or {}, events).items():
+        e = events[act]  # the shop stays open until the rewards close, after the stages do
+        add(cid, {"kind": "shop", "id": act, "name": e.get("name") or act, "start": _iso(e.get("startTime") or 0),
+                  "end": _iso(e.get("rewardEndTime") or e.get("endTime") or 0)})
     for part, extra in [(z, {}) for z in zone_list] + [(r, {"retro": r["id"]}) for r in retro_list]:
         for sid, code, f in part["stages"]:
             for cid in stage_chars(stages.get(sid) or {}) if f & CHAR else []:
@@ -210,7 +236,7 @@ def build(server: str) -> dict:
     retro_list = retros(retro_table, event_chars) if retro_table else []
     events = (activity_table or {}).get("basicInfo") or {}
     stages = {**((stage_table or {}).get("stages") or {}), **((retro_table or {}).get("stageList") or {})}
-    welf = welfare(zone_list, retro_list, event_chars, events, stages)
+    welf = welfare(zone_list, retro_list, event_chars, events, stages, shop_chars(stage_table, event_chars))
     crystal = None
     if retro_table:
         crystal = {"cap": retro_table.get("retroCoinMaxOfLevels") or {}, "perWeek": retro_table.get("retroCoinPerWeek"),

@@ -1053,3 +1053,8 @@ button.mod-i[aria-expanded="true"] span { border-color: var(--accent); color: va
 .mod-line { display: grid; min-width: 0; font-size: 0.86rem; line-height: 1.35; }
 .mod-line strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mod-line .muted { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+/* Recruitment: operators you own carry a "✓ owned P#" mark (src/pages/Recruit.tsx); at P6 it fades, since another copy
+   only gives certificates. */
+.owned-mark { display: inline-block; margin-left: 4px; padding: 0 4px; border: 1px solid var(--good); border-radius: 2px; color: var(--good); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; vertical-align: middle; }
+.owned-mark.maxed { border-color: var(--line); color: var(--muted); }

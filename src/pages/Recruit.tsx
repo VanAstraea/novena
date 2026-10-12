@@ -5,7 +5,7 @@ import { duration } from "../lib/format";
 import { opMap, recruit as loadRecruit } from "../lib/data";
 import { href, route, setQuery } from "../lib/router";
 import { combos, TAG, worthPicking, type Combo } from "../lib/recruit";
-import { account, server } from "../state";
+import { account, hasRoster, server } from "../state";
 import type { OpIndex, RecruitFile } from "../types";
 
 const GROUPS: { label: string; ids: number[] }[] = [
@@ -29,6 +29,7 @@ function View({ rec, ops }: { rec: RecruitFile; ops: Map<string, OpIndex> }) {
   const q = route.value.query;
   const picked = (q.get("tags") || "").split(",").filter(Boolean).map(Number).filter((t) => rec.tags.some((x) => x.id === t)).slice(0, 5);
   const [all, setAll] = useState(false);
+  const [hideMaxed, setHideMaxed] = useState(false);
   const name = (id: number) => rec.tags.find((t) => t.id === id)?.name || String(id);
   const grouped = new Set(GROUPS.flatMap((g) => g.ids));
   const groups = [...GROUPS, { label: "Specialization", ids: rec.tags.filter((t) => !grouped.has(t.id)).map((t) => t.id) }];
@@ -38,7 +39,11 @@ function View({ rec, ops }: { rec: RecruitFile; ops: Map<string, OpIndex> }) {
   };
   const found = useMemo(() => (picked.length ? combos(picked, rec) : []), [picked.join(), rec]);
   const worth = useMemo(() => worthPicking(found), [found]);
-  const shown = all ? found : worth;
+  const listed = all ? found : worth;
+  const roster = account.value.ops;
+  const maxedOnly = (c: Combo) => c.candidates.every((r) => (roster[r.id]?.pot ?? 0) >= 6);
+  const shown = hideMaxed && hasRoster.value ? listed.filter((c) => !maxedOnly(c)) : listed;
+  const hidden = listed.length - shown.length;
   return (
     <>
       {account.value.recruit?.length ? <Slots rec={rec} name={name} /> : null}
@@ -64,13 +69,19 @@ function View({ rec, ops }: { rec: RecruitFile; ops: Map<string, OpIndex> }) {
         <section class="card">
           <div class="row" style={{ justifyContent: "space-between" }}>
             <h2 style={{ margin: 0 }}>{all ? `Every combination (${found.length})` : worth.length ? "Worth picking" : "Nothing above 3★"}</h2>
-            <label class="row tight"><input type="checkbox" checked={all} onChange={(e) => setAll((e.target as HTMLInputElement).checked)} /> Show every combination</label>
+            <div class="row tight">
+              <label class="row tight"><input type="checkbox" checked={all} onChange={(e) => setAll((e.target as HTMLInputElement).checked)} /> Show every combination</label>
+              {hasRoster.value && (
+                <label class="row tight"><input type="checkbox" checked={hideMaxed} onChange={(e) => setHideMaxed((e.target as HTMLInputElement).checked)} /> Hide combos that only give operators I own at P6</label>
+              )}
+            </div>
           </div>
+          {hidden > 0 && <p class="muted" style={{ marginTop: "8px" }}>{hidden === 1 ? "1 combination is hidden: every operator it gives" : `${hidden} combinations are hidden: every operator they give`} is one you own at P6.</p>}
           {!all && !worth.length && <p class="muted" style={{ marginTop: "8px" }}>No combination guarantees 4★ or better. Pick tags for the most common class you need, or refresh the tags.</p>}
           <div class="stack" style={{ marginTop: "10px" }}>
             {shown.map((c) => <ComboCard key={c.tags.join()} c={c} name={name} ops={ops} />)}
           </div>
-          <Explain>Guaranteed rarity: the lowest rarity among the operators that have every picked tag. "Worth picking" hides combinations a smaller pick already guarantees.</Explain>
+          <Explain>Guaranteed rarity: the lowest rarity among the operators that have every picked tag. "Worth picking" hides combinations a smaller pick already guarantees.{hasRoster.value ? " Operators you have are marked “✓ owned” with their potential: another copy of one at P6 only gives certificates." : ""}</Explain>
         </section>
       )}
     </>
@@ -88,10 +99,13 @@ function ComboCard({ c, name, ops }: { c: Combo; name: (id: number) => string; o
         {c.candidates.map((r) => {
           const op = ops.get(r.id);
           if (!op) return null;
+          const mine = account.value.ops[r.id];
           return (
-            <a key={r.id} class="op-cell" href={href(`/operator/${r.id}`)} title={`${op.name} (${r.rarity}★)${account.value.ops[r.id] ? ", owned" : ""}`}
+            <a key={r.id} class="op-cell" href={href(`/operator/${r.id}`)}
+              title={`${op.name} (${r.rarity}★)${mine ? `, owned at potential ${mine.pot}` : ""}`}
               style={{ padding: "2px 6px 2px 2px", border: "1px solid var(--border)", borderRadius: "8px" }}>
-              <Avatar op={op} size="sm" /><span><small>{op.name}</small> <Stars n={r.rarity} /></span>
+              <Avatar op={op} size="sm" /><span><small>{op.name}</small> <Stars n={r.rarity} />
+                {mine && <span class={`owned-mark${mine.pot >= 6 ? " maxed" : ""}`}>✓ owned{mine.pot ? ` P${mine.pot}` : ""}</span>}</span>
             </a>
           );
         })}
