@@ -12,14 +12,14 @@ interface Licenses {
 
 const IMAGES = [
   { name: "ArknightsGameResource", by: "yuanyan3060", url: "https://github.com/yuanyan3060/ArknightsGameResource",
-    what: "Operator portraits, splash and outfit art (including the home page's Lemuen), skill, item and base-skill icons." },
+    what: "Operator portraits, splash and outfit art (including the home page's Lemuen), skill, item, base-skill and enemy icons." },
   { name: "ArknightsAssets2", by: "ArknightsAssets", url: "https://github.com/ArknightsAssets/ArknightsAssets2",
     what: "The game's UI icons (classes, branches, elite, potential, mastery, rarity, module types and module art) and story backgrounds (the home page's cathedral hall)." },
 ];
 
 const DATA = [
   { key: "gamedata", name: "ArknightsGamedata", by: "ArknightsAssets", url: "https://github.com/ArknightsAssets/ArknightsGamedata",
-    what: "The game's own tables for all four servers: operators, skills, modules, items, stages, events, story archives, recruitment.", license: "Game data © Hypergryph and affiliates" },
+    what: "The game's own tables for all four servers: operators, skills, modules, items, stages, events, story archives, recruitment, and the enemy handbook and enemy stats (the Enemy database).", license: "Game data © Hypergryph and affiliates" },
   { key: "penguin", name: "Penguin Statistics", by: "Penguin Statistics", url: "https://penguin-stats.io/",
     what: "Crowd-sourced drop rates per server, for the farming planner and the Sanity Dump.", license: "CC BY-NC 4.0" },
   { key: "yituliu", name: "Yituliu", by: "ark.yituliu.cn", url: "https://ark.yituliu.cn/",
@@ -132,6 +132,7 @@ export default function Credits() {
         <h2>Ideas from other tools</h2>
         <p>Account stats and the cost to max everything: inspired by <a href="https://myrtle.moe" rel="noopener">myrtle.moe</a>.</p>
         <p>Tier lists: inspired by <a href="https://myrtle.moe" rel="noopener">myrtle.moe</a>.</p>
+        <p>Enemy database: inspired by <a href="https://myrtle.moe" rel="noopener">myrtle.moe</a>.</p>
       </section>
 
       <section class="card">

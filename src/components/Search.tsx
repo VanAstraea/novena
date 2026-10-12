@@ -1,14 +1,14 @@
-// Global search (Ctrl+K, ⌘K or "/"): operators (yours first, recent ones on an empty box), items, stages, pages,
-// the sub-pages people look for, and a few actions.
+// Global search (Ctrl+K, ⌘K or "/"): operators (yours first, recent ones on an empty box), items, stages, enemies,
+// pages, the sub-pages people look for, and a few actions.
 import { signal } from "@preact/signals";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { operators, stages as loadStages } from "../lib/data";
+import { enemies as loadEnemies, operators, stages as loadStages } from "../lib/data";
 import { href, navigate } from "../lib/router";
 import { matchScore } from "../lib/search";
 import { pref } from "../lib/storage";
 import { account, server, theme } from "../state";
 import { rememberOperator } from "./OperatorPanel";
-import type { OpIndex, StageRow } from "../types";
+import type { EnemyRow, OpIndex, StageRow } from "../types";
 import { pageScore, PAGES, viewScore } from "../pages/registry";
 import { Avatar, ItemIcon, itemsSig } from "./ui";
 
@@ -62,7 +62,14 @@ export function SearchDialog() {
   const [sel, setSel] = useState(0);
   const [ops, setOps] = useState<OpIndex[]>([]);
   const [stageRows, setStages] = useState<StageRow[]>([]);
+  const [foes, setFoes] = useState<EnemyRow[]>([]);
   const open = searchOpen.value;
+  const typed = !!q.trim();
+
+  // The enemy list is bigger than the rest: fetched once something is typed, not when the box opens.
+  useEffect(() => {
+    if (open && typed) loadEnemies(server.value).then((d) => setFoes(d.enemies), () => undefined);
+  }, [open, typed]);
 
   useEffect(() => {
     const d = ref.current;
@@ -99,6 +106,10 @@ export function SearchDialog() {
       const s = matchScore(q, st.code);
       if (s >= 55) out.push({ key: `s${st.id}`, label: `${st.code} (${st.ap} sanity)`, kind: "Stage", to: href("/farming", { stage: st.id }), score: s - 5 });
     }
+    for (const e of foes) {
+      const s = matchScore(q, e.name);
+      if (s) out.push({ key: `e${e.id}`, label: e.name, kind: `Enemy · ${e.level[0]}${e.level.slice(1).toLowerCase()}`, to: href(`/enemy/${e.id}`), score: s - 1 });
+    }
     for (const p of PAGES) {
       const s = pageScore(q, p, true);
       if (s) out.push({ key: p.path, label: p.title, kind: "Page", to: href(p.path), score: s + 1 });
@@ -116,7 +127,7 @@ export function SearchDialog() {
       if (s) out.push({ key: `a${a.label}`, label: a.label, kind: "Action", to: "", run: a.run, score: s });
     }
     return out.sort((a, b) => b.score - a.score).slice(0, 30);
-  }, [q, ops, stageRows]);
+  }, [q, ops, stageRows, foes]);
 
   const go = (h: Hit) => {
     searchOpen.value = false;
@@ -130,7 +141,7 @@ export function SearchDialog() {
       onClick={(e) => { if (e.target === ref.current) searchOpen.value = false; }}>
       <div class="search-input">
         <span aria-hidden="true">⌕</span>
-        <input ref={input} type="search" value={q} placeholder="Find an operator, item, stage or page"
+        <input ref={input} type="search" value={q} placeholder="Find an operator, item, stage, enemy or page"
           aria-label="Search" aria-controls="search-results" role="combobox" list={undefined} aria-expanded="true"
           aria-activedescendant={hits[sel] ? `sr-${sel}` : undefined}
           onInput={(e) => { setQ((e.target as HTMLInputElement).value); setSel(0); }}

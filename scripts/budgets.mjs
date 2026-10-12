@@ -12,13 +12,18 @@ const BUDGET = {
   chunk: 10 * KB, // each lazily loaded chunk (a page, or code pages share) not named below
   // by name, before the hash: the solver (Farming, Priorities, Sanity Dump) and the depot screenshot reader load only
   // when used
-  chunks: { Roster: 15 * KB, highs: 34 * KB, "highs.wasm": 1320 * KB, worker: 540 * KB },
+  chunks: { Roster: 15 * KB, highs: 34 * KB, "highs.wasm": 1320 * KB, worker: 540 * KB,
+    // the Enemy database: the list, one enemy's page and what they share (icon, immunity badges, lib/enemies)
+    Enemies: 2 * KB, Enemy: 1.5 * KB, EnemyParts: 1.75 * KB },
   css: { index: 15.5 * KB, intro: 1.5 * KB }, // index raised from 14.5 KB for the Tier lists page's rules
   data: {
     "en/base.json": 20.5 * KB, "en/costs.json": 32.5 * KB, "en/is.json": 9.5 * KB, "en/items.json": 12 * KB,
     "en/meta.json": 11.5 * KB, "en/operators.json": 21.5 * KB, "en/progress.json": 21 * KB, "en/ranges.json": 1 * KB,
     "en/recruit.json": 2.5 * KB, "en/shops.json": 2 * KB, "en/stages.json": 13.5 * KB, "en/upcoming.json": 9 * KB,
     "en/ops/*": 3 * KB, // the largest single operator file
+    // the enemy handbook: the index (search, the list and each enemy's page; CN's, with more enemies, is ~59 KB) and
+    // the ability text only an enemy's page loads
+    "en/enemies.json": 58 * KB, "en/enemy-abilities.json": 70 * KB,
     "common/usage.json": 40 * KB,
     // TODO: generous on purpose while the guidebook is being reduced separately; bring it down to ~10% above its size
     // once that has landed.
