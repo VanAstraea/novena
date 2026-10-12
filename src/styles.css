@@ -1099,3 +1099,7 @@ button.mod-i[aria-expanded="true"] span { border-color: var(--accent); color: va
   .bm-head .bm-pin { min-width: 12px; min-height: 12px; margin: -1px -2px 0 0; }
   .bm-head .bm-pin .pin-ico { width: 9px; height: 9px; }
 }
+
+/* Story & archives: what is left for you (from a synced story progress) */
+.stat .d.story-left { color: var(--text); font-weight: 600; margin-top: 2px; }
+.story-picks { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }

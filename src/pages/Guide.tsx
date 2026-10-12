@@ -33,7 +33,7 @@ export default function Guide() {
             </li>
           ))}
         </ul>
-        <Explain>Mix them as you like: Novena Sync or a Krooster profile for operators, screenshots or a planner for the depot, and a quick edit by hand for anything that changed since. Your base comes only with Novena Sync; recruitment slots and sanity with Novena Sync or a sync data file.</Explain>
+        <Explain>Mix them as you like: Novena Sync or a Krooster profile for operators, screenshots or a planner for the depot, and a quick edit by hand for anything that changed since. Your base comes only with Novena Sync; recruitment slots, sanity and story progress with Novena Sync or a sync data file.</Explain>
       </section>
       <div ref={top} class="guide-top">
         <Tabs label="Ways to import" value={way} onChange={(k) => setQuery({ m: k })} tabs={WAYS.map((w) => ({ key: w.key, label: w.tab }))} />
@@ -84,7 +84,7 @@ function SyncSteps() {
         <li>Play, close the game, then press <em>Sync EN now</em> (or your server) on the same card. It asks first (you can turn that off), then replaces this server's roster and depot. Once or twice a day is plenty; reopening the game afterwards needs no new code.</li>
         <li>No browser link? <em>Sync now</em> in the app also saves <code>novena-sync-&lt;server&gt;.json</code> in <code>Documents/Novena Sync</code> (while <em>Also save it as a file</em> is ticked). Drop that file on <em>Import a file</em>.</li>
       </ol>
-      <p><strong>Brings:</strong> your operators (level, promotion, potential, skills, masteries, modules and the outfit each one wears), the depot and LMD, Orundum, Originite Prime and permits, training vouchers and sanity potions (with when they expire), recruitment slots, the base (rooms, levels, teams, morale, production, drones) and your sanity. Not your nickname, ids, friends, mail or purchases.</p>
+      <p><strong>Brings:</strong> your operators (level, promotion, potential, skills, masteries, modules and the outfit each one wears), the depot and LMD, Orundum, Originite Prime and permits, training vouchers and sanity potions (with when they expire), recruitment slots, the base (rooms, levels, teams, morale, production, drones) and your sanity. With <em>Include story, event and archive progress</em> ticked in the app (it starts off): the stages you've cleared, your unlocked archives and claimed trial rewards, Event Crystals, level and Annihilation progress, so <a href={href("/story")}>Story &amp; archives</a> shows what's left for you. Not your nickname, ids, friends, mail or purchases, nor when or how often you played.</p>
       <details class="explain-fold">
         <summary>If it doesn't connect</summary>
         <ul class="explain">
@@ -170,7 +170,7 @@ function FileSteps() {
         <li>On <a href={IMPORT("file")}>Import / export</a>, choose <em>Replace roster</em> (swap in the file's roster and depot) or <em>Merge</em> (add the file's operators to yours; where both have one, the file's wins).</li>
         <li>Drop the file on <em>Import a file</em>, or click to choose it. The box on the Home page takes it too.</li>
       </ol>
-      <p><strong>Brings:</strong> your operators (with their outfits), the depot and LMD, currencies, training vouchers and sanity potions, recruitment slots and sanity. The base comes only with Novena Sync.</p>
+      <p><strong>Brings:</strong> your operators (with their outfits), the depot and LMD, currencies, training vouchers and sanity potions, recruitment slots and sanity, and your story progress (stages cleared, archives, Annihilation) for <a href={href("/story")}>Story &amp; archives</a>. Novena keeps only how each stage was cleared, not when or how often. The base comes only with Novena Sync.</p>
       <h3>Everything Import a file reads</h3>
       <ul>
         <li>Game sync data (syncData JSON), and Novena Sync's own file.</li>

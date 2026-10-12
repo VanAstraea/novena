@@ -22,6 +22,11 @@ website never asks for a login and never sees one.
   they finish), your base (each room's type, level, team and their morale, what it makes and when it's done, the
   drones) and your sanity (amount, cap, when it was counted). Not your nickname, ids, friends, the base's visitors or
   clues, mail, purchases or history. See `novena_sync/payload.py` for the exact list.
+- **Story, event and archive progress only if you turn it on.** *Include story, event and archive progress* (off
+  by default) adds the stages you've cleared and whether at 3 stars, which archives you've unlocked and which trial
+  rewards you've claimed, your Event Crystals and level, the furthest main story stage you've reached, and
+  Annihilation (this week's orundum so far, each map's best kill count and milestones paid). Novena's Story & archives
+  page then shows what's left for you. Never when or how often you played a stage, nor replays.
 - Entering your roster by hand on the website is the risk-free option.
 - Servers: EN, JP and KR (Yostar accounts).
 

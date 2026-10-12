@@ -1,6 +1,7 @@
 // Roster imports. Accepted, detected by shape:
 //   - Novena roster files (this site's own export)
-//   - a raw `account/syncData` JSON (what other community tools save), or Novena Sync's cut-down copy of one
+//   - a raw `account/syncData` JSON (what other community tools save), or Novena Sync's cut-down copy of one (with
+//     story, event and archive progress when the player chose to include it)
 //   - a Krooster profile (what krooster.com/api/u/<username> shows: Krooster has no roster export, but profiles are public)
 //   - Krooster's older operator export (an object keyed by char id with owned / promotion / potential / mastery / module)
 import type { OpIndex } from "../types";
@@ -20,6 +21,7 @@ export interface Imported {
   recruit?: Account["recruit"];
   base?: Account["base"];
   sanity?: { value: number; cap: number; at: number }; // at: ms
+  progress?: Account["progress"];
 }
 
 const clamp = (v: unknown, lo: number, hi: number, fallback: number) => {
@@ -142,7 +144,7 @@ export function parseRoster(json: unknown, ops: OpIndex[]): Imported {
     const fromApp = data.app === "novena-sync";
     const sanity = Number(st.maxAp) > 0 && Number(st.lastApAddTime) > 0 ? { value: Number(st.ap) || 0, cap: Number(st.maxAp), at: Number(st.lastApAddTime) * 1000 } : undefined;
     return { ops: out, depot, savings, format: fromApp ? "Novena Sync" : "Game sync data (syncData)", skipped, server: fromApp ? data.server : undefined,
-      consumables: Object.keys(consumables).length ? consumables : undefined, recruit: recruitSlots(user.recruit), base: baseState(user.building, data.synced), sanity };
+      consumables: Object.keys(consumables).length ? consumables : undefined, recruit: recruitSlots(user.recruit), base: baseState(user.building, data.synced), sanity, progress: storyProgress(user, data.synced) };
   }
 
   // Krooster profile: { data: { account, supports, roster: { char_x: { op_id, elite, level, potential, skill_level,
@@ -195,6 +197,41 @@ function recruitSlots(r: any): Account["recruit"] {
     slot: Number(x.slot) || 0, state: Number(x.state) || 0, tags: (x.tags || []).map(Number).filter(Number.isFinite),
     picked: (x.picked || []).map(Number).filter(Number.isFinite), start: Number(x.start) || -1, finish: Number(x.finish) || -1,
   })).sort((a: { slot: number }, b: { slot: number }) => a.slot - b.slot);
+}
+
+/** Story, event and archive progress: Novena Sync's trimmed copy (version 3, when the player turns it on) or the game's
+ *  own `dungeon`, `retro` and `campaignsV2`. Undefined when the file has none of them (older files, the option off). */
+function storyProgress(user: any, synced?: string): Account["progress"] {
+  const dungeon = user.dungeon?.stages, retro = user.retro, camp = user.campaignsV2;
+  if (!dungeon && !retro && !camp) return undefined;
+  const num = (v: any) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const stages: Record<string, number> = {};
+  for (const [id, st] of Object.entries((dungeon || {}) as Record<string, any>)) {
+    const state = num(st && typeof st === "object" ? st.state : st); // the game's {state, …} or Novena Sync's number
+    if (state >= 2) stages[id] = Math.min(state, 3);
+  }
+  const out: NonNullable<Account["progress"]> = { stages, at: synced ? Date.parse(synced) || Date.now() : Date.now() };
+  if (retro && typeof retro === "object") {
+    out.coin = num(retro.coin);
+    out.open = Object.entries((retro.block || {}) as Record<string, any>).filter(([, b]) => (b && typeof b === "object" ? b.open : b)).map(([id]) => id);
+    out.claimed = {};
+    for (const [id, got] of Object.entries((retro.trail || {}) as Record<string, any>)) {
+      const ids = Array.isArray(got) ? got.map(String) : Object.entries(got || {}).filter(([, v]) => v).map(([k]) => k);
+      if (ids.length) out.claimed[id] = ids;
+    }
+  }
+  if (camp && typeof camp === "object") {
+    out.fee = Array.isArray(camp.fee) ? [num(camp.fee[0]), num(camp.fee[1])] : [num(camp.campaignCurrentFee), num(camp.campaignTotalFee)];
+    out.feeTs = num(camp.ts ?? camp.lastRefreshTs) || undefined;
+    out.annihilation = {};
+    for (const [id, c] of Object.entries((camp.instances || {}) as Record<string, any>)) {
+      out.annihilation[id] = { kills: num(c?.maxKills), rewards: Array.isArray(c?.rewardStatus) ? c.rewardStatus.map(num) : [] };
+    }
+  }
+  const st = user.status || {};
+  if (typeof st.mainStageProgress === "string") out.mainStageProgress = st.mainStageProgress;
+  if (Number(st.level) > 0) out.level = Number(st.level);
+  return out;
 }
 
 /** The base as Novena Sync lists it (rooms with teams, production and timers; the drones). */

@@ -47,6 +47,34 @@ describe("Novena Sync files", () => {
     expect(r.sanity).toEqual({ value: 80, cap: 135, at: 1_800_000_000_000 });
   });
 
+  it("bring story, event and archive progress when the player included it (version 3)", () => {
+    expect(r.progress).toEqual({
+      stages: { "main_00-01": 3, "main_00-02": 2, act9d0_01: 3, "act9d0_ex01#f#": 2 },
+      coin: 4, open: ["permanent_sub_1_Darknights_Memoir"], claimed: { permanent_sub_1_Darknights_Memoir: ["trailReward_sub_1_1"] },
+      fee: [1200, 1800], feeTs: 1_800_000_000, annihilation: { camp_r_31: { kills: 360, rewards: [1, 1, 1, 1, 1, 1, 0, 0] } },
+      mainStageProgress: "main_14-05", level: 87, at: Date.parse(fixture.synced),
+    });
+  });
+
+  it("without progress (older files, or the option off) bring none", () => {
+    const { dungeon, retro, campaignsV2, ...user } = fixture.user as Record<string, unknown>;
+    expect(dungeon && retro && campaignsV2).toBeTruthy();
+    expect(parseRoster({ ...fixture, version: 2, user }, OPS).progress).toBeUndefined();
+  });
+
+  it("read story progress from the game's own sync data too", () => {
+    const raw = { user: { troop: { chars: {} }, status: { level: 40, mainStageProgress: "main_08-01" },
+      dungeon: { stages: { "main_01-07": { stageId: "main_01-07", completeTimes: 2, startTimes: 3, state: 3, hasBattleReplay: 1 },
+        "main_01-08": { state: 1, completeTimes: 0 } } },
+      retro: { coin: 2, block: { a: { locked: 0, open: 1 }, b: { locked: 1, open: 0 } }, trail: { a: { r1: 1, r2: 0 } } },
+      campaignsV2: { campaignCurrentFee: 600, campaignTotalFee: 1800, lastRefreshTs: 1_800_000_000, instances: { camp_r_01: { maxKills: 400, rewardStatus: [1, 1] } } } } };
+    const p = parseRoster(raw, OPS).progress!;
+    expect(p.stages).toEqual({ "main_01-07": 3 });
+    expect([p.coin, p.open, p.claimed, p.fee, p.feeTs, p.level]).toEqual([2, ["a"], { a: ["r1"] }, [600, 1800], 1_800_000_000, 40]);
+    expect(p.annihilation).toEqual({ camp_r_01: { kills: 400, rewards: [1, 1] } });
+    expect(JSON.stringify(p)).not.toMatch(/completeTimes|startTimes|hasBattleReplay/);
+  });
+
   it("read recruitment slots from the game's own sync data too", () => {
     const raw = { user: { troop: { chars: {} }, recruit: { normal: { slots: { "2": { state: 1, tags: [1, 2], selectTags: [{ tagId: 2, pick: 1 }], startTs: -1, maxFinishTs: -1 } } } } } };
     expect(parseRoster(raw, OPS).recruit).toEqual([{ slot: 2, state: 1, tags: [1, 2], picked: [2], start: -1, finish: -1 }]);

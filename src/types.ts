@@ -277,7 +277,8 @@ export interface ProgressFile {
   zones: { id: string; kind: "main" | "supply"; name: string; title: string | null; op: number; stages: ProgressStage[] }[];
   retros: Retro[];
   welfare: Record<string, WelfareSource[]>;
-  annihilation: { id: string; name: string; region: string; orundum: number; rotation: [string, string] | null }[];
+  // ladders: each kill milestone's [kills, orundum] (missing from files built before it was added)
+  annihilation: { id: string; name: string; region: string; orundum: number; ladders?: [number, number][]; rotation: [string, string] | null }[];
   crystal: { cap: Record<string, number>; perWeek: number; unlockCost: number } | null;
 }
 
