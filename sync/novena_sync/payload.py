@@ -10,6 +10,15 @@ Version 2 adds, each checked for what it reveals (nothing that identifies the pl
 - the base: each room's type, level and team (operator ids and their morale), what a factory makes and how full it
   is, a trading post's order count and limit, a dorm's ambience, the drones; and when each room's work completes;
 - sanity: the amount, the cap and when it was last counted, so Novena can tell when it's full.
+
+Version 3 adds, only when the player turns on "Include story, event and archive progress" in the app (off by default):
+- each stage cleared, by stage id, and how (2 cleared, 3 cleared at 3 stars); stages only started are left out, and
+  so are how often and when each was played, and replays;
+- the archives: how many Event Crystals are held, which archives are unlocked, and which trial rewards were claimed;
+- Annihilation: this week's orundum so far and its cap, when that week's count began, and per map the best kill
+  count and which kill milestones paid out;
+- the player's level (it sets the Event Crystal top-up) and the furthest main story stage reached.
+Without that setting none of this is kept: the stage clears are cut like everything else.
 Never kept: names, ids, friends, the base's visitors or clues, messages, purchases, or anything else.
 """
 
@@ -23,6 +32,7 @@ from typing import Any
 APP = "novena-sync"
 STATUS_KEYS = ("gold", "diamondShard", "freeDiamond", "payDiamond", "gachaTicket", "tenGachaTicket", "monthlySubscriptionEndTime",
                "ap", "maxAp", "lastApAddTime")
+PROGRESS_STATUS_KEYS = ("mainStageProgress", "level")  # only with the opt-in progress
 MORALE_UNIT = 360_000  # the game counts morale in these: 24 morale = 8,640,000
 ROOMS = {"CONTROL", "POWER", "MANUFACTURE", "TRADING", "DORMITORY", "WORKSHOP", "HIRE", "TRAINING", "MEETING"}
 
@@ -89,21 +99,49 @@ def _building(user: dict[str, Any]) -> dict[str, Any]:
     return {"rooms": rooms, "drones": drones}
 
 
+def _progress(user: dict[str, Any]) -> dict[str, Any]:
+    """Story, event and archive progress (version 3, opt-in): stage clears, the archives and Annihilation."""
+    stages = {}
+    for sid, st in ((user.get("dungeon") or {}).get("stages") or {}).items():
+        state = _int(st.get("state") if isinstance(st, dict) else st)
+        if state >= 2:  # cleared (3: at 3 stars); a stage only started tells Novena nothing
+            stages[sid] = state
+    retro = user.get("retro") or {}
+    block = {rid: 1 for rid, b in (retro.get("block") or {}).items() if isinstance(b, dict) and b.get("open")}
+    trail = {rid: sorted(k for k, v in got.items() if v) for rid, got in (retro.get("trail") or {}).items() if isinstance(got, dict)}
+    camp = user.get("campaignsV2") or {}
+    instances = {cid: {"maxKills": _int(c.get("maxKills")), "rewardStatus": [_int(x) for x in c.get("rewardStatus") or []]}
+                 for cid, c in (camp.get("instances") or {}).items() if isinstance(c, dict)}
+    return {
+        "dungeon": {"stages": stages},
+        "retro": {"coin": _int(retro.get("coin")), "block": block, "trail": {rid: ids for rid, ids in trail.items() if ids}},
+        "campaignsV2": {"fee": [_int(camp.get("campaignCurrentFee")), _int(camp.get("campaignTotalFee"))],
+                        "ts": _int(camp.get("lastRefreshTs")), "instances": instances},
+    }
+
+
 def shape(raw: dict[str, Any], depth: int = 4) -> Any:
-    """Keys and value types only (no values), for checking the recruit and base parts against a real account."""
-    def walk(v: Any, d: int) -> Any:
+    """Keys and value types only (no values), for checking the parts Novena reads against a real account."""
+    def walk(v: Any, d: int, sample: bool = False) -> Any:
         if isinstance(v, dict):
-            items = list(v.items())[:3] if d < depth - 1 and all(str(k).isdigit() or str(k).startswith("slot_") for k in v) else list(v.items())
-            return {str(k): walk(x, d + 1) for k, x in items} if d < depth else "{...}"
+            few = (sample and d > 0) or all(str(k).isdigit() or str(k).startswith("slot_") for k in v)
+            items = list(v.items())[:3] if d < depth - 1 and few else list(v.items())
+            return {str(k): walk(x, d + 1, sample) for k, x in items} if d < depth else "{...}"
         if isinstance(v, list):
-            return [walk(v[0], d + 1)] if v else []
+            return [walk(v[0], d + 1, sample)] if v else []
         return type(v).__name__
     user = raw.get("user", raw)
-    return {"recruit": walk(user.get("recruit"), 0), "building": walk(user.get("building"), 0)}
+    status = user.get("status") or {}
+    return {"recruit": walk(user.get("recruit"), 0), "building": walk(user.get("building"), 0),
+            # stage, archive and map ids are many: three of each is enough to see the shape
+            "dungeon": walk(user.get("dungeon"), 0, True), "retro": walk(user.get("retro"), 0, True),
+            "campaignsV2": walk(user.get("campaignsV2"), 0, True),
+            "status": {k: type(status[k]).__name__ for k in PROGRESS_STATUS_KEYS if k in status}}
 
 
-def minimize(raw: dict[str, Any], server: str) -> dict[str, Any]:
-    """Cut the game's sync data down to what Novena reads."""
+def minimize(raw: dict[str, Any], server: str, progress: bool = False) -> dict[str, Any]:
+    """Cut the game's sync data down to what Novena reads. `progress`: the player chose to include story, event and
+    archive progress (version 3)."""
     user = raw.get("user", raw)
     chars = {}
     for key, c in ((user.get("troop") or {}).get("chars") or {}).items():
@@ -126,17 +164,21 @@ def minimize(raw: dict[str, Any], server: str) -> dict[str, Any]:
                 for inst, st in (stacks or {}).items() if int(st.get("count") or 0) > 0}
         if kept:
             consumable[item] = kept
-    return {
-        "app": APP, "version": 2, "server": server, "synced": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "user": {"troop": {"chars": chars}, "inventory": inventory, "status": status, "consumable": consumable,
-                 "recruit": _recruit(user), "building": _building(user)},
-    }
+    kept: dict[str, Any] = {"troop": {"chars": chars}, "inventory": inventory, "status": status, "consumable": consumable,
+                            "recruit": _recruit(user), "building": _building(user)}
+    if progress:
+        src = user.get("status") or {}
+        status.update({k: src[k] for k in PROGRESS_STATUS_KEYS if src.get(k) is not None})
+        kept.update(_progress(user))
+    return {"app": APP, "version": 3, "server": server, "synced": datetime.now(timezone.utc).isoformat(timespec="seconds"), "user": kept}
 
 
 def summary(payload: dict[str, Any]) -> str:
     u = payload["user"]
     rooms = len((u.get("building") or {}).get("rooms") or [])
-    return f"{len(u['troop']['chars'])} operators, {len(u['inventory'])} depot items" + (f", {rooms} base rooms" if rooms else "")
+    cleared = len((u.get("dungeon") or {}).get("stages") or {})
+    return (f"{len(u['troop']['chars'])} operators, {len(u['inventory'])} depot items" + (f", {rooms} base rooms" if rooms else "")
+            + (f", {cleared} stages cleared" if cleared else ""))
 
 
 def save(payload: dict[str, Any], folder: Path) -> Path:

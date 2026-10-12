@@ -3,13 +3,13 @@
 import { useEffect } from "preact/hooks";
 import { Await, Explain, useAsync } from "../components/ui";
 import { KIND, UpcomingBanners, type Banner } from "../components/UpcomingBanners";
-import { operators, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
+import { operators, progress as loadProgress, upcoming as loadUpcoming, usage as loadUsage } from "../lib/data";
 import { date, fmt, relative } from "../lib/format";
-import { route, setQuery } from "../lib/router";
+import { href, route, setQuery } from "../lib/router";
+import { annihilationTotalLeft, opLeft, ORUNDUM_PER_PRIME } from "../lib/storyLeft";
 import { account, saveAccount, server } from "../state";
 
 const ORUNDUM_PER_PULL = 600;
-const ORUNDUM_PER_PRIME = 180;
 const DAILY = 100; // daily missions
 const WEEKLY = 500 + 1800; // weekly missions + Annihilation cap
 const CARD = 200; // monthly card, per day
@@ -72,6 +72,7 @@ export default function Pulls() {
         </div>
         <p style={{ marginTop: "10px" }}>Now: <strong>{now(false).toFixed(1)} pulls</strong> <span class="muted">({now(true).toFixed(1)} counting Originite Prime at {ORUNDUM_PER_PRIME} Orundum each)</span></p>
         <p class="muted">Steady income ≈ {fmt(perDay)} Orundum a day ({(perDay * 30 / ORUNDUM_PER_PULL).toFixed(1)} pulls a month).</p>
+        <OneTime />
 
         <h3>Saving for</h3>
         <div class="row" style={{ alignItems: "flex-end" }}>
@@ -84,6 +85,27 @@ export default function Pulls() {
         <Explain>Steady sources only: daily missions 100/day, weekly missions 500 and Annihilation 1,800 per week, the monthly card 200/day while it runs. Events, stores and login rewards add more, unevenly, and aren't counted. Pulls by a date assume you save everything until then. Limited banners guarantee their operator at 300 pulls (spark). Saved in this browser.</Explain>
       </section>
     </div>
+  );
+}
+
+/** One-time rewards a synced story progress says you haven't claimed: Annihilation milestones, and Originite Prime
+ *  (which only counts towards pulls if you convert it). Shown only with story progress from a sync. */
+function OneTime() {
+  const s = server.value;
+  const p = account.value.progress;
+  const st = useAsync(() => (p ? loadProgress(s) : Promise.resolve(null)), [s, !!p]);
+  const data = st.data;
+  if (!p || !data) return null;
+  const ann = annihilationTotalLeft(data, p);
+  const prime = opLeft(data, p);
+  if (!ann && !prime.open) return null;
+  return (
+    <>
+      <h3>One-time orundum still to claim</h3>
+      {ann ? <p>Annihilation milestones: <strong>{fmt(ann)} Orundum</strong> ({(ann / ORUNDUM_PER_PULL).toFixed(1)} pulls)</p> : null}
+      {prime.open > 0 && <p class="muted">If you convert Originite Prime: {fmt(prime.open)} still to claim from stages you can play now, worth {fmt(prime.open * ORUNDUM_PER_PRIME)} Orundum ({(prime.open * ORUNDUM_PER_PRIME / ORUNDUM_PER_PULL).toFixed(1)} pulls){prime.locked ? `, plus ${fmt(prime.locked)} in locked archives` : ""}.</p>}
+      <p class="muted">From your last sync ({relative(p.at)}). <a href={href("/story")}>What's left, part by part</a></p>
+    </>
   );
 }
 

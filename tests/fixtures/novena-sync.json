@@ -1,6 +1,6 @@
 {
  "app": "novena-sync",
- "version": 2,
+ "version": 3,
  "server": "en",
  "synced": "2026-10-05T12:59:56+00:00",
  "user": {
@@ -76,7 +76,9 @@
    "monthlySubscriptionEndTime": 1900000000,
    "ap": 80,
    "maxAp": 135,
-   "lastApAddTime": 1800000000
+   "lastApAddTime": 1800000000,
+   "mainStageProgress": "main_14-05",
+   "level": 87
   },
   "consumable": {
    "ap_supply_lt_100": {
@@ -162,6 +164,47 @@
     "max": 200,
     "ts": 1800000000,
     "speed": 1.1
+   }
+  },
+  "dungeon": {
+   "stages": {
+    "main_00-01": 3,
+    "main_00-02": 2,
+    "act9d0_01": 3,
+    "act9d0_ex01#f#": 2
+   }
+  },
+  "retro": {
+   "coin": 4,
+   "block": {
+    "permanent_sub_1_Darknights_Memoir": 1
+   },
+   "trail": {
+    "permanent_sub_1_Darknights_Memoir": [
+     "trailReward_sub_1_1"
+    ]
+   }
+  },
+  "campaignsV2": {
+   "fee": [
+    1200,
+    1800
+   ],
+   "ts": 1800000000,
+   "instances": {
+    "camp_r_31": {
+     "maxKills": 360,
+     "rewardStatus": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0
+     ]
+    }
    }
   }
  }

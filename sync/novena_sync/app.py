@@ -25,6 +25,8 @@ INK, PANEL, LINE, TEXT, MUTED, GOLD = "#0d0c0b", "#161412", "#4b3d2f", "#f6f1e8"
 NOTICE = (
     "Novena Sync signs in to your game account on this computer and reads it. It never changes anything in the game, "
     "never plays it for you, and never sends your account anywhere except to Novena in your own browser.\n\n"
+    "Only what Novena uses is kept: operators, depot, currencies, consumables, recruitment, base and sanity, plus your "
+    "story, event and archive progress if you turn that on. Never your nickname, ids, friends, mail or purchases.\n\n"
     "The sign-in is unofficial: it uses the same community-made method as other Arknights tools (ArkPRTS). Yostar's "
     "terms don't allow third-party tools, so there is some risk to your account.\n\n"
     "Signing in, and every sync, signs you out of the game on your phone or PC (the game allows one session at a "
@@ -209,6 +211,12 @@ class App:
         ttk.Checkbutton(opts, text="Also save it as a file", variable=keep, style="Panel.TCheckbutton",
                         command=lambda: self._set("save_file", keep.get())).pack(side="left")
         ttk.Button(opts, text="Open folder", command=self._open_folder).pack(side="right")
+        story = tk.BooleanVar(value=self.settings.include_progress)
+        ttk.Checkbutton(f, text="Include story, event and archive progress", variable=story, style="Panel.TCheckbutton",
+                        command=lambda: self._set("include_progress", story.get())).pack(anchor="w", pady=(8, 0))
+        ttk.Label(f, text="Adds the stages you've cleared, your unlocked archives and claimed trial rewards, Event Crystals, "
+                  "level and Annihilation progress, so Novena can show what's left for you.",
+                  style="PanelMuted.TLabel", wraplength=self.wrap, justify="left").pack(anchor="w")
 
     def render_browser(self) -> None:
         f = self.panel("Sync from Novena in your browser")
@@ -284,7 +292,7 @@ class App:
 
     async def _sync(self, server: str) -> dict[str, Any]:
         raw = await account.read_account(self.vault, server)
-        data = payload.minimize(raw, server)
+        data = payload.minimize(raw, server, progress=self.settings.include_progress)
         if os.environ.get("NOVENA_SHAPE"):  # keys and types only, never values: for checking the parts Novena reads
             Path(self.settings.folder).mkdir(parents=True, exist_ok=True)
             (Path(self.settings.folder) / f"novena-sync-{server}-shape.json").write_text(json.dumps(payload.shape(raw), indent=1), encoding="utf-8")

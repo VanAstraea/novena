@@ -18,6 +18,7 @@ import { date, fmt, duration, relative } from "../lib/format";
 import { href } from "../lib/router";
 import { pref, setPref } from "../lib/storage";
 import { gameDay, nextDailyReset, nextWeeklyReset } from "../lib/time";
+import { weekFee } from "../lib/storyLeft";
 import { account, hasRoster, server, targets } from "../state";
 
 interface Task { id: string; label: string; note?: string; link?: [string, string]; weekly?: boolean; custom?: boolean }
@@ -80,7 +81,10 @@ export default function Today() {
   }, [up.data, itemsSig.value, account.value]);
 
   const days = [...DAILY, ...extra, ...custom.filter((t) => !t.weekly)].filter((t) => !hidden.includes(t.id));
-  const weeks = [...WEEKLY, ...custom.filter((t) => t.weekly)].filter((t) => !hidden.includes(t.id));
+  // With story progress from a sync: how much of this week's Annihilation orundum is still to earn.
+  const fee = account.value.progress ? weekFee(account.value.progress, s, now) : null;
+  const weeklyTasks = fee ? WEEKLY.map((t) => (t.id === "annihilation" ? { ...t, note: fee.left ? `${fmt(fee.left)} Orundum left this week (${fmt(fee.got)} of ${fmt(fee.cap)} at your last sync)` : "All of this week's Orundum earned, at your last sync" } : t)) : WEEKLY;
+  const weeks = [...weeklyTasks, ...custom.filter((t) => t.weekly)].filter((t) => !hidden.includes(t.id));
   const done = days.filter((t) => daily.has(t.id)).length + weeks.filter((t) => weekly.has(t.id)).length;
   const total = days.length + weeks.length;
 

@@ -16,7 +16,8 @@ them, is the one its shop sold), with where each one comes from.
                            | {"kind": "event", "id", "name", "start", "end"}
                            | {"kind": "shop", "id", "name", "start", "end" (when the shop closes)}
                            | {"kind": "stage", "stage", "code", "retro"?}]},
-     "annihilation": [{"id", "name", "region", "orundum", "rotation": [start, end] or null}],
+     "annihilation": [{"id", "name", "region", "orundum", "ladders": [[kills, orundum]] (each kill milestone, in the
+                       game's order), "rotation": [start, end] or null}],
      "crystal": {"cap": {player level: crystals}, "perWeek", "unlockCost"}}
 
 Stage flags: 1 Originite Prime on the first 3-star clear, 2 challenge mode, 4 story only, 8 gives an operator,
@@ -241,8 +242,11 @@ def annihilation(campaign_table: dict, stage_table: dict | None) -> list[dict]:
     out = []
     for cid, c in campaign_table.get("campaigns", {}).items():
         st = stages.get(cid) or {}
-        orundum = sum(x.get("count", 0) for lad in c.get("breakLadders") or [] for x in lad.get("rewards") or [] if x.get("id") == ORUNDUM)
-        out.append({"id": cid, "name": st.get("name") or cid, "region": st.get("code") or "", "orundum": orundum, "rotation": rotation.get(cid)})
+        # per milestone, so a synced account's best kill count tells what's still to come
+        ladders = [[lad.get("killCnt", 0), sum(x.get("count", 0) for x in lad.get("rewards") or [] if x.get("id") == ORUNDUM)]
+                   for lad in c.get("breakLadders") or []]
+        out.append({"id": cid, "name": st.get("name") or cid, "region": st.get("code") or "", "orundum": sum(o for _, o in ladders),
+                    "ladders": ladders, "rotation": rotation.get(cid)})
     return out
 
 

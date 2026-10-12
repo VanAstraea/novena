@@ -18,7 +18,7 @@ from test_payload import RAW  # noqa: E402
 
 settings = Settings()
 path = Path(tempfile.mkdtemp()) / "settings.json"
-bridge = Bridge(settings, lambda: settings.save(path), lambda server: payload.minimize(RAW, server), lambda: ["en"],
+bridge = Bridge(settings, lambda: settings.save(path), lambda server: payload.minimize(RAW, server, progress=True), lambda: ["en"],
                 on_event=lambda text: print(text, flush=True))
 bridge.start()
 print(f"CODE {bridge.code}", flush=True)

@@ -54,7 +54,8 @@ With your roster (typed in, imported, or a made-up sample roster to try things f
 - **Roster** shown with the game's own elite, potential, mastery and module icons; an edit mode for changing it by
   hand; depot, import/export (this site's files, Novena Sync, raw syncData, Krooster profiles, depot exports from Krooster and Penguin Statistics) and progress over time.
 - **Novena Sync (optional desktop app):** signs in to your account on your own computer and hands the site your
-  roster with one click: operators and their outfits, depot, recruitment slots, your base and sanity. See
+  roster with one click: operators and their outfits, depot, recruitment slots, your base and sanity, and, if you
+  turn it on, your story, event and archive progress. See
   [`sync/README.md`](sync/README.md) and the [releases](../../releases).
 - **Depot from screenshots:** take screenshots of your in-game Depot, drop or paste them in, check what was read,
   apply. They're read on your device and never uploaded, and nothing touches the game.
@@ -78,7 +79,9 @@ With your roster (typed in, imported, or a made-up sample roster to try things f
 - **Banners & pulls:** the banners coming from CN (dates, featured operators, spark), then a pull planner: savings,
   steady income and how many pulls you'll have by a date or a banner ("Plan for this" on any coming banner).
 - **Story & archives:** what the main story, the Side Story and Intermezzo archives and Annihilation pay out once,
-  and every free operator with where to get them now.
+  and every free operator with where to get them now. With story progress from a sync (Novena Sync with its option
+  on, or a game sync data file): what's left for you, trial rewards waiting to be claimed, and which locked archive
+  to spend your Event Crystals on.
 
 ## Privacy
 
@@ -89,8 +92,10 @@ With your roster (typed in, imported, or a made-up sample roster to try things f
 - The website never logs in to your game account. The roster is typed in or imported from a file, and the depot can
   come from screenshots you take. If you choose to, the separate **Novena Sync** app signs in on your own computer
   (unofficially, at your own risk) and hands the site a cut-down copy over `127.0.0.1`: operators and the outfits
-  they wear, depot and currencies, consumables, recruitment slots, base rooms and teams, and sanity. Never names, ids,
-  friends or messages ([the exact list](sync/novena_sync/payload.py)).
+  they wear, depot and currencies, consumables, recruitment slots, base rooms and teams, and sanity. Only if you turn
+  it on in the app, also your story, event and archive progress (stages cleared and whether at 3 stars, archives
+  unlocked and trial rewards claimed, Event Crystals, level, Annihilation progress); never when or how often you
+  played, nor replays. Never names, ids, friends or messages ([the exact list](sync/novena_sync/payload.py)).
 - Notifications (sanity, recruitment, drones) are the browser's own, scheduled by the open page; nothing is sent.
 - Depot screenshots are read in your browser and never uploaded.
 - No automation of any kind: nothing here, Novena Sync included, drives the game client.

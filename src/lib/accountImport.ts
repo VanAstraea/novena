@@ -18,7 +18,7 @@ export function applyImport(r: Imported, mode: "replace" | "merge"): string {
     ...acc, ops: mode === "replace" ? r.ops : { ...acc.ops, ...r.ops },
     depot: r.depot ? (mode === "replace" ? r.depot : { ...acc.depot, ...r.depot }) : acc.depot,
     savings: r.savings || acc.savings, consumables: r.consumables || acc.consumables, source: r.format === "Novena Sync" ? "novena-sync" : "import",
-    recruit: r.recruit || acc.recruit, base: r.base || acc.base,
+    recruit: r.recruit || acc.recruit, base: r.base || acc.base, progress: r.progress || acc.progress,
   }));
   if (r.sanity) syncSanity(r.sanity);
   if (Object.keys(before.ops).length && before.source !== "sample") undoable("Roster replaced with the import.", () => saveAccount(before));
@@ -70,11 +70,11 @@ function syncSanity(x: { value: number; cap: number; at: number }) {
 export async function loadSample(ops: OpIndex[]): Promise<void> {
   const json = await fetch(`${BASE}sample-roster.json`).then((r) => r.json());
   const r = parseRoster(json, ops);
-  updateAccount((acc) => ({ ...acc, ops: r.ops, depot: r.depot || {}, source: "sample", snapshots: [], recruit: undefined, base: undefined, consumables: undefined }));
+  updateAccount((acc) => ({ ...acc, ops: r.ops, depot: r.depot || {}, source: "sample", snapshots: [], recruit: undefined, base: undefined, consumables: undefined, progress: undefined }));
   prioritiesSoon(300);
 }
 
 /** Leave the sample: back to an empty account for this server. */
 export function clearSample(): void {
-  saveAccount({ ...account.value, ops: {}, depot: {}, source: undefined, snapshots: [], recruit: undefined, base: undefined, consumables: undefined, updated: Date.now() });
+  saveAccount({ ...account.value, ops: {}, depot: {}, source: undefined, snapshots: [], recruit: undefined, base: undefined, consumables: undefined, progress: undefined, updated: Date.now() });
 }

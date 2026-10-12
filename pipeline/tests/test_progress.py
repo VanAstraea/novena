@@ -121,10 +121,13 @@ def test_story_collection_operators_come_from_the_event_shop():
 
 def test_annihilation_sums_one_time_orundum():
     campaign_table = {"campaigns": {"camp_r_01": {"breakLadders": [
-        {"rewards": [{"id": "4003", "count": 500}, {"id": "4001", "count": 4000}]}, {"rewards": [{"id": "4003", "count": 1000}]}]}},
+        {"killCnt": 100, "rewards": [{"id": "4001", "count": 4000}]},
+        {"killCnt": 200, "rewards": [{"id": "4003", "count": 500}, {"id": "4001", "count": 4000}]},
+        {"killCnt": 400, "rewards": [{"id": "4003", "count": 1000}]}]}},
         "campaignRotateStageOpenTimes": [{"stageId": "camp_r_01", "startTs": 0, "endTs": 60}]}
     out = progress.annihilation(campaign_table, {"stages": {"camp_r_01": {"name": "Outskirts", "code": "Kazimierz"}}})
     assert out == [{"id": "camp_r_01", "name": "Outskirts", "region": "Kazimierz", "orundum": 1500,
+                    "ladders": [[100, 0], [200, 500], [400, 1000]],
                     "rotation": ["1970-01-01T00:00:00Z", "1970-01-01T00:01:00Z"]}]
 
 

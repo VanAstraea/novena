@@ -63,6 +63,21 @@ export interface Snapshot {
   depot?: Record<string, number>;
 }
 
+/** Story, event and archive progress, from Novena Sync (when the player turns it on) or a game sync data file. Each
+ *  part is there only when the file had it. Times: `at` in ms, `feeTs` in the game's seconds. */
+export interface StoryProgress {
+  stages: Record<string, number>; // stage id -> 2 cleared, 3 cleared at 3★ (stages not cleared are left out)
+  coin?: number; // Event Crystals held
+  open?: string[]; // archives unlocked
+  claimed?: Record<string, string[]>; // archive -> trial rewards claimed
+  fee?: [number, number]; // this week's Annihilation orundum so far, and its cap
+  feeTs?: number; // when that week's count began
+  annihilation?: Record<string, { kills: number; rewards: number[] }>; // map -> best kill count, milestones paid
+  mainStageProgress?: string;
+  level?: number;
+  at: number;
+}
+
 /** Training vouchers, sanity potions and other time-limited items: count and expiry (unix seconds, -1 = never). */
 export type Consumables = Record<string, { count: number; ts: number }[]>;
 
@@ -76,6 +91,7 @@ export interface Account {
   consumables?: Consumables;
   recruit?: RecruitSlot[];
   base?: BaseState;
+  progress?: StoryProgress;
 }
 
 export interface PlanTarget {
