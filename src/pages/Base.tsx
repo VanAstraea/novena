@@ -1,7 +1,8 @@
 import type { ComponentChildren } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import { Avatar, Await, CutHead, Explain, ItemIcon, itemName, Tabs, useAsync } from "../components/ui";
-import { Evaluator, gameOrder, LAYOUTS, movesFrom, production, PRODUCT_LABEL, ROOM_LABEL, rotation, shiftBySlot, skillsAt, standardLayout, type BaseFile, type BaseLayout, type Room, type RoomLevels, type Team } from "../lib/base";
+import { OpPicker } from "../components/OpPicker";
+import { Evaluator, gameOrder, LAYOUTS, movesFrom, NO_PINS, production, PRODUCT_LABEL, ROOM_LABEL, rotation, shiftBySlot, skillsAt, standardLayout, type BaseFile, type BaseLayout, type Pins, type Room, type RoomLevels, type Team } from "../lib/base";
 import { load, operators } from "../lib/data";
 import { DEFAULT_DORMS, dormPlan, dormRate, drains, lasts, MAX_MORALE, type DormSettings } from "../lib/morale";
 import { pref, setPref } from "../lib/storage";
@@ -41,9 +42,29 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
     mfg: gameOrder(synced?.rooms || [], data.layout).filter((r) => r.room === "MANUFACTURE").map((r) => r.level),
   });
   const [levels, setLevels] = useState<RoomLevels>(() => { try { return { ...syncedLevels(), ...JSON.parse(pref(`baseLevels.${layout}`, "{}")) }; } catch { return syncedLevels(); } });
+  // Pinned operators per layout: who goes where by hand, and who stays out of the base
+  const loadPins = (l: string): Pins => {
+    try { const p = JSON.parse(pref(`basePins.${l}`, "{}")); return { at: p.at && typeof p.at === "object" ? p.at : {}, out: Array.isArray(p.out) ? p.out : [] }; } catch { return NO_PINS; }
+  };
+  const [pins, setPins] = useState<Pins>(() => loadPins(layout));
   const changeLayout = (l: string) => {
     setLayout(l);
+    setPins(loadPins(l));
     try { setLevels({ ...syncedLevels(), ...JSON.parse(pref(`baseLevels.${l}`, "{}")) }); } catch { setLevels(syncedLevels()); }
+  };
+  const savePins = (next: Pins) => { setPins(next); setPref(`basePins.${layout}`, JSON.stringify(next)); };
+  const without = (id: string): Pins => ({
+    at: Object.fromEntries(Object.entries(pins.at).map(([key, ids]) => [key, ids.filter((x) => x !== id)] as const).filter(([, ids]) => ids.length)),
+    out: pins.out.filter((x) => x !== id),
+  });
+  const owned = useMemo(() => Object.keys(account.value.ops).map((id) => ops.get(id)).filter((o): o is OpIndex => !!o), [account.value.ops, ops]);
+  const pinOps: PinOps = {
+    pin: (key, id) => { const p = without(id); savePins({ ...p, at: { ...p.at, [key]: [...(p.at[key] || []), id] } }); },
+    unpin: (id) => savePins(without(id)),
+    keepOut: (id) => { const p = without(id); savePins({ ...p, out: [...p.out, id] }); },
+    clear: () => savePins(NO_PINS),
+    any: Object.keys(pins.at).length > 0 || pins.out.length > 0,
+    owned,
   };
   const setLevel = (kind: keyof RoomLevels, i: number, v: number) => {
     const [t, m] = LAYOUTS[layout];
@@ -67,9 +88,9 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
   const plan = useMemo(() => {
     const rooms = standardLayout(layout, gold, levels);
     const ev = new Evaluator(data, skills, rooms);
-    return rotation(rooms, ev, new Set(Object.keys(roster)), shifts);
-  }, [data, skills, layout, shifts, levels, gold]);
-  const names = (t: Team) => t.members.map((m) => ops.get(m)?.name || m).join(", ");
+    return rotation(rooms, ev, new Set(Object.keys(roster)), shifts, pins);
+  }, [data, skills, layout, shifts, levels, gold, pins]);
+  const names = (t: Team) => t.members.map((m) => `${ops.get(m)?.name || m}${t.pinned?.includes(m) ? " (pinned)" : ""}`).join(", ");
   const text = plan.map((a, i) => [`Shift ${"ABC"[i]} (${24 / shifts} h)`, ...a.map(([r, t]) => `  ${ROOM_LABEL[r.facility]} (${PRODUCT_LABEL[r.product] || r.product}): ${names(t) || "—"}`)].join("\n")).join("\n\n");
   const k = Math.max(0, "ABC".indexOf(tab));
   const shown = plan[k] || plan[0];
@@ -78,7 +99,7 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
   const rest = useMemo(() => (plan.length > 1 ? dormPlan(data, skills, plan, k, Object.keys(roster), dorms) : null), [plan, k, dorms]);
   const avg = plan.reduce((s, a) => s + production(a), 0) / plan.length;
   // base skills a promotion away: for owned operators, what E1/E2 would add to the plan (single best room)
-  const unlocks = useMemo(() => unlockGains(data, roster, layout, shifts, avg, levels, gold), [data, roster, layout, shifts, levels, gold]);
+  const unlocks = useMemo(() => unlockGains(data, roster, layout, shifts, avg, levels, gold, pins), [data, roster, layout, shifts, levels, gold, pins]);
   const [nTrade, nMfg] = LAYOUTS[layout];
   const levelPick = (kind: keyof RoomLevels, i: number, label: string) => (
     <label key={`${kind}${i}`} class="field lvl"><span>{label}</span>
@@ -122,16 +143,17 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
         { key: "unlocks", label: `Skills to unlock${unlocks.length ? ` (${unlocks.length})` : ""}` },
       ]} />
       {(view === "teams" || view === "dorms") && plan.length > 1 && <Tabs label="Shifts" value={tab} onChange={setTab} tabs={plan.map((_, i) => ({ key: "ABC"[i], label: `Shift ${"ABC"[i]}` }))} />}
-      {view === "now" && synced && <BaseNow data={data} ops={ops} plan={plan} layout={layout} skills={skills} dorms={dorms} />}
+      {view === "now" && synced && <BaseNow data={data} ops={ops} plan={plan} layout={layout} skills={skills} dorms={dorms} pins={pinOps} />}
       {view === "teams" && <>
       <div class="table-wrap">
         <table class="cards">
           <thead><tr><th>Room</th><th>Makes</th><th>Team</th><th class="num">Bonus</th><th class="num" title="From full morale, before the first member runs out">Lasts</th></tr></thead>
           <tbody>
-            {shown.map(([r, t], i) => <RoomRow key={i} room={r} team={t} ops={ops} hours={roomHours[i]} shiftHours={shiftHours} />)}
+            {shown.map(([r, t], i) => <RoomRow key={`${k}.${i}`} pinKey={`${k}.${i}`} pins={pinOps} room={r} team={t} ops={ops} hours={roomHours[i]} shiftHours={shiftHours} />)}
           </tbody>
         </table>
       </div>
+      <PinsCard pins={pinOps} out={pins.out} ops={ops} />
       <Explain>Skill values from MAA's curated base data; skill combinations (like Texas + Lappland) count when all their members are placed. Each shift takes the best teams from who's left. "Lasts" is how long a team works from full morale (24) before its first member runs out, with the game's default drain and the team's own morale skills; it's flagged when that's shorter than the shift. Faction buffs and conditional effects aren't modelled.</Explain>
       </>}
       {view === "dorms" && (rest ? <DormCard plan={rest} shift={"ABC"[k]} ops={ops} dorms={dorms} save={saveDorms} />
@@ -218,16 +240,70 @@ function TrainingCard({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex>
   );
 }
 
-function RoomRow({ room, team, ops, hours, shiftHours }: { room: Room; team: Team; ops: Map<string, OpIndex>; hours: number; shiftHours: number }) {
+/** Pinning operators by hand: `pin` puts one in a room of a shift ("shift.room"), moving them from anywhere else. */
+interface PinOps { pin: (key: string, id: string) => void; unpin: (id: string) => void; keepOut: (id: string) => void; clear: () => void; any: boolean; owned: OpIndex[] }
+
+const PinIcon = () => (
+  <svg class="pin-ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+    <path fill="currentColor" d="M9.8 1.2a1 1 0 0 1 1.4 0l3.6 3.6a1 1 0 0 1 0 1.4l-.7.7a1 1 0 0 1-1.1.2l-2.3 2.3.2 2.6a1 1 0 0 1-.3.8l-.8.8-2.5-2.5-4.1 4.1H2v-1.2l4.1-4.1-2.5-2.5.8-.8a1 1 0 0 1 .8-.3l2.6.2 2.3-2.3a1 1 0 0 1 .2-1.1z" />
+  </svg>
+);
+
+/** A team's members with a pin toggle each, and a "Pin…" picker for anyone you own, while the room has space. */
+function PinTeam({ pinKey, team, slots, pins, ops, compact }: { pinKey: string; team: Team; slots: number; pins: PinOps; ops: Map<string, OpIndex>; compact?: boolean }) {
+  const [picking, setPicking] = useState(false);
+  const pinned = team.pinned || [];
+  return (
+    <>
+      <span class="row tight">
+        {team.members.map((m) => {
+          const op = ops.get(m);
+          if (!op) return null;
+          const on = pinned.includes(m);
+          return (
+            <span key={m} class={`pin-op${on ? " pinned" : ""}`}>
+              <a class="op-cell" href={href(`/operator/${m}`)} title={op.name}><Avatar op={op} size="sm" />{!compact && <small>{op.name}</small>}</a>
+              <button type="button" class="pin-tog" aria-pressed={on} aria-label={on ? `Unpin ${op.name}` : `Pin ${op.name} here`} title={on ? `Pinned here: unpin ${op.name}` : `Keep ${op.name} here`}
+                onClick={() => (on ? pins.unpin(m) : pins.pin(pinKey, m))}><PinIcon /></button>
+            </span>
+          );
+        })}
+        {!team.members.length && <span class="muted">Anyone</span>}
+        {pinned.length < slots && <button type="button" class="small" aria-expanded={picking} onClick={() => setPicking(!picking)}>{picking ? "Done" : "Pin…"}</button>}
+      </span>
+      {picking && pinned.length < slots && (
+        <OpPicker ops={pins.owned} exclude={pinned} label="Pin an operator you own to this room" again
+          onPick={(op) => { pins.pin(pinKey, op.id); if (pinned.length + 1 >= slots) setPicking(false); }} />
+      )}
+    </>
+  );
+}
+
+/** Who's kept out of the base, and clearing every pin for this layout. */
+function PinsCard({ pins, out, ops }: { pins: PinOps; out: string[]; ops: Map<string, OpIndex> }) {
+  return (
+    <section class="card pins-card">
+      <div class="row" style={{ alignItems: "flex-end", justifyContent: "space-between" }}>
+        <OpPicker ops={pins.owned} exclude={out} label="Keep an operator out of the base" again onPick={(op) => pins.keepOut(op.id)} />
+        {pins.any && <button type="button" onClick={pins.clear}>Clear pins</button>}
+      </div>
+      {out.length > 0 && (
+        <p class="row tight" style={{ margin: "8px 0 0" }}><span class="muted">Kept out:</span>
+          {out.map((id) => <button key={id} type="button" class="chip" title="Let the plan use them again" onClick={() => pins.unpin(id)}>{ops.get(id)?.name || id} ×</button>)}
+        </p>
+      )}
+      <Explain>Pin an operator with the pin by their name or "Pin…" in a room: they're placed there first, in that shift, and the plan fills the rest of the room and the other rooms from who's left. Pins are kept per layout, in this browser.</Explain>
+    </section>
+  );
+}
+
+function RoomRow({ room, team, ops, hours, shiftHours, pinKey, pins }: { room: Room; team: Team; ops: Map<string, OpIndex>; hours: number; shiftHours: number; pinKey: string; pins: PinOps }) {
   return (
     <tr>
-      <td data-label="Room">{ROOM_LABEL[room.facility]}</td>
+      <td data-label="Room"><span>{ROOM_LABEL[room.facility]}{room.facility === "Trade" || room.facility === "Mfg" ? <small class="muted"> Lv {room.slots}</small> : null}</span></td>
       <td data-label="Makes">{PRODUCT_LABEL[room.product] || room.product}</td>
       <td data-label="Team">
-        <span class="row tight">
-          {team.members.map((m) => { const op = ops.get(m); return op ? <a key={m} class="op-cell" href={href(`/operator/${m}`)} title={op.name}><Avatar op={op} size="sm" /><small>{op.name}</small></a> : null; })}
-          {!team.members.length && <span class="muted">Anyone</span>}
-        </span>
+        <PinTeam pinKey={pinKey} team={team} slots={room.slots} pins={pins} ops={ops} />
         {team.group && <small class="muted">skill combination</small>}
         {team.boosts && Object.keys(team.boosts).length > 0 && <small class="muted">{Object.entries(team.boosts).map(([f, v]) => `${ROOM_LABEL[f as keyof typeof ROOM_LABEL]}s +${v}%`).join(", ")}</small>}
       </td>
@@ -239,7 +315,7 @@ function RoomRow({ room, team, ops, hours, shiftHours }: { room: Room; team: Tea
   );
 }
 
-function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite: number; level: number }>, layout: string, shifts: number, base: number, levels?: RoomLevels, gold?: number) {
+function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite: number; level: number }>, layout: string, shifts: number, base: number, levels?: RoomLevels, gold?: number, pins?: Pins) {
   const rooms = standardLayout(layout, gold, levels);
   const out: { id: string; elite: number; gain: number }[] = [];
   const skills = new Map(Object.values(roster).map((r) => [r.id, skillsAt(data, r.id, r.elite, r.level)]));
@@ -251,7 +327,7 @@ function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite:
       const trial = new Map(skills);
       trial.set(r.id, next);
       const ev = new Evaluator(data, trial, rooms);
-      const plan = rotation(rooms, ev, new Set(Object.keys(roster)), shifts);
+      const plan = rotation(rooms, ev, new Set(Object.keys(roster)), shifts, pins);
       const gain = plan.reduce((s, a) => s + production(a), 0) / plan.length - base;
       if (gain > 0.5) out.push({ id: r.id, elite: e, gain });
       break;
@@ -278,8 +354,8 @@ const moraleClass = (m: number) => (m < 6 ? "low" : m < 12 ? "mid" : "");
 
 /** Your base as Novena Sync last saw it: every room, its team and their morale, what it's making and when it's done.
  *  Drawn as the game lays the base out when the base data has its slot grid; as a list of rooms otherwise. */
-function BaseNow({ data, ops, plan, layout, skills, dorms }: {
-  data: BaseFile; ops: Map<string, OpIndex>; plan: [Room, Team][][]; layout: string; skills: Map<string, Set<string>>; dorms: DormSettings;
+function BaseNow({ data, ops, plan, layout, skills, dorms, pins }: {
+  data: BaseFile; ops: Map<string, OpIndex>; plan: [Room, Team][][]; layout: string; skills: Map<string, Set<string>>; dorms: DormSettings; pins: PinOps;
 }) {
   const b = account.value.base!;
   const now = Date.now() / 1000;
@@ -292,7 +368,7 @@ function BaseNow({ data, ops, plan, layout, skills, dorms }: {
         <p class="muted" style={{ margin: 0 }}>As of your last sync, {relative(b.at)}. Morale is as the game counted it then.</p>
         {d && <p style={{ margin: 0 }}>Drones <strong>{d.value}</strong> / {d.max}{dronesFull > now ? <span class="muted"> · full in about {duration((dronesFull - now) * 1000)}</span> : d.value >= d.max ? <span class="warn-text"> · full: use them</span> : null}</p>}
       </div>
-      {data.layout ? <BaseMap data={data} map={data.layout} ops={ops} plan={plan} layout={layout} skills={skills} dorms={dorms} />
+      {data.layout ? <BaseMap data={data} map={data.layout} ops={ops} plan={plan} layout={layout} skills={skills} dorms={dorms} pins={pins} />
         : <div class="rooms">{rooms.map((r) => <RoomCard key={r.slot} r={r} data={data} ops={ops} now={now} />)}</div>}
     </>
   );
@@ -334,8 +410,8 @@ function RoomCard({ r, data, ops, now }: { r: BaseRoom; data: BaseFile; ops: Map
  *  first, with its team and their morale. "Now" is the base at the sync; a shift lays that shift's planned teams onto
  *  your rooms (each kind's rooms in the game's order take the plan's rooms of that kind in order), rings whoever
  *  would move in from elsewhere and puts the dorm plan's resters in the dorms. */
-function BaseMap({ data, map, ops, plan, layout, skills, dorms }: {
-  data: BaseFile; map: BaseLayout; ops: Map<string, OpIndex>; plan: [Room, Team][][]; layout: string; skills: Map<string, Set<string>>; dorms: DormSettings;
+function BaseMap({ data, map, ops, plan, layout, skills, dorms, pins }: {
+  data: BaseFile; map: BaseLayout; ops: Map<string, OpIndex>; plan: [Room, Team][][]; layout: string; skills: Map<string, Set<string>>; dorms: DormSettings; pins: PinOps;
 }) {
   const b = account.value.base!;
   const now = Date.now() / 1000;
@@ -345,7 +421,10 @@ function BaseMap({ data, map, ops, plan, layout, skills, dorms }: {
   const mine = `${count("TRADING")}${count("MANUFACTURE")}${count("POWER")}`;
   const fits = mine === layout; // the plan's rooms only map onto a base with the same ones
   const k = fits && show < plan.length ? show : -1;
-  const planned = useMemo(() => (k >= 0 ? shiftBySlot(plan[k], rooms) : new Map<string, [Room, Team]>()), [k, plan, rooms]);
+  const planned = useMemo(() => (k >= 0 ? shiftBySlot(plan[k], rooms, data.formulas) : new Map<string, [Room, Team]>()), [k, plan, rooms, data]);
+  const [pinSlot, setPinSlot] = useState(""); // the room whose pins are open below the map
+  const pinEntry = k >= 0 ? planned.get(pinSlot) : undefined;
+  const pinRoom = rooms.find((r) => r.slot === pinSlot);
   const dormRooms = rooms.filter((r) => r.room === "DORMITORY");
   const rest = useMemo(() => (k >= 0 && plan.length > 1
     ? dormPlan(data, skills, plan, k, Object.keys(account.value.ops), { ...dorms, dorms: dormRooms.length || dorms.dorms }) : null), [k, plan, dorms, rooms]);
@@ -367,6 +446,7 @@ function BaseMap({ data, map, ops, plan, layout, skills, dorms }: {
           {fits && plan.map((_, i) => <button key={i} aria-pressed={k === i} onClick={() => setShow(i)}>Shift {"ABC"[i]}</button>)}
         </div>
         {k >= 0 && <span class="muted">{moves ? `${moves} move${moves === 1 ? "" : "s"} from now` : "Nobody moves from now"}</span>}
+        {k >= 0 && pins.any && <button type="button" class="linkish" onClick={pins.clear}>Clear pins</button>}
         {!fits && <span class="muted">The plan is for {dash(layout)} and your base is {dash(mine)}{LAYOUTS[mine] ? `: choose ${dash(mine)} as the layout above to see its shifts here.` : ", so its shifts can't be drawn here."}</span>}
       </div>
       <div class="bmap-wrap">
@@ -406,17 +486,22 @@ function BaseMap({ data, map, ops, plan, layout, skills, dorms }: {
             return (
               <section key={r.slot} class={`bm-room bm-${r.room.toLowerCase()}${faded ? " faded" : ""}`} style={at(row, col, h, w)}
                 aria-label={ROOM_NAME[r.room] || r.room} title={`${ROOM_NAME[r.room] || r.room} · ${floor || "1F"} · level ${r.level}${status ? ` · ${status}` : ""}`}>
-                <div class="bm-head"><span>{MAP_NAME[r.room] || r.room}</span><span>Lv {r.level}</span></div>
+                <div class="bm-head"><span>{MAP_NAME[r.room] || r.room}</span><span>Lv {r.level}</span>
+                  {entry && <button type="button" class="bm-pin" aria-pressed={pinSlot === r.slot} aria-label={`Pin operators in ${ROOM_NAME[r.room] || r.room}`} title="Pin operators here"
+                    onClick={() => setPinSlot(pinSlot === r.slot ? "" : r.slot)}><PinIcon /></button>}
+                </div>
                 {line && <div class="bm-line">{line}</div>}
                 <div class="bm-ops">
                   {ids.map((id) => {
                     const op = ops.get(id);
                     const morale = k < 0 ? r.team.find((t) => t.charId === id)?.morale : k === 0 ? moraleNow.get(id) : undefined; // shift A starts now
                     const ring = k >= 0 && !!entry && !here.has(id);
+                    const isPinned = !!entry?.[1].pinned?.includes(id);
                     const name = op?.name || id;
                     return (
-                      <a key={id} class={`bm-op${ring ? " moving" : ""}`} href={href(`/operator/${id}`)} data-panel={id}
-                        title={`${name}${morale !== undefined ? ` · morale ${morale.toFixed(1)} of 24` : ""}${ring ? " · moves in" : ""}`}>
+                      <a key={id} class={`bm-op${ring ? " moving" : ""}${isPinned ? " pinned" : ""}`} href={href(`/operator/${id}`)} data-panel={id}
+                        title={`${name}${morale !== undefined ? ` · morale ${morale.toFixed(1)} of 24` : ""}${ring ? " · moves in" : ""}${isPinned ? " · pinned" : ""}`}>
+                        {isPinned && <span class="bm-pinned"><PinIcon /></span>}
                         {op ? <Avatar op={op} size="sm" /> : <span class="avatar sm">{name.slice(0, 2)}</span>}
                         {morale !== undefined && <i class={`bm-morale ${moraleClass(morale)}`}><i style={{ width: `${Math.max(0, Math.min(100, (morale / 24) * 100))}%` }} /></i>}
                       </a>
@@ -429,9 +514,19 @@ function BaseMap({ data, map, ops, plan, layout, skills, dorms }: {
           })}
         </div>
       </div>
+      {pinEntry && pinRoom && (
+        <section class="card pin-panel">
+          <div class="row" style={{ justifyContent: "space-between" }}>
+            <h3 style={{ margin: 0 }}>{ROOM_NAME[pinRoom.room] || pinRoom.room} (level {pinRoom.level}), shift {"ABC"[k]}</h3>
+            <button type="button" class="small" onClick={() => setPinSlot("")}>Close</button>
+          </div>
+          <PinTeam pinKey={`${k}.${plan[k].indexOf(pinEntry)}`} team={pinEntry[1]} slots={pinEntry[0].slots} pins={pins} ops={ops} />
+          <Explain>Pinned operators stay in this room in shift {"ABC"[k]}; the plan fills the rest from who's left. Clear them with the pin by their name.</Explain>
+        </section>
+      )}
       {unplaced.length > 0 && <div class="rooms">{unplaced.map((r) => <RoomCard key={r.slot} r={r} data={data} ops={ops} now={now} />)}</div>}
       <Explain>Your rooms where the game puts them, top floor first. The bar under each operator is their morale at the sync (of 24): green from 12, amber from 6, red below. {fits
-        ? "In a shift, each kind of room takes the plan's rooms of that kind in the game's order (top floor first, then left to right); a gold ring marks an operator who'd move in from elsewhere, and the dorms hold who should rest while that shift works (going to rest isn't counted as a move)."
+        ? "In a shift, each planned room goes to one of your rooms of that kind that fits its team: a factory already making that product first, then the one where the fewest operators move in, then the game's order (top floor first, then left to right). The pin on a room lets you pin operators there. A gold ring marks an operator who'd move in from elsewhere, and the dorms hold who should rest while that shift works (going to rest isn't counted as a move)."
         : "Choose the layout your base has to see the plan's shifts on the map."}</Explain>
     </>
   );

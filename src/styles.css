@@ -1053,3 +1053,20 @@ button.mod-i[aria-expanded="true"] span { border-color: var(--accent); color: va
 .mod-line { display: grid; min-width: 0; font-size: 0.86rem; line-height: 1.35; }
 .mod-line strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mod-line .muted { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+/* Base optimizer: pinned operators (pin toggles by members, the pin mark on the map, the room's pin panel) */
+.pin-op { display: inline-flex; align-items: center; gap: 2px; }
+.pin-tog, .bm-pin { all: unset; display: inline-flex; align-items: center; justify-content: center; min-width: 24px; min-height: 24px; border-radius: 50%; color: var(--muted); cursor: pointer; opacity: 0.55; }
+.pin-tog:hover, .bm-pin:hover, .pin-tog:focus-visible, .bm-pin:focus-visible { opacity: 1; color: var(--text); }
+.pin-tog:focus-visible, .bm-pin:focus-visible { outline: 2px solid var(--accent-strong); }
+.pin-tog[aria-pressed="true"], .bm-pin[aria-pressed="true"] { opacity: 1; color: var(--accent-strong); }
+.pin-op.pinned .avatar { outline: 2px solid var(--accent-strong); outline-offset: 1px; }
+.bm-head .bm-pin { min-width: 18px; min-height: 18px; margin: -2px -3px 0 0; }
+.bm-pinned { position: absolute; top: -3px; right: -3px; z-index: 1; display: inline-flex; padding: 1px; border-radius: 50%; background: var(--surface); color: var(--accent-strong); line-height: 0; }
+.bm-pinned .pin-ico { width: 9px; height: 9px; }
+.pin-panel { display: grid; gap: 10px; }
+.pins-card .picker { flex: 1 1 240px; }
+@media (max-width: 560px) {
+  .bm-head .bm-pin { min-width: 12px; min-height: 12px; margin: -1px -2px 0 0; }
+  .bm-head .bm-pin .pin-ico { width: 9px; height: 9px; }
+}
