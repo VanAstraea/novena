@@ -45,6 +45,12 @@ for (const [path, heading] of PAGES) {
   });
 }
 
+test("old Upcoming banners links land on Banners & pulls", async ({ page }) => {
+  await page.goto("/upcoming?view=banners");
+  await expect(page).toHaveURL(/\/pulls$/);
+  await expect(page.locator("main h1").first()).toHaveText(/Banners & pulls/);
+});
+
 test("skills tab shows every skill", async ({ page }) => {
   await page.goto("/operator/char_202_demkni?tab=skills");
   await expect(page.getByRole("heading", { name: /S3 · Calcification/ })).toBeVisible();

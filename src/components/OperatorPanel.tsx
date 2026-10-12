@@ -190,7 +190,7 @@ function Body({ id }: { id: string }) {
               {goal && <li><span class="lbl">Goal</span> {goal.text} <a href={href("/planner")}>planner</a></li>}
               {u?.score !== undefined && <li><span class="lbl">Community</span> used in {Math.round((u.score || 0) * 100)}% of clears{u.build.elite ? ` · usual build E${u.build.elite}${u.build.skill ? ` S${u.build.skill}${u.build.mastery ? ` M${u.build.mastery}` : ""}` : ""}${u.build.module ? ` Mod ${u.build.module}` : ""}` : ""}</li>}
               {isPick && <li><span class="lbl">IS</span> {theme.name}: recruit priority {isPick.recruit}{isPick.key ? " · key operator" : ""} <a href={href("/is")}>IS</a></li>}
-              {banners.map((b) => <li key={b.id}><span class="lbl">Banner</span> ~{date(b.eta)}{b.spark ? ` · ${b.spark}-pull guarantee` : ""} <a href={href("/upcoming", { view: "banners" })}>banners</a></li>)}
+              {banners.map((b) => <li key={b.id}><span class="lbl">Banner</span> ~{date(b.eta)}{b.spark ? ` · ${b.spark}-pull guarantee` : ""} <a href={href("/pulls") + `#banner-${b.id}`}>banners</a></li>)}
               {tags && tags.length > 0 && <li><span class="lbl">Recruit</span> {tags.join(", ")} <a href={href("/recruit")}>recruit</a></li>}
             </ul>
           </>

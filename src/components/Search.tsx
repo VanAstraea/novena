@@ -15,7 +15,7 @@ import { Avatar, ItemIcon, itemsSig } from "./ui";
 // Pages people look for by what's on them, opened on the right tab; and things to do.
 const SUBPAGES: [string, string, Record<string, string>, string[]][] = [
   ["Event shops", "/upcoming", { view: "shops" }, ["shop", "tokens", "event store"]],
-  ["Upcoming banners", "/upcoming", { view: "banners" }, ["banner", "headhunting"]],
+  ["Coming banners", "/pulls", {}, ["banner", "headhunting", "upcoming banners"]],
   ["Contingency Contract", "/upcoming", { view: "cc" }, ["cc"]],
   ["Training Room and Workshop", "/base", {}, ["trainer", "training", "workshop", "byproduct"]],
   ["Dorms and morale", "/base", {}, ["dorm", "morale"]],
