@@ -1221,3 +1221,4 @@ a.tl-op { cursor: pointer; }
 .enemy-where dd { margin: 0; }
 .enemy-where .chip small { color: var(--muted); }
 @media (max-width: 600px) { .enemy-where { grid-template-columns: minmax(0, 1fr); } .enemy-where dd { margin-bottom: 6px; } }
+.stage-hits { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }

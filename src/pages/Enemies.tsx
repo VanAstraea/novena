@@ -1,14 +1,15 @@
-// The enemy database: every enemy in the game's handbook, searchable, filterable and sortable by its stats. Filters
-// live in the URL.
+// The enemy database: every enemy in the game's handbook, searchable, filterable and sortable by its stats, or the
+// enemies of one stage ("1-7"). Filters live in the URL.
+import { Fragment } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import { EnemyIcon, ImmunityBadges } from "../components/EnemyParts";
 import { Await, Explain, SortTh, useAsync } from "../components/ui";
-import { enemies as loadEnemies } from "../lib/data";
-import { ATTACK_NAMES, damageText, DAMAGE_NAMES, filterEnemies, IMMUNITIES, immunities, LEVEL_NAMES, MOTION_NAMES, readFilters, statText } from "../lib/enemies";
-import type { SortKey } from "../lib/enemies";
+import { enemies as loadEnemies, enemyStages } from "../lib/data";
+import { ATTACK_NAMES, damageText, DAMAGE_NAMES, filterEnemies, IMMUNITIES, immunities, LEVEL_NAMES, MOTION_NAMES, readFilters, stageHits, stageSuggestions, statText } from "../lib/enemies";
+import type { SortKey, StageHit } from "../lib/enemies";
 import { href, route, setQuery } from "../lib/router";
 import { server } from "../state";
-import type { EnemiesFile } from "../types";
+import type { EnemiesFile, EnemyStagesFile } from "../types";
 
 export default function Enemies() {
   const s = server.value;
@@ -44,6 +45,11 @@ function Filters() {
           <span>Name</span>
           <input type="search" value={f.q} placeholder="Search enemies" onInput={(e) => setQuery({ q: (e.target as HTMLInputElement).value })} />
         </label>
+        <label class="field" style={{ width: "min(100%, 130px)" }}>
+          <span>Stage</span>
+          <input type="search" value={f.stage} placeholder="e.g. 1-7" autocapitalize="characters" spellcheck={false} style={{ width: "100%", minWidth: 0 }}
+            onInput={(e) => setQuery({ stage: (e.target as HTMLInputElement).value })} />
+        </label>
         {sel("level", "Level", Object.entries(LEVEL_NAMES))}
         {sel("dmg", "Damage", [...Object.entries(DAMAGE_NAMES), ["none", "None"]])}
         {sel("atk", "Attack", Object.entries(ATTACK_NAMES).filter(([k]) => k !== "both"))}
@@ -76,10 +82,41 @@ function Filters() {
   );
 }
 
+/** The stage (or stages, when a code repeats) the Stage box found, or what to try when it found none. */
+function StageNote({ file, code, hits }: { file: EnemyStagesFile; code: string; hits: StageHit[] }) {
+  if (!hits.length) {
+    const near = stageSuggestions(file, code);
+    return (
+      <p class="muted" role="status">
+        No story, event, supply or Annihilation stage is called “{code}” on this server.
+        {near.length > 0 && <> Did you mean {near.map((c, i) => <Fragment key={c}>{i > 0 && " "}<button class="chip" onClick={() => setQuery({ stage: c })}>{c}</button></Fragment>)}</>}
+      </p>
+    );
+  }
+  return (
+    <ul class="stage-hits">
+      {hits.map((h, i) => (
+        <li key={i}><strong>{h.code}</strong>{h.name && <> {h.name}</>} <span class="muted">· {h.group} · {h.enemies.size === 1 ? "1 enemy" : `${h.enemies.size} enemies`}</span></li>
+      ))}
+    </ul>
+  );
+}
+
 function List({ data }: { data: EnemiesFile }) {
+  const s = server.value;
   const q = route.value.query;
   const f = readFilters(q);
-  const list = useMemo(() => filterEnemies(data.enemies, f), [data, q.toString()]);
+  const wantStage = !!f.stage.trim();
+  const stagesSt = useAsync(() => (wantStage ? enemyStages(s) : Promise.resolve(null)), [s, wantStage]);
+  const hits = useMemo(() => (wantStage && stagesSt.data ? stageHits(stagesSt.data, f.stage) : null), [stagesSt.data, f.stage, wantStage]);
+  // the stage's enemies, merged when the code names several stages: id -> the levels used
+  const only = useMemo(() => {
+    if (!hits) return undefined;
+    const m = new Map<string, number[]>();
+    for (const h of hits) for (const [id, lvs] of h.enemies) m.set(id, [...new Set([...(m.get(id) || []), ...lvs])].sort((a, b) => a - b));
+    return m;
+  }, [hits]);
+  const list = useMemo(() => (wantStage && !only ? [] : filterEnemies(data.enemies, f, only)), [data, q.toString(), only]);
   const [limit, setLimit] = useState(60);
   const sort = { key: f.sort || "", dir: f.dir };
   const setSort = (s: { key: string; dir: 1 | -1 }) => setQuery({ sort: s.key, dir: s.dir === 1 ? "asc" : "" });
@@ -87,7 +124,13 @@ function List({ data }: { data: EnemiesFile }) {
   return (
     <>
       <Filters />
-      <p class="muted" role="status">{list.length} of {data.enemies.length} enemies{f.sort ? " · stats at each enemy's first level" : ""}</p>
+      {wantStage && stagesSt.error && <p class="bad-text" role="status">Couldn't load the stage list: {stagesSt.error.message}</p>}
+      {wantStage && !stagesSt.error && !stagesSt.data && <p class="muted" role="status">Loading stages…</p>}
+      {wantStage && stagesSt.data && hits && <StageNote file={stagesSt.data} code={f.stage.trim()} hits={hits} />}
+      {(!wantStage || (hits && hits.length > 0)) && (
+        <p class="muted" role="status">{list.length} of {only ? `${only.size} enemies in ${hits!.length > 1 ? "these stages" : "this stage"}` : `${data.enemies.length} enemies`}
+          {only ? " · stats at the level the stage uses" : f.sort ? " · stats at each enemy's first level" : ""}</p>
+      )}
       <div class="table-wrap">
         <table class="cards enemy-table">
           <thead><tr>
@@ -99,13 +142,15 @@ function List({ data }: { data: EnemiesFile }) {
           </tr></thead>
           <tbody>
             {list.slice(0, limit).map((e) => {
-              const l = e.lv[0];
+              const lvs = only?.get(e.id) || [];
+              const l = e.lv[lvs[0] ?? 0] || e.lv[0];
+              const lvText = only && e.lv.length > 1 ? ` · Lv ${lvs.join(" and ")}` : "";
               return (
                 <tr key={e.id}>
                   <td data-label="">
                     <a class="op-cell" href={href(`/enemy/${e.id}`)}>
                       <EnemyIcon e={e} size="sm" />
-                      <span><span class="op-name">{e.name}</span><br /><small class="muted">{e.code} · {LEVEL_NAMES[e.level]}{e.motion === "fly" ? " · Flying" : ""}</small></span>
+                      <span><span class="op-name">{e.name}</span><br /><small class="muted">{e.code} · {LEVEL_NAMES[e.level]}{e.motion === "fly" ? " · Flying" : ""}{lvText}</small></span>
                     </a>
                   </td>
                   <td data-label="Damage">{damageText(e.dmg)}</td>
@@ -123,7 +168,7 @@ function List({ data }: { data: EnemiesFile }) {
         </table>
       </div>
       {list.length > limit && <button onClick={() => setLimit(limit + 100)}>Show more ({list.length - limit} left)</button>}
-      <Explain>Every enemy in the game's handbook on this server, from the game's own data. Many enemies have more than one level (stages pick one, and harder stages usually pick a higher one): the list shows each enemy's first, and the enemy's page shows them all side by side.</Explain>
+      <Explain>Every enemy in the game's handbook on this server, from the game's own data. Many enemies have more than one level (stages pick one, and harder stages usually pick a higher one): the list shows each enemy's first, and the enemy's page shows them all side by side. Type a stage code in Stage (1-7, CE-5, DM-EX-2) to see only that stage's enemies, at the levels it uses, including ones other enemies summon; story, event, supply and Annihilation stages are covered.</Explain>
     </>
   );
 }

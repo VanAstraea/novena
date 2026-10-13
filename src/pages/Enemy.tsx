@@ -119,15 +119,16 @@ function WhereItAppears({ e }: { e: EnemyRow }) {
                   <Fragment key={g.name}>
                     <dt>{g.name}</dt>
                     <dd class="chips">{g.stages.map((x) => (
-                      <span key={`${x.code}|${x.lv}`} class="chip" title={x.name ? `${x.code} ${x.name}${many ? ` · level ${x.lv}` : ""}` : undefined}>
+                      <a key={`${x.code}|${x.lv}`} class="chip" href={href("/enemies", { stage: x.code })}
+                        title={`${x.code}${x.name ? ` ${x.name}` : ""}${many ? ` · level ${x.lv}` : ""}: every enemy in it`}>
                         {x.code}{many && x.lv > 0 && <small> · Lv {x.lv}</small>}
-                      </span>
+                      </a>
                     ))}</dd>
                   </Fragment>
                 ))}
               </dl>
               {groups.length > shown.length && <button class="ghost" onClick={() => setAll(true)}>Show all {groups.length} chapters and events</button>}
-              <Explain>From each stage's level data: every enemy a stage can field, including ones other enemies summon.{many ? " Lv is the level the stage uses (see the stats above); none means level 0." : ""} Challenge Mode uses the same enemies as the normal stage.</Explain>
+              <Explain>From each stage's level data: every enemy a stage can field, including ones other enemies summon. Tap a stage to see all its enemies.{many ? " Lv is the level the stage uses (see the stats above); none means level 0." : ""} Challenge Mode uses the same enemies as the normal stage.</Explain>
             </>
           );
         }}

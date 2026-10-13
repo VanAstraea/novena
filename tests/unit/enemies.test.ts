@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { damageText, filterEnemies, immunities, readFilters, statText, varies, whereItAppears } from "../../src/lib/enemies";
+import { damageText, filterEnemies, immunities, readFilters, stageHits, stageSuggestions, statText, varies, whereItAppears } from "../../src/lib/enemies";
 import type { EnemyRow, EnemyStagesFile, EnemyStats } from "../../src/types";
 
 const stats = (o: Partial<EnemyStats> = {}): EnemyStats => ({ hp: 1000, atk: 100, def: 0, res: 0, wt: 1, spd: 1, rng: 0, int: 1.7, lp: 1, imm: [], ...o });
@@ -74,5 +74,46 @@ describe("Where an enemy appears", () => {
   it("is empty for an enemy in no listed stage", () => {
     expect(whereItAppears(file, "enemy_nobody")).toEqual([]);
     expect(whereItAppears(file, "enemy_x")).toEqual([]);
+  });
+});
+
+describe("Finding a stage's enemies", () => {
+  const file: EnemyStagesFile = {
+    groups: ["Episode 1", "Trials for Navigator", "Supplies: Cargo Escort"],
+    stages: [["1-7", "The Tyrant", 0], ["TN-2", "Round 1", 1], ["TN-2", "Round 2", 1], ["CE-5", "", 2], ["15", "Odd", 0], ["TN-2", "Round 2", 1]],
+    by: { enemy_b: [[0, 1]], enemy_a: [[0, 0], [1, 0], [2, 1], [0, 1], [5, 2]], enemy_c: [[3, 2], [5, 0]] },
+  };
+
+  it("reads the code without case, spaces or dash style", () => {
+    for (const typed of ["1-7", " 1 - 7 ", "1–7"]) expect(stageHits(file, typed).map((h) => h.code)).toEqual(["1-7"]);
+    expect(stageHits(file, "ce5")[0].code).toBe("CE-5");
+  });
+
+  it("lists every stage with a repeated code, each with its enemies and the levels used", () => {
+    const hits = stageHits(file, "tn-2");
+    expect(hits.map((h) => [h.name, h.group, [...h.enemies]])).toEqual([
+      ["Round 1", "Trials for Navigator", [["enemy_a", [0]]]],
+      ["Round 2", "Trials for Navigator", [["enemy_a", [1, 2]], ["enemy_c", [0]]]], // its two copies, as one
+    ]);
+    expect([...stageHits(file, "1-7")[0].enemies]).toEqual([["enemy_b", [1]], ["enemy_a", [0, 1]]]);
+  });
+
+  it("prefers an exact code over one without its dash", () => {
+    expect(stageHits(file, "15").map((h) => h.name)).toEqual(["Odd"]);
+    expect(stageHits(file, "nope")).toEqual([]);
+  });
+
+  it("suggests codes that start with what's typed", () => {
+    expect(stageSuggestions(file, "tn")).toEqual(["TN-2"]);
+    expect(stageSuggestions(file, "")).toEqual([]);
+  });
+
+  it("filters the list to a stage's enemies, in the stage's order, sorting by the level it uses", () => {
+    const a = enemy("enemy_a", { lv: [stats({ hp: 100 }), stats({ hp: 5000 })] });
+    const b = enemy("enemy_b", { lv: [stats({ hp: 900 }), stats({ hp: 1000 })] });
+    const only = new Map([["enemy_b", [1]], ["enemy_a", [1]]]);
+    const f = readFilters(new URLSearchParams());
+    expect(filterEnemies([a, b, enemy("enemy_z")], f, only).map((e) => e.id)).toEqual(["enemy_b", "enemy_a"]);
+    expect(filterEnemies([a, b], readFilters(new URLSearchParams("sort=hp")), only).map((e) => e.id)).toEqual(["enemy_a", "enemy_b"]);
   });
 });
