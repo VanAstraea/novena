@@ -73,3 +73,32 @@ def test_abilities_keep_headings_silenceable_lines_and_glossary_terms():
     _, abilities = enemies.build_from(HANDBOOK, DATABASE)
     assert abilities["enemy_b"] == [["Phase two", "title"], ['Attacks <i data-t="ba.stun">Stun</i> the target', "silence"],
                                     ["Flying unit."]]
+
+
+def test_enemy_stages_lists_visitable_stages_once_with_level_and_group():
+    from novena_pipeline import enemy_stages as es
+    stages = {"stages": {
+        "main_01-07": {"stageId": "main_01-07", "levelId": "Obt/Main/level_main_01-07", "zoneId": "main_1", "code": "1-7", "name": "The Tyrant", "stageType": "MAIN", "difficulty": "NORMAL"},
+        "main_01-07#f#": {"stageId": "main_01-07#f#", "levelId": "Obt/Main/level_main_01-07", "zoneId": "main_1", "code": "1-7", "name": "The Tyrant", "stageType": "MAIN", "difficulty": "FOUR_STAR"},
+        "main_01-01": {"stageId": "main_01-01", "levelId": "Obt/Main/level_main_01-01", "zoneId": "main_1", "code": "1-1", "stageType": "MAIN", "isStoryOnly": True},
+        "act9d0_01": {"stageId": "act9d0_01", "levelId": "Activities/ACT9D0/level_act9d0_01", "zoneId": "act17d5_zone1", "code": "DM-1", "name": "Buried", "stageType": "ACTIVITY", "difficulty": "NORMAL"},
+        "camp_01": {"stageId": "camp_01", "levelId": "Obt/Campaign/level_camp_01", "zoneId": "camp_zone", "code": "Chernobog", "name": "Chernobog", "stageType": "CAMPAIGN"},
+        "tower_1": {"stageId": "tower_1", "levelId": "Obt/Legion/level_tower_1", "code": "SSS", "stageType": "CLIMB_TOWER"},
+        "act_multi": {"stageId": "act_multi", "levelId": "Activities/ACT1MULTI/level_m1", "zoneId": "x", "code": "M-1", "stageType": "ACTIVITY"},
+    }}
+    zones = {"zones": {"main_1": {"zoneNameFirst": "Episode 1"}}}
+    acts = {"zoneToActivity": {"act17d5_zone1": "act17d5"}, "basicInfo": {"act17d5": {"name": "Darknights Memoir - Rerun"}}}
+    hashes = {"obt/main/level_main_01-07.json": "h1", "obt/main/level_main_01-01.json": "h0", "activities/act9d0/level_act9d0_01.json": "h2",
+              "obt/campaign/level_camp_01.json": "h3", "obt/legion/level_tower_1.json": "h4", "activities/act1multi/level_m1.json": "h5"}
+    known = {"h0": [["enemy_a", 0]], "h1": [["enemy_a", 0], ["enemy_b", 1], ["enemy_unknown", 0]], "h2": [["enemy_a", 1]],
+             "h3": [["enemy_b", 0]], "h4": [["enemy_a", 0]], "h5": [["enemy_a", 0]]}
+    out = es.build_from(stages, zones, acts, hashes, known, {"enemy_a", "enemy_b"})
+    assert out["groups"] == ["Episode 1", "Darknights Memoir", "Annihilation"]
+    assert out["stages"] == [["1-7", "The Tyrant", 0], ["DM-1", "Buried", 1], ["Chernobog", "Chernobog", 2]]
+    assert out["by"] == {"enemy_a": [[0, 0], [1, 1]], "enemy_b": [[0, 1], [2, 0]]}
+
+
+def test_enemies_in_reads_a_level_file_enemy_list_once_per_level():
+    from novena_pipeline import enemy_stages as es
+    level = {"enemyDbRefs": [{"useDb": True, "id": "enemy_a", "level": 0}, {"id": "enemy_a", "level": 0}, {"id": "enemy_a", "level": 1}, {"id": None}]}
+    assert es.enemies_in(level) == [["enemy_a", 0], ["enemy_a", 1]]

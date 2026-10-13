@@ -2,7 +2,7 @@
 // sorting (all read from the page's address).
 import { best } from "./search";
 import { fmt } from "./format";
-import type { EnemyRow, EnemyStats } from "../types";
+import type { EnemyRow, EnemyStagesFile, EnemyStats } from "../types";
 
 export const LEVEL_NAMES: Record<EnemyRow["level"], string> = { NORMAL: "Normal", ELITE: "Elite", BOSS: "Boss" };
 export const DAMAGE_NAMES: Record<string, string> = { physical: "Physical", arts: "Arts", healing: "Healing" };
@@ -37,6 +37,25 @@ export function statText(key: string, v: number | undefined): string {
   if (key === "rng") return v > 0 ? `${v}` : "–";
   if (key === "int") return v > 0 ? `${v} s` : "–";
   return `${v}`;
+}
+
+export interface StageGroup { name: string; stages: { code: string; name: string; lv: number }[] }
+
+/** The stages an enemy appears in, by story chapter, event or mode, in the game's order; each stage once. */
+export function whereItAppears(file: EnemyStagesFile, id: string): StageGroup[] {
+  const groups = new Map<number, StageGroup>();
+  const seen = new Set<string>();
+  for (const [si, lv] of file.by[id] || []) {
+    const st = file.stages[si];
+    if (!st) continue;
+    const [code, name, g] = st;
+    const key = `${g}|${code}|${lv}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (!groups.has(g)) groups.set(g, { name: file.groups[g] || "Other", stages: [] });
+    groups.get(g)!.stages.push({ code, name, lv });
+  }
+  return [...groups.values()];
 }
 
 export const damageText = (dmg: EnemyRow["dmg"]) => (dmg.length ? dmg.map((d) => DAMAGE_NAMES[d] || d).join(" and ") : "None");

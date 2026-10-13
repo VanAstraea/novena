@@ -1,6 +1,6 @@
 // Loads the published data files. Each file is fetched once per page load; failures are not cached, so a retry
 // (or going back to the page) fetches again.
-import type { EnemiesFile, EnemyAbilities, ISFile, ItemsFile, Manifest, Meta, OpDetail, OpIndex, ProgressFile, RecruitFile, Server, ShopsFile, StagesFile, UpcomingFile, UsageFile } from "../types";
+import type { EnemiesFile, EnemyAbilities, EnemyStagesFile, ISFile, ItemsFile, Manifest, Meta, OpDetail, OpIndex, ProgressFile, RecruitFile, Server, ShopsFile, StagesFile, UpcomingFile, UsageFile } from "../types";
 
 export const BASE = import.meta.env.BASE_URL;
 const ROOT = `${BASE}data/v1/`;
@@ -33,6 +33,7 @@ export const integrated = (s: Server) => load<ISFile>(`${s}/is.json`);
 export const shops = (s: Server) => load<ShopsFile>(`${s}/shops.json`);
 export const enemies = (s: Server) => load<EnemiesFile>(`${s}/enemies.json`);
 export const enemyAbilities = (s: Server) => load<EnemyAbilities>(`${s}/enemy-abilities.json`);
+export const enemyStages = (s: Server) => load<EnemyStagesFile>(`${s}/enemy-stages.json`);
 /** Story & archives, or null until the daily build first publishes it (a missing file, or the dev server's page in its place). */
 export const progress = (s: Server) => load<ProgressFile>(`${s}/progress.json`).catch((e: Error) => {
   if (e instanceof SyntaxError || / \(404\)$/.test(e.message)) return null;

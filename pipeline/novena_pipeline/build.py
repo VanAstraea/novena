@@ -20,6 +20,7 @@ Writes to NOVENA_OUT (default public/data/v1/). Layout:
     {server}/shops.json           event shops for events running or coming here
     {server}/enemies.json         the enemy handbook: every enemy with its stats at each level variant
     {server}/enemy-abilities.json each enemy's ability text (the enemy page loads it)
+    {server}/enemy-stages.json    the stages each enemy appears in, with the level variant (the enemy page loads it)
 """
 
 from __future__ import annotations
@@ -34,7 +35,7 @@ from novena_pipeline import OUT_DIR, SERVERS
 from novena_pipeline import gamedata as gd
 from novena_pipeline import items as items_mod
 from novena_pipeline import shops as shops_mod
-from novena_pipeline import base, enemies, guidebook, operators, progress, recruit, roguelike, upcoming, usage
+from novena_pipeline import base, enemies, enemy_stages, guidebook, operators, progress, recruit, roguelike, upcoming, usage
 from novena_pipeline.sources import copilot, penguin, wikigg, yituliu
 
 DATA_VERSION = 1
@@ -119,6 +120,9 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
     write(out / server / "enemies.json", enemy_index)
     write(out / server / "enemy-abilities.json", enemy_abilities)
     log(f"  [{server}] {len(enemy_index['enemies'])} enemies")
+    where = enemy_stages.build(server, {e["id"] for e in enemy_index["enemies"]}, log)
+    write(out / server / "enemy-stages.json", where)
+    log(f"  [{server}] {len(where['stages'])} stages list {len(where['by'])} enemies")
     log(f"  [{server}] done in {time.time() - t0:.1f}s")
     return {"penguin": int(fetched * 1000), "operators": len(index)}
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { damageText, filterEnemies, immunities, readFilters, statText, varies } from "../../src/lib/enemies";
-import type { EnemyRow, EnemyStats } from "../../src/types";
+import { damageText, filterEnemies, immunities, readFilters, statText, varies, whereItAppears } from "../../src/lib/enemies";
+import type { EnemyRow, EnemyStagesFile, EnemyStats } from "../../src/types";
 
 const stats = (o: Partial<EnemyStats> = {}): EnemyStats => ({ hp: 1000, atk: 100, def: 0, res: 0, wt: 1, spd: 1, rng: 0, int: 1.7, lp: 1, imm: [], ...o });
 const enemy = (id: string, o: Partial<EnemyRow> = {}): EnemyRow => ({ id, name: id, code: id.toUpperCase(), level: "NORMAL", dmg: ["physical"], atk: "melee", motion: "walk", lv: [stats()], ...o });
@@ -54,5 +54,25 @@ describe("enemy list filters", () => {
   it("searches by name or code", () => {
     expect(ids("q=big")).toEqual(["boss"]);
     expect(ids("q=SLUG")).toEqual(["slug"]);
+  });
+});
+
+describe("Where an enemy appears", () => {
+  const file: EnemyStagesFile = {
+    groups: ["Episode 1", "Darknights Memoir"],
+    stages: [["1-7", "The Tyrant", 0], ["1-8", "Ambush", 0], ["DM-1", "Buried", 1], ["DM-1", "Buried", 1]],
+    by: { enemy_1007_slime: [[0, 0], [2, 1], [3, 1], [1, 0]], enemy_x: [[9, 0]] },
+  };
+
+  it("groups its stages by chapter or event, each stage once, with the level used", () => {
+    expect(whereItAppears(file, "enemy_1007_slime")).toEqual([
+      { name: "Episode 1", stages: [{ code: "1-7", name: "The Tyrant", lv: 0 }, { code: "1-8", name: "Ambush", lv: 0 }] },
+      { name: "Darknights Memoir", stages: [{ code: "DM-1", name: "Buried", lv: 1 }] },
+    ]);
+  });
+
+  it("is empty for an enemy in no listed stage", () => {
+    expect(whereItAppears(file, "enemy_nobody")).toEqual([]);
+    expect(whereItAppears(file, "enemy_x")).toEqual([]);
   });
 });

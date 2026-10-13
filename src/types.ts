@@ -330,5 +330,8 @@ export interface EnemyRow {
 
 export interface EnemiesFile { races: Record<string, string>; enemies: EnemyRow[] }
 
+/** The stages each enemy appears in: stages are [code, name, group index]; an enemy's entries [stage index, level]. */
+export interface EnemyStagesFile { groups: string[]; stages: [string, string, number][]; by: Record<string, [number, number][]> }
+
 /** Each enemy's ability lines: plain, a heading, or one that Silence stops. */
 export type EnemyAbilities = Record<string, ([string] | [string, "title" | "silence"])[]>;

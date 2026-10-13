@@ -1214,3 +1214,10 @@ a.tl-op { cursor: pointer; }
   .enemy-stats th, .enemy-stats td { padding: 6px 8px; }
   .enemy-table .op-cell { min-width: 0; }
 }
+
+/* --- enemy: where it appears ------------------------------------------------------------------------------------ */
+.enemy-where { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 8px 16px; margin: 8px 0 12px; }
+.enemy-where dt { font-weight: 600; padding-top: 4px; }
+.enemy-where dd { margin: 0; }
+.enemy-where .chip small { color: var(--muted); }
+@media (max-width: 600px) { .enemy-where { grid-template-columns: minmax(0, 1fr); } .enemy-where dd { margin-bottom: 6px; } }

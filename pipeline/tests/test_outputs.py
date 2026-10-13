@@ -51,3 +51,6 @@ def test_server_files(server):
     slug = next(e for e in foes if e["id"] == "enemy_1007_slime")
     assert slug["level"] == "NORMAL" and slug["lv"][0]["hp"] > 0
     assert "enemy_1501_demonk" in load(f"{server}/enemy-abilities.json")
+    where = load(f"{server}/enemy-stages.json")
+    assert len(where["stages"]) > 500 and "Annihilation" in where["groups"]
+    assert any(where["stages"][i][0] == "0-1" for i, _ in where["by"]["enemy_1007_slime"])

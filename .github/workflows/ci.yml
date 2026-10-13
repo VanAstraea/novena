@@ -33,6 +33,8 @@ jobs:
           restore-keys: sources-
       - name: Build data (EN only, cached sources)
         run: npm run data -- --servers en --no-copilot
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # reads the game data mirror's file list (enemy stages) under Actions' rate limit
       - name: Depot recognition fixtures (the recogniser's own test screenshots; not committed)
         run: pip install pillow && python scripts/depot_fixtures.py
       - name: Depot recognition test

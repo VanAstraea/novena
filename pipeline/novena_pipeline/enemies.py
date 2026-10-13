@@ -9,8 +9,8 @@ link (enemies it comes with) and lv: one entry per level variant, each {hp, atk,
 int, lp, imm}. Stats come from levels/enemydata/enemy_database, where a variant lists only what differs from level 0.
 
 The ability text is a file of its own (about half the total), so search and the list load only the index. An ability
-line is plain, a heading ("title"), or one that Silence stops ("silence"). The handbook's lore descriptions and which
-stages each enemy appears in are left out: stages are only in the per-stage level files (hundreds of them).
+line is plain, a heading ("title"), or one that Silence stops ("silence"). The handbook's lore descriptions are left
+out; the stages each enemy appears in are a file of their own (enemy_stages.py).
 """
 
 from __future__ import annotations

@@ -1,9 +1,10 @@
 // One enemy: what it does, its abilities, its immunities and its stats at every level side by side.
 import { Fragment } from "preact";
+import { useState } from "preact/hooks";
 import { EnemyIcon, ImmunityBadges } from "../components/EnemyParts";
 import { Await, Explain, Rich, useAsync } from "../components/ui";
-import { enemies as loadEnemies, enemyAbilities } from "../lib/data";
-import { ATTACK_NAMES, damageText, LEVEL_NAMES, MOTION_NAMES, statText, STATS, varies } from "../lib/enemies";
+import { enemies as loadEnemies, enemyAbilities, enemyStages } from "../lib/data";
+import { ATTACK_NAMES, damageText, LEVEL_NAMES, MOTION_NAMES, statText, STATS, varies, whereItAppears } from "../lib/enemies";
 import { href } from "../lib/router";
 import { server } from "../state";
 import type { EnemiesFile, EnemyAbilities, EnemyRow } from "../types";
@@ -89,6 +90,48 @@ function View({ e, data, abilities }: { e: EnemyRow; data: EnemiesFile; abilitie
         </div>
         {many && <Explain>Stages pick one of an enemy's levels; harder stages usually pick a higher one. Highlighted rows change between levels.</Explain>}
       </section>
+
+      <WhereItAppears e={e} />
     </div>
+  );
+}
+
+/** The stages it's in, by chapter or event; loaded on its own, so the rest of the page doesn't wait for it. */
+function WhereItAppears({ e }: { e: EnemyRow }) {
+  const s = server.value;
+  const st = useAsync(() => enemyStages(s), [s]);
+  const [all, setAll] = useState(false);
+  const many = e.lv.length > 1;
+  return (
+    <section class="card">
+      <h2>Where it appears</h2>
+      <Await state={st} what="stages">
+        {(file) => {
+          const groups = whereItAppears(file, e.id);
+          if (!groups.length) return <p class="muted">Not in any story, event, supply or Annihilation stage. It may appear in Integrated Strategies, Reclamation Algorithm, Stationary Security Service or another mode.</p>;
+          const count = groups.reduce((n, g) => n + g.stages.length, 0);
+          const shown = all ? groups : groups.slice(0, 6);
+          return (
+            <>
+              <p class="muted">{count === 1 ? "1 stage" : `${count} stages`} in {groups.length === 1 ? "1 chapter or event" : `${groups.length} chapters and events`}.</p>
+              <dl class="enemy-where">
+                {shown.map((g) => (
+                  <Fragment key={g.name}>
+                    <dt>{g.name}</dt>
+                    <dd class="chips">{g.stages.map((x) => (
+                      <span key={`${x.code}|${x.lv}`} class="chip" title={x.name ? `${x.code} ${x.name}${many ? ` · level ${x.lv}` : ""}` : undefined}>
+                        {x.code}{many && x.lv > 0 && <small> · Lv {x.lv}</small>}
+                      </span>
+                    ))}</dd>
+                  </Fragment>
+                ))}
+              </dl>
+              {groups.length > shown.length && <button class="ghost" onClick={() => setAll(true)}>Show all {groups.length} chapters and events</button>}
+              <Explain>From each stage's level data: every enemy a stage can field, including ones other enemies summon.{many ? " Lv is the level the stage uses (see the stats above); none means level 0." : ""} Challenge Mode uses the same enemies as the normal stage.</Explain>
+            </>
+          );
+        }}
+      </Await>
+    </section>
   );
 }

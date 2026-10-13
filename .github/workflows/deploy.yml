@@ -42,6 +42,8 @@ jobs:
       - run: npm ci
       - name: Build data (all servers)
         run: npm run data
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # reads the game data mirror's file list (enemy stages) under Actions' rate limit
       - name: Pipeline output checks
         run: pip install pytest && cd pipeline && python -m pytest -q
       - name: Build site
