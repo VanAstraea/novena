@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import type { ComponentChildren } from "preact";
 import { Feathers } from "../components/Feathers";
 import { searchOpen } from "../components/Search";
 import { Avatar, Await, Divider, Explain, GuideLink, PortraitCard, useAsync } from "../components/ui";
@@ -255,9 +256,46 @@ function Strip({ title, note, ops, sub }: { title: string; note: string; ops: Op
   );
 }
 
+/** Its content, once it's within a screen of being scrolled to. Below the fold, so nothing on screen moves. */
+function WhenNear({ children }: { children: ComponentChildren }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(() => typeof IntersectionObserver === "undefined");
+  useEffect(() => {
+    const el = ref.current;
+    if (near || !el) return;
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setNear(true); io.disconnect(); } }, { rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [near]);
+  return near ? <>{children}</> : <div ref={ref} style={{ minHeight: "240px" }} />;
+}
+
+/** The two portrait strips. Their data (the usage file is the largest Home needs) loads when they're scrolled near. */
+function Strips({ ops }: { ops: OpIndex[] }) {
+  const s = server.value;
+  const st = useAsync(() => Promise.all([loadUsage(), loadUpcoming(s)]), [s]);
+  return (
+    <Await state={st} what="operators">
+      {([usage, up]) => {
+        const byId = new Map(ops.map((o) => [o.id, o]));
+        const top = ops.filter((o) => o.on.includes(s) && usage.ops[o.id]?.score && !o.patch)
+          .sort((a, b) => (usage.ops[b.id].score || 0) - (usage.ops[a.id].score || 0)).slice(0, 8);
+        const coming = up.operators.map((id) => byId.get(id)).filter((o): o is OpIndex => !!o).slice(0, 8);
+        const eta = (o: OpIndex) => { const b = up.banners.find((x) => x.featured.includes(o.id)); return b ? `~${date(b.eta)}` : "Date not listed yet"; };
+        return (
+          <>
+            <Strip title="Most used in community clears" note="Share of clear guides that use them" ops={top} sub={(o) => `Usage ${pct(usage.ops[o.id].score)}`} />
+            <Strip title="Coming from CN" note="Estimated from CN's dates plus the measured lag" ops={coming} sub={eta} />
+          </>
+        );
+      }}
+    </Await>
+  );
+}
+
 export default function Home() {
   const s = server.value;
-  const st = useAsync(() => Promise.all([operators(s), loadUsage(), loadUpcoming(s)]), [s]);
+  const st = useAsync(() => Promise.all([operators(s)]), [s]);
   const [stage, setStage] = useState<"idle" | "cover" | "reveal">(() => (shouldPlayIntro() ? "cover" : "idle"));
   const altar = useRef<HTMLDivElement>(null);
   const [settled, setSettled] = useState(stage === "idle"); // feathers start once the intro (if any) has finished
@@ -297,19 +335,7 @@ export default function Home() {
       <Divider />
 
       <Await state={st} what="operators">
-        {([ops, usage, up]) => {
-          const byId = new Map(ops.map((o) => [o.id, o]));
-          const top = ops.filter((o) => o.on.includes(s) && usage.ops[o.id]?.score && !o.patch)
-            .sort((a, b) => (usage.ops[b.id].score || 0) - (usage.ops[a.id].score || 0)).slice(0, 8);
-          const coming = up.operators.map((id) => byId.get(id)).filter((o): o is OpIndex => !!o).slice(0, 8);
-          const eta = (o: OpIndex) => { const b = up.banners.find((x) => x.featured.includes(o.id)); return b ? `~${date(b.eta)}` : "Date not listed yet"; };
-          return (
-            <>
-              <Strip title="Most used in community clears" note="Share of clear guides that use them" ops={top} sub={(o) => `Usage ${pct(usage.ops[o.id].score)}`} />
-              <Strip title="Coming from CN" note="Estimated from CN's dates plus the measured lag" ops={coming} sub={eta} />
-            </>
-          );
-        }}
+        {([ops]) => <WhenNear><Strips ops={ops} /></WhenNear>}
       </Await>
       <Explain>Game days start at 04:00 server time; times are shown in your own time zone. Art and icons belong to Hypergryph / Yostar and load from community mirrors.</Explain>
     </div>

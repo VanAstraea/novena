@@ -372,7 +372,8 @@ button.linkish:hover { color: var(--text); }
 .badge.est { border-style: dashed; }
 .badge.wiki { border-color: var(--accent); color: var(--accent); }
 a.badge:hover { color: var(--accent-strong); border-color: var(--accent-strong); text-decoration: none; }
-.table-wrap { overflow-x: auto; border: 1px solid var(--border); background: var(--surface); }
+/* relative: hidden screen-reader text in cells is placed absolutely, and would otherwise widen the page */
+.table-wrap { position: relative; overflow-x: auto; border: 1px solid var(--border); background: var(--surface); }
 table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
 th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
 thead th { background: var(--surface-2); font-weight: 700; white-space: nowrap; position: sticky; top: 0; font-size: 0.72rem; font-stretch: 125%; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
@@ -964,7 +965,7 @@ button.mark-btn:disabled { opacity: 0.4; }
 
 /* --- compare -------------------------------------------------------------------------------------------------- */
 /* equal columns; the mirror's portraits are 180 × 360, so they're shown near that size, never blown up */
-.cmp-table { table-layout: fixed; min-width: 640px; }
+.cmp-table { table-layout: fixed; min-width: max(640px, calc(140px + var(--n, 3) * 160px)); }
 .cmp-table td, .cmp-table th { min-width: 160px; }
 .cmp-table thead th { position: static; vertical-align: bottom; }
 .cmp-table thead th:first-child { width: 140px; }
@@ -974,6 +975,18 @@ button.mark-btn:disabled { opacity: 0.4; }
   background: radial-gradient(circle at 50% 30%, var(--surface-3), var(--surface-2) 70%); border: 1px solid var(--border); }
 .cmp-head .art:hover { border-color: var(--accent); }
 .cmp-head .art img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
+/* phones: a narrow label column and smaller portraits, so two operators fit side by side; three or four scroll
+   sideways inside the table, with the labels kept in view */
+@media (max-width: 600px) {
+  .cmp-table { min-width: calc(76px + var(--n, 3) * 132px); }
+  .cmp-table td, .cmp-table th { min-width: 0; }
+  .cmp-table thead th:first-child { width: 76px; }
+  .cmp-table th[scope="row"] { min-width: 0; padding: 8px 6px; font-size: 0.66rem; letter-spacing: 0.04em; overflow-wrap: anywhere; }
+  .cmp-table td { padding: 8px; overflow-wrap: anywhere; }
+  .cmp-head .art { width: min(100%, 96px); }
+  .cmp-table .field, .cmp-table select { min-width: 0; max-width: 100%; }
+  .cmp-table th[scope="row"] .badge { white-space: normal; }
+}
 
 /* --- credits -------------------------------------------------------------------------------------------------- */
 .credit-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }

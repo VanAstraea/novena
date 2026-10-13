@@ -2,20 +2,12 @@
 import { useEffect, useState } from "preact/hooks";
 import { Explain, GuideLink } from "../components/ui";
 import { WeightsControl } from "../components/Weights";
-import { clearAll, getItem, keys, setItem, setPref } from "../lib/storage";
+import { clearAll, setPref } from "../lib/storage";
+import { makeBackup, restoreBackup } from "../lib/backup";
 import { href, navigate } from "../lib/router";
 import { install, installed, installPrompt, iosSafari } from "../lib/pwa";
 import { SERVERS, server, theme, type Theme } from "../state";
 import type { Server } from "../types";
-
-export const BACKUP_APP = "novena";
-const OLD_BACKUP_APPS = ["doctors-toolkit"]; // the working title, before the name Novena
-
-export async function makeBackup() {
-  const data: Record<string, unknown> = {};
-  for (const k of await keys()) data[k] = await getItem(k);
-  return { app: BACKUP_APP, version: 1, exported: new Date().toISOString(), data };
-}
 
 function download(name: string, text: string) {
   const a = document.createElement("a");
@@ -36,16 +28,14 @@ export default function Settings() {
   const exportAll = async () => {
     const b = await makeBackup();
     download(`novena-backup-${b.exported.slice(0, 10)}.json`, JSON.stringify(b, null, 1));
-    setMsg(`Saved a backup with ${Object.keys(b.data).length} entries.`);
+    setMsg(`Saved a backup with ${Object.keys(b.data).length + Object.keys(b.raw || {}).length} entries.`);
   };
 
   const importFile = async (file: File) => {
     try {
-      const b = JSON.parse(await file.text());
-      if ((b?.app !== BACKUP_APP && !OLD_BACKUP_APPS.includes(b?.app)) || typeof b.data !== "object") throw new Error("That isn't a Novena backup file.");
-      for (const [k, v] of Object.entries(b.data as Record<string, unknown>)) {
-        if (/^(account|targets|prefs)\.(en|jp|kr|cn)$/.test(k)) await setItem(k, v);
-      }
+      let b: unknown;
+      try { b = JSON.parse(await file.text()); } catch { throw new Error("That isn't a Novena backup file."); }
+      await restoreBackup(b);
       setMsg("Backup restored. Reloading…");
       setTimeout(() => location.reload(), 600);
     } catch (e) {
@@ -70,7 +60,7 @@ export default function Settings() {
               <button class="ghost" onClick={() => setConfirmDelete(false)}>Cancel</button></>}
         </div>
         {msg && <p role="status" style={{ marginTop: "8px" }}>{msg}</p>}
-        <Explain>The backup is one JSON file with every server's roster, depot, planner targets and preferences. Importing replaces what's saved for the servers it contains.</Explain>
+        <Explain>The backup is one JSON file with every server's roster, depot, planner targets and preferences, and your tier lists, base setup, leave-out lists and other choices. Importing replaces what's saved for the servers it contains, and the choices it carries. The link to Novena Sync isn't in it: connect again on the new device.</Explain>
       </section>
       <section class="card">
         <h2>Display</h2>

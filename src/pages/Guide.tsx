@@ -235,7 +235,7 @@ function MoveSteps() {
       </ol>
       <h3>Everything</h3>
       <ol class="steps">
-        <li>On <a href={href("/settings")}>Settings &amp; backup</a>, press <em>Export backup</em>: one file with every server's roster, depot, planner targets and preferences.</li>
+        <li>On <a href={href("/settings")}>Settings &amp; backup</a>, press <em>Export backup</em>: one file with every server's roster, depot, planner targets and preferences, plus your tier lists, base setup and leave-out lists.</li>
         <li>In the other browser, open Settings &amp; backup and press <em>Import backup</em>. It replaces what's saved for the servers in the file, then reloads.</li>
       </ol>
       <p class="muted">Clearing your browser's site data deletes what Novena saved, so a backup now and then is worth it.</p>

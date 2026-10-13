@@ -151,7 +151,7 @@ function Table({ cols, usage, is, ids }: { cols: Col[]; usage: UsageFile; is: IS
   return (
     <>
       <div class="table-wrap">
-        <table class="cmp-table">
+        <table class="cmp-table" style={{ "--n": cols.length }}>
           <thead>
             <tr>
               <th scope="col"><span class="sr-only">Attribute</span></th>
