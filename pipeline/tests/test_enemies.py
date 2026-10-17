@@ -90,9 +90,11 @@ def test_enemy_stages_lists_visitable_stages_once_with_level_and_group():
     acts = {"zoneToActivity": {"act17d5_zone1": "act17d5"}, "basicInfo": {"act17d5": {"name": "Darknights Memoir - Rerun"}}}
     hashes = {"obt/main/level_main_01-07.json": "h1", "obt/main/level_main_01-01.json": "h0", "activities/act9d0/level_act9d0_01.json": "h2",
               "obt/campaign/level_camp_01.json": "h3", "obt/legion/level_tower_1.json": "h4", "activities/act1multi/level_m1.json": "h5"}
-    known = {"h0": [["enemy_a", 0]], "h1": [["enemy_a", 0], ["enemy_b", 1], ["enemy_unknown", 0]], "h2": [["enemy_a", 1]],
+    lists = {"h0": [["enemy_a", 0]], "h1": [["enemy_a", 0], ["enemy_b", 1], ["enemy_unknown", 0]], "h2": [["enemy_a", 1]],
              "h3": [["enemy_b", 0]], "h4": [["enemy_a", 0]], "h5": [["enemy_a", 0]]}
+    known = {h: {"e": e, "m": f"map {h}"} for h, e in lists.items()}
     out = es.build_from(stages, zones, acts, hashes, known, {"enemy_a", "enemy_b"})
+    assert out["maps"] == ["map h1", "map h2", "map h3"]  # one per stage, in order
     assert out["groups"] == ["Episode 1", "Darknights Memoir", "Annihilation"]
     assert out["stages"] == [["1-7", "The Tyrant", 0], ["DM-1", "Buried", 1], ["Chernobog", "Chernobog", 2]]
     assert out["by"] == {"enemy_a": [[0, 0], [1, 1]], "enemy_b": [[0, 1], [2, 0]]}
@@ -102,3 +104,14 @@ def test_enemies_in_reads_a_level_file_enemy_list_once_per_level():
     from novena_pipeline import enemy_stages as es
     level = {"enemyDbRefs": [{"useDb": True, "id": "enemy_a", "level": 0}, {"id": "enemy_a", "level": 0}, {"id": "enemy_a", "level": 1}, {"id": None}]}
     assert es.enemies_in(level) == [["enemy_a", 0], ["enemy_a", 1]]
+
+
+def test_stage_maps_mark_deploy_tiles_entries_and_the_defence_point():
+    from novena_pipeline import enemy_stages as es
+    tile = lambda key, h="LOWLAND", b="NONE", p="ALL": {"tileKey": key, "heightType": h, "buildableType": b, "passableMask": p}
+    tiles = [tile("tile_forbidden", "HIGHLAND", p="FLY_ONLY"), tile("tile_road", b="MELEE"), tile("tile_wall", "HIGHLAND", "RANGED", "FLY_ONLY"),
+             tile("tile_floor"), tile("tile_start"), tile("tile_end"), tile("tile_flystart", "HIGHLAND"), tile("tile_healing", b="MELEE"), tile("tile_hole")]
+    level = {"mapData": {"tiles": tiles, "map": [[0, 6, 0], [4, 1, 5], [2, 3, 7], [8, 0, 99]]}}
+    assert es.map_of(level) == "xFx/SgE/hr*/oxx"
+    assert es.map_of({}) == ""
+    assert es.read_level({"enemyDbRefs": [{"id": "enemy_a", "level": 0}], **level}) == {"e": [["enemy_a", 0]], "m": "xFx/SgE/hr*/oxx"}

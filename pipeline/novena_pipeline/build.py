@@ -21,6 +21,7 @@ Writes to NOVENA_OUT (default public/data/v1/). Layout:
     {server}/enemies.json         the enemy handbook: every enemy with its stats at each level variant
     {server}/enemy-abilities.json each enemy's ability text (the enemy page loads it)
     {server}/enemy-stages.json    the stages each enemy appears in, with the level variant (the enemy page loads it)
+    {server}/stage-maps.json      each of those stages' map, for the stage view on the Enemies list
 """
 
 from __future__ import annotations
@@ -121,6 +122,7 @@ def build_server(server: str, out: Path, usage_data: dict, jobs, yituliu_values:
     write(out / server / "enemy-abilities.json", enemy_abilities)
     log(f"  [{server}] {len(enemy_index['enemies'])} enemies")
     where = enemy_stages.build(server, {e["id"] for e in enemy_index["enemies"]}, log)
+    write(out / server / "stage-maps.json", {"maps": where.pop("maps")})
     write(out / server / "enemy-stages.json", where)
     log(f"  [{server}] {len(where['stages'])} stages list {len(where['by'])} enemies")
     log(f"  [{server}] done in {time.time() - t0:.1f}s")

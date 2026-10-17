@@ -1228,3 +1228,19 @@ a.tl-op { cursor: pointer; }
 .story-pick { display: block; margin-top: 6px; max-width: 100%; }
 .story-edit { margin-top: 6px; }
 .story-editbar { border-color: var(--accent); }
+
+/* --- stage maps (the Enemies list's stage view), drawn from level data ----------------------------------------- */
+.stage-map { margin: 8px 0 14px; max-width: 640px; }
+.stage-grid { display: grid; gap: 2px; padding: 6px; background: var(--surface-2); border: 1px solid var(--border); }
+.stage-map .tile { display: block; aspect-ratio: 1; border-radius: 2px; }
+.stage-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 6px; font-size: 0.8rem; color: var(--muted); }
+.stage-legend .tile { display: inline-block; width: 0.9em; height: 0.9em; vertical-align: -0.1em; border-radius: 2px; }
+.t-ground { background: color-mix(in srgb, var(--text) 22%, var(--surface)); }
+.t-high { background: color-mix(in srgb, var(--accent) 45%, var(--surface)); }
+.t-path { background: color-mix(in srgb, var(--text) 10%, var(--surface)); }
+.t-block { background: transparent; }
+.t-hole { background: var(--surface); box-shadow: inset 0 0 0 2px var(--border); }
+.t-start { background: var(--bad); }
+.t-fly { background: var(--bad); background-image: repeating-linear-gradient(45deg, transparent 0 3px, rgba(255, 255, 255, 0.45) 3px 5px); }
+.t-end { background: #4a8fe0; }
+.t-special { background: color-mix(in srgb, var(--good) 55%, var(--surface)); }

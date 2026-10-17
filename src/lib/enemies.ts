@@ -61,7 +61,7 @@ export function whereItAppears(file: EnemyStagesFile, id: string): StageGroup[] 
 export const stageKey = (code: string) => code.toUpperCase().replace(/[\s_]+/g, "").replace(/[\u2010-\u2015\u2212]/g, "-");
 const loose = (code: string) => stageKey(code).replace(/-/g, "");
 
-export interface StageHit { code: string; name: string; group: string; enemies: Map<string, number[]> } // enemy id -> levels
+export interface StageHit { code: string; name: string; group: string; enemies: Map<string, number[]>; index: number } // enemies: id -> levels; index: the first stage's place in the file
 
 /** Every stage with that code (a code can repeat: Trials for Navigator's rounds), each with its enemies in the level
  *  file's order and the levels it uses; copies with the same code, name and group (other difficulty tiers) are one. The dash is optional ("15" finds "1-5" only when no
@@ -76,7 +76,7 @@ export function stageHits(file: EnemyStagesFile, code: string): StageHit[] {
   for (const i of idx) {
     const [c, name, g] = file.stages[i];
     const k = `${c}|${name}|${g}`;
-    if (!byName.has(k)) byName.set(k, { code: c, name, group: file.groups[g] || "", enemies: new Map() });
+    if (!byName.has(k)) byName.set(k, { code: c, name, group: file.groups[g] || "", enemies: new Map(), index: i });
     hits.set(i, byName.get(k)!);
   }
   for (const [id, entries] of Object.entries(file.by)) {

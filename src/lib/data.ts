@@ -34,6 +34,7 @@ export const shops = (s: Server) => load<ShopsFile>(`${s}/shops.json`);
 export const enemies = (s: Server) => load<EnemiesFile>(`${s}/enemies.json`);
 export const enemyAbilities = (s: Server) => load<EnemyAbilities>(`${s}/enemy-abilities.json`);
 export const enemyStages = (s: Server) => load<EnemyStagesFile>(`${s}/enemy-stages.json`);
+export const stageMaps = (s: Server) => load<{ maps: string[] }>(`${s}/stage-maps.json`);
 /** Story & archives, or null until the daily build first publishes it (a missing file, or the dev server's page in its place). */
 export const progress = (s: Server) => load<ProgressFile>(`${s}/progress.json`).catch((e: Error) => {
   if (e instanceof SyntaxError || / \(404\)$/.test(e.message)) return null;

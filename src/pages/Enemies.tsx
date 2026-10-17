@@ -4,7 +4,7 @@ import { Fragment } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import { EnemyIcon, ImmunityBadges } from "../components/EnemyParts";
 import { Await, Explain, SortTh, useAsync } from "../components/ui";
-import { enemies as loadEnemies, enemyStages } from "../lib/data";
+import { enemies as loadEnemies, enemyStages, stageMaps } from "../lib/data";
 import { ATTACK_NAMES, damageText, DAMAGE_NAMES, filterEnemies, IMMUNITIES, immunities, LEVEL_NAMES, MOTION_NAMES, readFilters, stageHits, stageSuggestions, statText } from "../lib/enemies";
 import type { SortKey, StageHit } from "../lib/enemies";
 import { href, route, setQuery } from "../lib/router";
@@ -82,8 +82,37 @@ function Filters() {
   );
 }
 
+const TILE: Record<string, [string, string]> = {
+  g: ["ground", "Ground: melee operators deploy here"], h: ["high", "High ground: ranged operators deploy here"],
+  r: ["path", "Path: enemies walk it, nobody deploys"], x: ["block", "Blocked"], o: ["hole", "Hole"],
+  S: ["start", "Enemy entry"], F: ["fly", "Flying enemy entry"], E: ["end", "Defence point"], "*": ["special", "A tile with an effect of its own (healing, volcano, teleporter…)"],
+};
+
+const COUNTED: Record<string, [string, string]> = { S: ["enemy entry", "enemy entries"], F: ["flying enemy entry", "flying enemy entries"], E: ["defence point", "defence points"] };
+
+/** A stage's grid as the game lays it out, drawn from its level data (no game art): what each tile lets you do. */
+export function StageMap({ map, label }: { map: string; label: string }) {
+  const rows = map.split("/").filter(Boolean);
+  if (!rows.length) return null;
+  const cols = Math.max(...rows.map((r) => r.length));
+  const used = new Set(map.replace(/\//g, ""));
+  return (
+    <figure class="stage-map">
+      <div class="stage-grid" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }} role="img"
+        aria-label={`Map of ${label}: ${rows.length} rows by ${cols} columns, ${[...used].filter((c) => "SFE".includes(c)).map((c) => { const n = map.split(c).length - 1; return `${n} ${COUNTED[c][n === 1 ? 0 : 1]}`; }).join(", ")}`}>
+        {rows.flatMap((r, i) => [...r.padEnd(cols, "x")].map((c, j) => <span key={`${i}.${j}`} class={`tile t-${(TILE[c] || TILE.x)[0]}`} title={(TILE[c] || TILE.x)[1]} />))}
+      </div>
+      <figcaption class="stage-legend">
+        {Object.entries(TILE).filter(([c]) => used.has(c) && c !== "x").map(([c, [cls, text]]) => <span key={c}><i class={`tile t-${cls}`} aria-hidden="true" /> {text.split(":")[0]}</span>)}
+      </figcaption>
+    </figure>
+  );
+}
+
 /** The stage (or stages, when a code repeats) the Stage box found, or what to try when it found none. */
 function StageNote({ file, code, hits }: { file: EnemyStagesFile; code: string; hits: StageHit[] }) {
+  const s = server.value;
+  const maps = useAsync(() => (hits.length ? stageMaps(s) : Promise.resolve(null)), [s, hits.length > 0]);
   if (!hits.length) {
     const near = stageSuggestions(file, code);
     return (
@@ -96,7 +125,10 @@ function StageNote({ file, code, hits }: { file: EnemyStagesFile; code: string; 
   return (
     <ul class="stage-hits">
       {hits.map((h, i) => (
-        <li key={i}><strong>{h.code}</strong>{h.name && <> {h.name}</>} <span class="muted">· {h.group} · {h.enemies.size === 1 ? "1 enemy" : `${h.enemies.size} enemies`}</span></li>
+        <li key={i}>
+          <strong>{h.code}</strong>{h.name && <> {h.name}</>} <span class="muted">· {h.group} · {h.enemies.size === 1 ? "1 enemy" : `${h.enemies.size} enemies`}</span>
+          {maps.data?.maps[h.index] && <StageMap map={maps.data.maps[h.index]} label={`${h.code}${h.name ? ` ${h.name}` : ""}`} />}
+        </li>
       ))}
     </ul>
   );
@@ -168,7 +200,7 @@ function List({ data }: { data: EnemiesFile }) {
         </table>
       </div>
       {list.length > limit && <button onClick={() => setLimit(limit + 100)}>Show more ({list.length - limit} left)</button>}
-      <Explain>Every enemy in the game's handbook on this server, from the game's own data. Many enemies have more than one level (stages pick one, and harder stages usually pick a higher one): the list shows each enemy's first, and the enemy's page shows them all side by side. Type a stage code in Stage (1-7, CE-5, DM-EX-2) to see only that stage's enemies, at the levels it uses, including ones other enemies summon; story, event, supply and Annihilation stages are covered.</Explain>
+      <Explain>Every enemy in the game's handbook on this server, from the game's own data. Many enemies have more than one level (stages pick one, and harder stages usually pick a higher one): the list shows each enemy's first, and the enemy's page shows them all side by side. Type a stage code in Stage (1-7, CE-5, DM-EX-2) to see only that stage's enemies, at the levels it uses, including ones other enemies summon; story, event, supply and Annihilation stages are covered. Each stage comes with its map, drawn from the game's level data: where melee and ranged operators deploy, where enemies come in (flying ones too) and the defence point. Enemy routes and waves aren't shown.</Explain>
     </>
   );
 }

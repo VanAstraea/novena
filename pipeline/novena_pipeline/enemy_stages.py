@@ -2,6 +2,8 @@
 
     {server}/enemy-stages.json   {"groups": [name, ...], "stages": [[code, name, group index], ...],
                                   "by": {enemy id: [[stage index, level variant], ...]}}
+    {server}/stage-maps.json     {"maps": [map, ...]}, one per stage above, in the same order: rows top to bottom,
+                                  joined by "/", one character per tile (see TILES)
 
 Only the per-stage level files say which enemies a stage has (levels/obt/..., levels/activities/...: over 3,000 files,
 some 300 MB per server), so each is read once and only its enemy list is kept, under the file's git blob hash: the
@@ -32,6 +34,10 @@ REPO = "ArknightsAssets/ArknightsGamedata"
 TREE_URL = f"https://api.github.com/repos/{REPO}/git/trees/{{sha}}"
 FILE_URL = f"https://raw.githubusercontent.com/{REPO}/master/{{locale}}/gamedata/levels/{{path}}"
 CACHE = CACHE_DIR / "levels"
+# A stage map's tiles, one character each: where operators deploy, where enemies walk, enter and leave.
+TILES = {"start": "S", "flystart": "F", "end": "E", "hole": "o"}
+SPECIAL = "*"  # healing, volcano, teleporter, and the other tiles with an effect of their own
+PLAIN = {"tile_road", "tile_wall", "tile_floor", "tile_forbidden", "tile_grass", "tile_empty"}
 TREE_MAX_AGE = 20 * 3600
 KINDS = {"MAIN", "ACTIVITY", "SUB", "DAILY", "CAMPAIGN"}
 SKIP_LEVELS = re.compile(r"autochess|multi|enemyduel", re.I)  # game modes with no stages to look up
@@ -63,6 +69,39 @@ def level_hashes(server: str) -> dict[str, str]:
         return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
+def map_of(level: dict) -> str:
+    """The stage's grid, top row first ("/" between rows): g deployable ground, h deployable high ground, r ground
+    enemies walk but nobody deploys on, x blocked, o hole, S enemy entry, F flying entry, E the defence point, * a tile
+    with an effect of its own (healing, volcano, teleporter…). Empty when the file has no map."""
+    m = level.get("mapData") or {}
+    tiles = m.get("tiles") or []
+    rows = []
+    for row in m.get("map") or []:
+        out = []
+        for i in row:
+            t = tiles[i] if 0 <= i < len(tiles) else {}
+            key = (t.get("tileKey") or "").removeprefix("tile_")
+            if key in TILES:
+                out.append(TILES[key])
+            elif t.get("tileKey") and t["tileKey"] not in PLAIN:
+                out.append(SPECIAL)
+            elif t.get("buildableType") in ("MELEE", "ALL") and t.get("heightType") == "LOWLAND":
+                out.append("g")
+            elif t.get("buildableType") in ("RANGED", "ALL"):
+                out.append("h")
+            elif t.get("heightType") == "LOWLAND" and t.get("passableMask") != "FLY_ONLY":
+                out.append("r")
+            else:
+                out.append("x")
+        rows.append("".join(out))
+    return "/".join(rows)
+
+
+def read_level(level: dict) -> dict:
+    """What's kept of a level file: its enemies ("e") and its map ("m")."""
+    return {"e": enemies_in(level), "m": map_of(level)}
+
+
 def enemies_in(level: dict) -> list[list]:
     """[[enemy id, level variant], ...] a level file lists, in its order, each pair once."""
     seen, out = set(), []
@@ -74,27 +113,29 @@ def enemies_in(level: dict) -> list[list]:
     return out
 
 
-def _known() -> dict[str, list]:
+def _known() -> dict[str, dict]:
+    """What's been read, by blob hash; entries from before maps were kept (a bare enemy list) are read again."""
     path = CACHE / "enemies.json"
-    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    known = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    return {k: v for k, v in known.items() if isinstance(v, dict)}
 
 
-def _save(known: dict[str, list]) -> None:
+def _save(known: dict[str, dict]) -> None:
     CACHE.mkdir(parents=True, exist_ok=True)
     (CACHE / "enemies.json").write_text(json.dumps(known, separators=(",", ":")), encoding="utf-8")
 
 
-def fetch(server: str, paths: dict[str, str], log: Callable[[str], None] = print) -> dict[str, list]:
-    """{blob hash: enemies} for the given {path: hash}, downloading only hashes not read before."""
+def fetch(server: str, paths: dict[str, str], log: Callable[[str], None] = print) -> dict[str, dict]:
+    """{blob hash: {"e": enemies, "m": map}} for the given {path: hash}, downloading only hashes not read before."""
     known = _known()
     todo = {sha: p for p, sha in paths.items() if sha not in known}
     if todo and not OFFLINE:
         log(f"  [{server}] reading {len(todo)} new stage files")
 
-        def one(item: tuple[str, str]) -> tuple[str, list | None]:
+        def one(item: tuple[str, str]) -> tuple[str, dict | None]:
             sha, p = item
             try:
-                return sha, enemies_in(json.loads(get_bytes(FILE_URL.format(locale=server, path=p), timeout=60)))
+                return sha, read_level(json.loads(get_bytes(FILE_URL.format(locale=server, path=p), timeout=60)))
             except Exception:
                 return sha, None  # tried again tomorrow
 
@@ -122,12 +163,14 @@ def _group(st: dict, zones: dict, zone_act: dict, acts: dict) -> str:
 
 
 def build_from(stage_table: dict, zone_table: dict, activity_table: dict, hashes: dict[str, str],
-               known: dict[str, list], enemy_ids: set[str]) -> dict[str, Any]:
+               known: dict[str, dict], enemy_ids: set[str]) -> dict[str, Any]:
+    """The enemy-stages file, with "maps" (one per stage, in order) for stage-maps.json; build() splits them off."""
     zones = zone_table.get("zones") or {}
     zone_act = activity_table.get("zoneToActivity") or {}
     acts = activity_table.get("basicInfo") or {}
     groups: list[str] = []
     stages: list[list] = []
+    maps: list[str] = []
     by: dict[str, list[list[int]]] = {}
     done: set[str] = set()
     for st in (stage_table.get("stages") or {}).values():
@@ -135,8 +178,8 @@ def build_from(stage_table: dict, zone_table: dict, activity_table: dict, hashes
         if (st.get("stageType") not in KINDS or st.get("isStoryOnly") or st.get("difficulty") == "FOUR_STAR"
                 or not lid or lid in done or SKIP_LEVELS.search(lid)):
             continue
-        found = known.get(hashes.get(f"{lid}.json", ""))
-        found = [(e, lv) for e, lv in found or [] if e in enemy_ids]
+        level = known.get(hashes.get(f"{lid}.json", "")) or {}
+        found = [(e, lv) for e, lv in level.get("e") or [] if e in enemy_ids]
         if not found:
             continue
         done.add(lid)
@@ -144,9 +187,10 @@ def build_from(stage_table: dict, zone_table: dict, activity_table: dict, hashes
         if g not in groups:
             groups.append(g)
         stages.append([st.get("code") or st["stageId"], (st.get("name") or "").strip(), groups.index(g)])
+        maps.append(level.get("m") or "")
         for e, lv in found:
             by.setdefault(e, []).append([len(stages) - 1, lv])
-    return {"groups": groups, "stages": stages, "by": by}
+    return {"groups": groups, "stages": stages, "by": by, "maps": maps}
 
 
 def build(server: str, enemy_ids: set[str], log: Callable[[str], None] = print) -> dict[str, Any]:

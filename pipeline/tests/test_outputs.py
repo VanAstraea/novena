@@ -56,3 +56,5 @@ def test_server_files(server):
     where = load(f"{server}/enemy-stages.json")
     assert len(where["stages"]) > 500 and "Annihilation" in where["groups"]
     assert any(where["stages"][i][0] == "0-1" for i, _ in where["by"]["enemy_1007_slime"])
+    maps = load(f"{server}/stage-maps.json")["maps"]
+    assert len(maps) == len(where["stages"]) and sum("E" in m for m in maps) > len(maps) * 0.9
