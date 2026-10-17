@@ -52,6 +52,8 @@ export interface SkillLevel {
   init: number;
   dur: number;
   range?: string;
+  bb?: { atk?: number; attack_speed?: number; atk_scale?: number }; // what the damage estimate uses
+  x?: 1; // has other effects on attacking: the estimate doesn't model it
 }
 
 export interface Skill {

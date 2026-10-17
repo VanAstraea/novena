@@ -26,6 +26,27 @@ SP_TYPE = {"INCREASE_WITH_TIME": "auto", "INCREASE_WHEN_ATTACK": "offensive", "I
            8: "passive", 1: "auto", 2: "offensive", 4: "defensive"}
 _GENDER = re.compile(r"(?:【性别】|\[Gender\])\s*(\S+)")
 
+# A skill level's values that the Compare page's damage estimate uses ("bb"), and whether it has others that change how
+# or how hard the operator attacks ("x": then the estimate says "not modelled" rather than guess). Values that only
+# touch the holder's defence, HP, block, taunt or movement, or how many targets it hits (the estimate is for one), don't
+# change it. DEF and RES count as the holder's own unless the skill's text talks about enemies (then they're theirs).
+DAMAGE_KEYS = ("atk", "attack_speed", "atk_scale")
+HARMLESS_KEYS = {"max_hp", "block_cnt", "taunt_level", "move_speed", "damage_resistance", "hp_recovery_per_sec",
+                 "hp_recovery_per_sec_by_max_hp_ratio", "cost", "respawn_time", "duration", "max_target", "attack@max_target"}
+SELF_KEYS = {"def", "magic_resistance"}
+
+
+def damage_values(board: list[dict] | None, desc: str = "") -> dict[str, Any]:
+    vals = {b["key"]: b.get("value") for b in board or [] if b.get("key")}
+    own = "enem" not in desc.lower()
+    out: dict[str, Any] = {}
+    bb = {k: round(float(vals[k]), 4) for k in DAMAGE_KEYS if isinstance(vals.get(k), (int, float))}
+    if bb:
+        out["bb"] = bb
+    if any(k not in DAMAGE_KEYS and k not in HARMLESS_KEYS and not (k in SELF_KEYS and own) for k in vals):
+        out["x"] = 1
+    return out
+
 
 def items(entries: list[dict] | None) -> list[list]:
     return [[e["id"], e["count"]] for e in entries or [] if e.get("count")]
@@ -217,7 +238,7 @@ class Builder:
                 self.ranges.add(lv["rangeId"])
             levels.append({"desc": markup(fill(lv.get("description") or "", bb)), "sp": sp.get("spCost", 0),
                            "init": sp.get("initSp", 0), "dur": lv.get("duration", 0),
-                           **({"range": lv["rangeId"]} if lv.get("rangeId") else {})})
+                           **({"range": lv["rangeId"]} if lv.get("rangeId") else {}), **damage_values(lv.get("blackboard"), lv.get("description") or "")})
         first = (sk.get("levels") or [{}])[0]
         return {
             "id": s["skillId"], "icon": sk.get("iconId") or s["skillId"], "name": first.get("name", s["skillId"]),

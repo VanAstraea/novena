@@ -13,6 +13,7 @@ import { fresh, sanity, stateCost, type OpState } from "../lib/costs";
 import { art, integrated, operator, operators, usage as loadUsage } from "../lib/data";
 import { CATEGORY_NAMES, CLASS_NAMES, fmt, pct } from "../lib/format";
 import { href, route, setQuery } from "../lib/router";
+import { damageAt, type Foe } from "../lib/damage";
 import { statsAt, type BuildSpec } from "../lib/stats";
 import { account, server } from "../state";
 import type { ISFile, OpDetail, OpIndex, UsageFile } from "../types";
@@ -113,10 +114,37 @@ function TextRow({ label, cells }: { label: ComponentChildren; cells: ComponentC
   return <tr><th scope="row">{label}</th>{cells.map((c, i) => <td key={i}>{c}</td>)}</tr>;
 }
 
+const TYPE_NAMES = { physical: "Physical", arts: "Arts", true: "True", none: "Doesn't attack" } as const;
+const FOES: [string, number, number][] = [["No DEF or RES", 0, 0], ["Light: 300 DEF, 20 RES", 300, 20], ["Armoured: 800 DEF, 30 RES", 800, 30], ["Heavy: 1,500 DEF, 50 RES", 1500, 50]];
+
+/** The damage estimate's enemy: DEF and RES in the address (edef, eres), with a few typical ones to pick. */
+function FoePicker({ foe }: { foe: Foe }) {
+  const num = (v: string, max: number) => String(Math.min(Math.max(Math.round(+v || 0), 0), max));
+  return (
+    <div class="row" style={{ alignItems: "flex-end", margin: "0 0 10px" }}>
+      <label class="field"><span>Enemy</span>
+        <select value={FOES.find(([, d, r]) => d === foe.def && r === foe.res)?.[0] || ""} onChange={(e) => {
+          const f = FOES.find(([n]) => n === (e.target as HTMLSelectElement).value);
+          if (f) setQuery({ edef: f[1] ? String(f[1]) : "", eres: f[2] ? String(f[2]) : "" });
+        }}>
+          {!FOES.some(([, d, r]) => d === foe.def && r === foe.res) && <option value="">Your own numbers</option>}
+          {FOES.map(([n]) => <option key={n} value={n}>{n}</option>)}
+        </select>
+      </label>
+      <label class="field"><span>DEF</span><input type="number" min={0} max={5000} value={foe.def} onChange={(e) => setQuery({ edef: num((e.target as HTMLInputElement).value, 5000) })} /></label>
+      <label class="field"><span>RES</span><input type="number" min={0} max={100} value={foe.res} onChange={(e) => setQuery({ eres: num((e.target as HTMLInputElement).value, 100) })} /></label>
+      <small class="muted">Look one up in the <a href={href("/enemies")}>Enemy database</a>.</small>
+    </div>
+  );
+}
+
 function Table({ cols, usage, is, ids }: { cols: Col[]; usage: UsageFile; is: ISFile; ids: string[] }) {
   const meta = metaSig.value;
   const values = itemsSig.value?.values || {};
   const stats = cols.map((c) => statsAt(c.d, c.spec));
+  const q = route.value.query;
+  const foe: Foe = { def: Math.max(0, +(q.get("edef") || 0) || 0), res: Math.min(100, Math.max(0, +(q.get("eres") || 0) || 0)) };
+  const dmg = cols.map((c) => damageAt(c.d, c.spec, foe));
   const setCol = (i: number, spec: BuildSpec) => {
     const qq = Object.fromEntries(Object.entries(specToQuery(spec)).map(([k, v]) => [`c${i}${k}`, v]));
     setQuery(qq);
@@ -150,6 +178,7 @@ function Table({ cols, usage, is, ids }: { cols: Col[]; usage: UsageFile; is: IS
 
   return (
     <>
+      <FoePicker foe={foe} />
       <div class="table-wrap">
         <table class="cmp-table" style={{ "--n": cols.length }}>
           <thead>
@@ -188,6 +217,24 @@ function Table({ cols, usage, is, ids }: { cols: Col[]; usage: UsageFile; is: IS
               title="Seconds between attacks, after attack speed" />
             <Row label={<>ATK / second <span class="badge est">estimate</span></>} better="high" values={stats.map((s) => s.atkPerSec)} render={fmt}
               title="ATK ÷ attack interval, before enemy DEF/RES, talents and skills" />
+            <TextRow label="Damage type" cells={dmg.map((x) => TYPE_NAMES[x.type])} />
+            <Row label={<>Damage per hit <span class="badge est">estimate</span></>} better="high" values={dmg.map((x) => x.normal?.hit ?? null)} render={fmt}
+              title="A normal attack against the enemy above: ATK minus DEF for physical, ATK reduced by RES for Arts, at least 5% of ATK" />
+            <Row label={<>DPS, normal attacks <span class="badge est">estimate</span></>} better="high" values={dmg.map((x) => x.normal?.dps ?? null)} render={fmt}
+              title="Damage per hit ÷ attack interval, one target, before talents and other operators' buffs" />
+            <tr>
+              <th scope="row" title="Damage per second while the chosen skill is active, when the skill only raises ATK, attack speed or each hit's damage">DPS, chosen skill active <span class="badge est">estimate</span></th>
+              {dmg.map((x, i) => {
+                const s = x.skill;
+                const best = Math.max(...dmg.map((y) => (y.skill && "dps" in y.skill ? y.skill.dps : -1)));
+                return (
+                  <td key={i} class={s && "dps" in s && s.dps === best && dmg.filter((y) => y.skill && "dps" in y.skill).length > 1 ? "best num" : "num"}>
+                    {!s ? "–" : "dps" in s ? <>{fmt(s.dps)}<br /><small class="muted">S{(cols[i].spec.skill ?? 0) + 1}: {fmt(s.hit)} a hit</small></>
+                      : <small class="muted" title={s.why}>Not modelled</small>}
+                  </td>
+                );
+              })}
+            </tr>
             <Row label="Block" better="high" values={stats.map((s) => s.total.block)} render={String} />
             <Row label="DP cost" better="low" values={stats.map((s) => s.total.cost)} render={String} />
             <Row label="Redeploy" better="low" values={stats.map((s) => s.total.respawn)} render={(v) => `${v} s`} />
@@ -257,7 +304,7 @@ function Table({ cols, usage, is, ids }: { cols: Col[]; usage: UsageFile; is: IS
           </tbody>
         </table>
       </div>
-      <Explain>▲ marks the best value in a row. Usage: share of community clear guides (MAA Copilot, CN) for that content that use the operator. IS: MAA's recruit priority per theme. Estimates are labelled; there is no full DPS simulation.</Explain>
+      <Explain>▲ marks the best value in a row. Usage: share of community clear guides (MAA Copilot, CN) for that content that use the operator. IS: MAA's recruit priority per theme. Estimates are labelled; there is no full DPS simulation. The damage rows are for one target, against the enemy DEF and RES above: physical hits lose DEF, Arts hits lose that share to RES, and every hit deals at least 5% of ATK. A skill gets a figure only when all it does to attacking is raise ATK, attack speed or each hit's damage for a while; anything else (extra hits, changed attack intervals, triggered or charged attacks) shows "Not modelled" rather than a guess. Talents, module traits, other operators' buffs and damage over time aren't counted.</Explain>
     </>
   );
 }
