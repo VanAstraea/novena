@@ -75,8 +75,12 @@ def map_of(level: dict) -> str:
     with an effect of its own (healing, volcano, teleporter…). Empty when the file has no map."""
     m = level.get("mapData") or {}
     tiles = m.get("tiles") or []
+    grid = m.get("map") or []
+    if isinstance(grid, dict):  # some older files keep it flat: {"row_size", "column_size", "matrix_data"}, row by row
+        n, flat = int(grid.get("column_size") or 0), grid.get("matrix_data") or []
+        grid = [flat[i:i + n] for i in range(0, len(flat), n)] if n else []
     rows = []
-    for row in m.get("map") or []:
+    for row in grid:
         out = []
         for i in row:
             t = tiles[i] if 0 <= i < len(tiles) else {}
@@ -132,11 +136,14 @@ def fetch(server: str, paths: dict[str, str], log: Callable[[str], None] = print
     if todo and not OFFLINE:
         log(f"  [{server}] reading {len(todo)} new stage files")
 
+        failed: list[str] = []
+
         def one(item: tuple[str, str]) -> tuple[str, dict | None]:
             sha, p = item
             try:
                 return sha, read_level(json.loads(get_bytes(FILE_URL.format(locale=server, path=p), timeout=60)))
-            except Exception:
+            except Exception as e:
+                failed.append(f"{p} ({type(e).__name__}: {e})")
                 return sha, None  # tried again tomorrow
 
         with concurrent.futures.ThreadPoolExecutor(8) as pool:
@@ -146,6 +153,8 @@ def fetch(server: str, paths: dict[str, str], log: Callable[[str], None] = print
                 if i % 200 == 0:
                     _save(known)
         _save(known)
+        if failed:  # unread stages drop out of the files until a later run reads them: say so, with an example
+            log(f"  [{server}] {len(failed)} stage files couldn't be read, e.g. {failed[0]}")
     return known
 
 

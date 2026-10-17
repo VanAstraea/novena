@@ -114,4 +114,6 @@ def test_stage_maps_mark_deploy_tiles_entries_and_the_defence_point():
     level = {"mapData": {"tiles": tiles, "map": [[0, 6, 0], [4, 1, 5], [2, 3, 7], [8, 0, 99]]}}
     assert es.map_of(level) == "xFx/SgE/hr*/oxx"
     assert es.map_of({}) == ""
+    flat = {"mapData": {"tiles": tiles, "map": {"row_size": 4, "column_size": 3, "matrix_data": [0, 6, 0, 4, 1, 5, 2, 3, 7, 8, 0, 99]}}}
+    assert es.map_of(flat) == "xFx/SgE/hr*/oxx"  # the flat form some older files use
     assert es.read_level({"enemyDbRefs": [{"id": "enemy_a", "level": 0}], **level}) == {"e": [["enemy_a", 0]], "m": "xFx/SgE/hr*/oxx"}

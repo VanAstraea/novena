@@ -54,7 +54,7 @@ def test_server_files(server):
     assert slug["level"] == "NORMAL" and slug["lv"][0]["hp"] > 0
     assert "enemy_1501_demonk" in load(f"{server}/enemy-abilities.json")
     where = load(f"{server}/enemy-stages.json")
-    assert len(where["stages"]) > 500 and "Annihilation" in where["groups"]
+    assert len(where["stages"]) > 1600 and "Annihilation" in where["groups"]  # about 1,720 on EN in October 2026
     assert any(where["stages"][i][0] == "0-1" for i, _ in where["by"]["enemy_1007_slime"])
     maps = load(f"{server}/stage-maps.json")["maps"]
     assert len(maps) == len(where["stages"]) and sum("E" in m for m in maps) > len(maps) * 0.9
