@@ -31,13 +31,14 @@ tokens, expiring items) · gaps by archetype · base map.
   archives, supplies, Annihilation), and a stage search (1-7, CE-5) on the list and in the search box.
 - **Install & offline** (a PWA), and backups that carry everything saved in the browser.
 - **Base:** the Control Center's faction effects (Blacksteel and Pinus Sylvestris in factories, Siracusa and Kjerag
-  in Trading Posts, Minos for the Reception Room, the Lungmen Guard pairing), counted in the plan.
+  in Trading Posts, Minos for the Reception Room, the Lungmen Guard pairing), counted in the plan; trainers that
+  count Sami, Siracusa or Abyssal Hunter operators stationed in the base.
 
 ## Next
 
 - **Operator list from screenshots.** Waiting on sample screenshots of the game's operator list.
-- **More conditional base effects:** the Training Room's faction-counting trainers (Sami, Siracusa, Abyssal Hunters,
-  Knights), effects on Trading Post order limits, and conditional morale effects.
+- **More conditional base effects:** trainers counting "Knight", "Defending" or "Attacking" operators (the game
+  doesn't list who those are), effects on Trading Post order limits, and conditional morale effects.
 - **Check on a real account:** run Novena Sync with `NOVENA_SHAPE=1` once (it writes the keys, never the values) to
   confirm the recruit, base and progress field names, how paid Annihilation milestones show, and that
   `retro.block.open` means an archive is unlocked.

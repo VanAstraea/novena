@@ -6,7 +6,7 @@ import { Evaluator, gameOrder, LAYOUTS, movesFrom, NO_PINS, production, PRODUCT_
 import { load, operators } from "../lib/data";
 import { DEFAULT_DORMS, dormPlan, dormRate, drains, lasts, MAX_MORALE, type DormSettings } from "../lib/morale";
 import { pref, setPref } from "../lib/storage";
-import { CLASSES, hm, trainersByClass, workshopPicks } from "../lib/training";
+import { CLASSES, factionCounts, hm, trainersByClass, workshopPicks } from "../lib/training";
 import { duration, fmt, relative } from "../lib/format";
 import { href } from "../lib/router";
 import { account, dronesFullAt, hasRoster, server, type BaseRoom } from "../state";
@@ -95,6 +95,8 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
     const ev = new Evaluator(data, skills, rooms, dormLevels, factions);
     return rotation(rooms, ev, new Set(Object.keys(roster)), shifts, pins);
   }, [data, skills, layout, shifts, levels, gold, pins, dormLevels, factions]);
+  // who's stationed, for trainers that count a faction in the base: your base at the last sync, or shift A of the plan
+  const stationed = useMemo(() => (synced ? synced.rooms.flatMap((r) => r.team.map((t) => t.charId)) : (plan[0] || []).flatMap(([, t]) => t.members)), [synced, plan]);
   const names = (t: Team) => t.members.map((m) => `${ops.get(m)?.name || m}${t.pinned?.includes(m) ? " (pinned)" : ""}`).join(", ");
   const text = plan.map((a, i) => [`Shift ${"ABC"[i]} (${24 / shifts} h)`, ...a.map(([r, t]) => `  ${ROOM_LABEL[r.facility]} (${PRODUCT_LABEL[r.product] || r.product}): ${names(t) || "—"}`)].join("\n")).join("\n\n");
   const k = Math.max(0, "ABC".indexOf(tab));
@@ -163,7 +165,7 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
       </>}
       {view === "dorms" && (rest ? <DormCard plan={rest} shift={"ABC"[k]} ops={ops} dorms={dorms} save={saveDorms} />
         : <p class="note">With one shift, nobody rests: every team runs out of morale before the day is over. Two or three shifts let the others recover in the dorms.</p>)}
-      {view === "training" && <TrainingCard data={data} ops={ops} />}
+      {view === "training" && <TrainingCard data={data} ops={ops} stationed={stationed} fromSync={!!synced} factions={factions} />}
       {view === "unlocks" && (unlocks.length === 0 ? <p class="muted">No promotion would unlock a base skill that raises this rotation's production.</p> : (
         <section class="card">
           <h2>Base skills worth unlocking</h2>
@@ -204,9 +206,13 @@ function DormCard({ plan, shift, ops, dorms, save }: { plan: NonNullable<ReturnT
   );
 }
 
-function TrainingCard({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
+function TrainingCard({ data, ops, stationed, fromSync, factions }: { data: BaseFile; ops: Map<string, OpIndex>; stationed: string[]; fromSync: boolean; factions: Map<string, string[]> }) {
   const roster = account.value.ops;
-  const byClass = useMemo(() => trainersByClass(data, roster), [data, roster]);
+  // trainers that count a faction stationed in the base: who's stationed in your synced base, or in shift A of the plan
+  const inBase = useMemo(() => factionCounts(stationed, factions), [stationed, factions]);
+  const byClass = useMemo(() => trainersByClass(data, roster, inBase), [data, roster, inBase]);
+  const counted = [...new Set(Object.values(data.trainFaction || {}).map(([f]) => f))]
+    .filter((f) => Object.values(roster).some((r) => [...skillsAt(data, r.id, r.elite, r.level)].some((s) => data.trainFaction?.[s]?.[0] === f)));
   const shop = useMemo(() => workshopPicks(data, roster), [data, roster]);
   const name = (id: string) => ops.get(id)?.name || id;
   const hours = [8, 16, 24];
@@ -231,6 +237,7 @@ function TrainingCard({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex>
               </tbody>
             </table>
           </div>
+          {counted.length > 0 && <p class="muted">Trainers that count a faction in the base count {counted.map((f) => `${inBase.get(f) || 0} ${metaSig.value?.factions[f] || f}`).join(", ")} operators stationed {fromSync ? "in your base at your last sync" : "in shift A of the plan"}.</p>}
           <Explain>A mastery normally takes 8, 16 or 24 hours (some operators' take longer); times shown are for the usual length. Branch extras ("if the trainee is a Besieger") show on each operator's Skills tab and in the Plan.</Explain>
         </div>
         <div>

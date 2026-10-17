@@ -101,3 +101,19 @@ def test_faction_rules_read_control_center_faction_effects():
         "minos": [{"k": "base", "f": "Reception", "t": "minos", "v": 4.0, "max": 20.0}],
         "lgd": [{"k": "with", "f": "Mfg", "t": "lgd", "v": 3.0}],
     }  # Karlan Trade changes the order limit, "Knight" isn't a faction, the flat buff is control_buffs'
+
+
+def test_faction_trainers_count_a_faction_in_the_base():
+    from novena_pipeline import base
+    powers = {"Sami": "sami", "Abyssal Hunters": "abyssal"}
+    sami = ("When this Operator is assigned to be the Trainer in the Training Room, Operators' Specialization training speed "
+            "+10% for each <@cc.kw>Sami</> Operator in the Base (excluding Assistants and Activity Room users, caps at 3 Operators)")
+    abyssal = ("When this Operator is assigned to be the Trainer in the Training Room, Morale consumed per hour +1, and Operators' "
+               "Specialization training speed +10% for each Abyssal Hunter Operator in the Base (excluding Assistants and "
+               "Activity Room users, caps at 5 Operators)")
+    knight = ("When this Operator is assigned to be the Trainer in the Training Room, for each Knight Operator in the Base "
+              "(excluding Assistants and Activity Room users), Operators' Specialization training speed +5% (caps at 5 Operators)")
+    assert base.parse_faction_trainer(sami, powers) == ["sami", 10.0, 3]
+    assert base.parse_faction_trainer(abyssal, powers) == ["abyssal", 10.0, 5]
+    assert base.parse_faction_trainer(knight, powers) is None  # not a faction
+    assert base.parse_trainer(sami, {}) is None  # and not a plain trainer either

@@ -20,12 +20,13 @@ Also, after ako's base.py and training.py:
      "dorm":   {skill id: [everyone, one, own, per dorm level]}  morale per hour a dorm skill adds
      "train":  {skill id: [speed %, [classes] (empty: all), branch or null, mastery level or null, extra %]}
      "workshop": {skill id: [materials, byproduct rate %]}
+     "trainFaction": {skill id: [faction, speed % per member, most members]}  trainers that count a faction in the base
      "layout": {"rows", "cols", "slots": {slot id: [row, col, height, width, floor]},
                 "passages": [[row, col, height, width(, 1 in the annex)]], "annex": [slot ids], "capacity": {room: [per level]}}
                the base's slot grid from building_data, rows flipped so the top floor comes first, for the base map
 Training and Workshop skills aren't in MAA's data, so they're read from the game's English descriptions (skill ids
-are the same on every server). Left out: conditional morale effects, the faction-counting Training Room skills, and
-the ones that depend on stored-up effects.
+are the same on every server). Left out: conditional morale effects, trainers counting "Knight", "Defending" or
+"Attacking" operators (not factions), and the ones that depend on stored-up effects.
 """
 
 from __future__ import annotations
@@ -57,6 +58,24 @@ _LEVEL = [re.compile(r"if training (?:this|a|the) skill to Specialization Level 
                      r"increased by \+(\d+)%"),
           re.compile(r"further increases this speed by \+(\d+)% if training the skill to Specialization Level (\d)")]
 _FACTION = re.compile(r"for each [\w ]+? Operator in the Base")
+_FACTION_SPEED = [re.compile(r"training speed \+(\d+)% for each ([\w ]+?) Operator in the Base \(.*?caps at (\d+) Operators?\)"),
+                  re.compile(r"for each ([\w ]+?) Operator in the Base \(.*?\), Operators' Specialization training speed \+(\d+)% \(caps at (\d+) Operators?\)")]
+
+
+def parse_faction_trainer(desc: str, powers: dict[str, str]) -> list | None:
+    """A trainer that counts a faction stationed in the base, as [faction id, speed % per member, most members], when
+    the faction is one the game's team table names (`powers`: English name, also without a final "s" -> id)."""
+    desc = _clean(desc)
+    if "Trainer" not in desc:
+        return None
+    if m := _FACTION_SPEED[0].search(desc):
+        pct, name, cap = m.group(1), m.group(2), m.group(3)
+    elif m := _FACTION_SPEED[1].search(desc):
+        name, pct, cap = m.group(1), m.group(2), m.group(3)
+    else:
+        return None
+    faction = powers.get(name) or powers.get(name + "s")
+    return [faction, float(pct), int(cap)] if faction else None
 _BYPRODUCT = re.compile(r"Workshop to process (.+?)(?:,| the corresponding).*?byproduct[^%]*?(\d+)%|"
                         r"Workshop to process (.+?), the production rate of byproduct increases by (\d+)%")
 
@@ -132,20 +151,23 @@ def parse_workshop(desc: str) -> list | None:
     return [scope, float(pct)]
 
 
-def training_workshop() -> tuple[dict, dict]:
+def training_workshop() -> tuple[dict, dict, dict]:
     """Keyed by skill icon (the id the rest of this file uses), read from the English table."""
     en = gd.table("building_data", "en")["buffs"]
     branches = {v.get("subProfessionName"): k for k, v in (gd.table("uniequip_table", "en").get("subProfDict") or {}).items()}
-    train, workshop = {}, {}
+    powers = {v["powerName"]: k for k, v in gd.table("handbook_team_table", "en").items() if v.get("powerName")}
+    train, workshop, by_faction = {}, {}, {}
     for b in en.values():
         icon = b.get("skillIcon")
         if not icon:
             continue
         if b.get("roomType") == "TRAINING" and (fx := parse_trainer(b.get("description"), branches)):
             train[icon] = fx
+        elif b.get("roomType") == "TRAINING" and (fx := parse_faction_trainer(b.get("description"), powers)):
+            by_faction[icon] = fx
         elif b.get("roomType") == "WORKSHOP" and (fx := parse_workshop(b.get("description"))):
             workshop[icon] = fx
-    return train, workshop
+    return train, workshop, by_faction
 
 
 def control_buffs(infrast: dict) -> dict[str, dict[str, float]]:
@@ -306,9 +328,9 @@ def build(server: str) -> dict:
                         "optional": [part(p) for p in g.get("optional") or []]} for g in f.get("skillsGroup") or []],
             "products": list((f.get("products") or {}).keys()) if isinstance(f.get("products"), dict) else f.get("products") or [],
         }
-    train, workshop = training_workshop()
+    train, workshop, train_faction = training_workshop()
     formulas = {k: f.get("itemId") for k, f in (b.get("manufactFormulas") or {}).items() if f.get("itemId")}  # what a factory makes
     powers = {v["powerName"]: k for k, v in gd.table("handbook_team_table", "cn").items() if v.get("powerName")}
     return {"ops": ops, "rooms": rooms, "control": control_buffs(infrast), "factions": faction_rules(infrast, powers), "names": names,
-            "morale": morale_effects(infrast), "dorm": dorm_effects(infrast), "train": train, "workshop": workshop, "formulas": formulas,
+            "morale": morale_effects(infrast), "dorm": dorm_effects(infrast), "train": train, "trainFaction": train_faction, "workshop": workshop, "formulas": formulas,
             "layout": layout(b)}

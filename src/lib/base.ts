@@ -22,6 +22,7 @@ export interface BaseFile {
   dorm: Record<string, [number, number, number, number]>; // everyone, one, own, per dorm level
   train: Record<string, [number, string[], string | null, number | null, number]>; // speed %, classes, branch, level, extra %
   workshop: Record<string, [string, number]>; // materials, byproduct rate %
+  trainFaction?: Record<string, [string, number, number]>; // trainers counting a faction in the base: faction, % each, most
   layout?: BaseLayout; // missing in files from before the base map
 }
 

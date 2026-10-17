@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { assign, Evaluator, type BaseFile, type Room } from "../../src/lib/base";
+import { factionCounts, trainerSpeed } from "../../src/lib/training";
 
 // Two factories (one Pure Gold, one Battle Records), a Trading Post and a Control Center; ops named by what they do.
 const DATA = {
@@ -70,5 +71,21 @@ describe("the Control Center's faction effects", () => {
     const p = assign(rooms, new Evaluator(old, skills, rooms, 20, new Map([["b1", ["blacksteel"]]])), new Set(["boss", "b1"]));
     expect(controlOf(p)).toMatchObject({ members: ["boss"], efficiency: 2 });
     expect(controlOf(p).factions).toBeUndefined();
+  });
+});
+
+describe("trainers that count a faction in the base", () => {
+  const data = { train: { plain: [20, [], null, null, 0] }, trainFaction: { sami: ["sami", 10, 3] } } as unknown as BaseFile;
+  const factions = new Map([["a", ["sami"]], ["b", ["sami", "rhodes"]], ["c", ["sami"]], ["d", ["sami"]], ["e", ["rhodes"]]]);
+
+  it("count each stationed operator's factions once", () => {
+    expect(factionCounts(["a", "b", "b", "e"], factions)).toEqual(new Map([["sami", 2], ["rhodes", 2]]));
+  });
+
+  it("add their speed per member, up to the cap, only when told who's stationed", () => {
+    const skills = new Set(["sami", "plain"]);
+    expect(trainerSpeed(data, skills, "SNIPER", "", 3)).toBe(20);
+    expect(trainerSpeed(data, skills, "SNIPER", "", 3, factionCounts(["a", "b"], factions))).toBe(40);
+    expect(trainerSpeed(data, skills, "SNIPER", "", 3, factionCounts(["a", "b", "c", "d"], factions))).toBe(50); // 3 at most
   });
 });

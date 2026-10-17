@@ -12,7 +12,7 @@ const BUDGET = {
   chunk: 10 * KB, // each lazily loaded chunk (a page, or code pages share) not named below
   // by name, before the hash: the solver (Farming, Priorities, Sanity Dump) and the depot screenshot reader load only
   // when used
-  chunks: { Roster: 15 * KB, highs: 34 * KB, "highs.wasm": 1320 * KB, worker: 540 * KB,
+  chunks: { Roster: 15 * KB, Base: 11.5 * KB /* the optimizer, map, morale and training: raised with faction effects */, highs: 34 * KB, "highs.wasm": 1320 * KB, worker: 540 * KB,
     // the Enemy database: the list, one enemy's page and what they share (icon, immunity badges, lib/enemies); the
     // list and lib/enemies raised for the stage search
     Enemies: 2.9 * KB, Enemy: 2.1 * KB, EnemyParts: 2.3 * KB },
