@@ -28,7 +28,8 @@ tokens, expiring items) · gaps by archetype · base map.
 - **Operators and planning:** module details everywhere, roles and replacements for guide operators, leave out
   operators in Priorities (one, a batch or a rarity), tier lists, account stats.
 - **Enemy database:** every handbook enemy with abilities and stats at each level, where each appears (story, events,
-  archives, supplies, Annihilation), and a stage search (1-7, CE-5) on the list and in the search box.
+  archives, supplies, Annihilation), and a stage search (1-7, CE-5) on the list and in the search box, with each
+  stage's map (deploy tiles, enemy entries, the defence point). Still to come: enemy routes and waves on the map.
 - **Install & offline** (a PWA), and backups that carry everything saved in the browser.
 - **Compare:** a damage estimate against a chosen enemy DEF/RES: per hit and per second for normal attacks, and with
   the chosen skill when it only raises ATK, attack speed or hit damage (about one skill in six); the rest say "Not
