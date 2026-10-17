@@ -40,6 +40,8 @@ TRANSLATIONS: dict[str, str] = {
     "“老朋友”": "“Old Friends”",
     "沟通小助手": "Little Communication Helper",
     "“致我们的老大”": "“To Our Boss”",
+    "好时节": "A Good Season",  # Shu's: after Du Fu's 好雨知时节, "good rain knows its season"
+    "“前路”": "“The Road Ahead”",  # Ulpianus's
 }
 
 PREFIXES = {"Rhodes Island Epic ": "Rhodes Island Epic: "}  # CN keeps some English in a title; translate the rest
