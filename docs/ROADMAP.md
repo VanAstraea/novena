@@ -30,6 +30,10 @@ tokens, expiring items) · gaps by archetype · base map.
 - **Enemy database:** every handbook enemy with abilities and stats at each level, where each appears (story, events,
   archives, supplies, Annihilation), and a stage search (1-7, CE-5) on the list and in the search box.
 - **Install & offline** (a PWA), and backups that carry everything saved in the browser.
+- **Compare:** a damage estimate against a chosen enemy DEF/RES: per hit and per second for normal attacks, and with
+  the chosen skill when it only raises ATK, attack speed or hit damage (about one skill in six); the rest say "Not
+  modelled". A full DPS calculator would need every skill modelled by hand (ArknightsDpsCompare has no licence to
+  build on), so it's not planned.
 - **Upcoming:** Global dates from Oldwell (announcements and datamines, each with its source) where the wiki has none.
 - **Base:** the Control Center's faction effects (Blacksteel and Pinus Sylvestris in factories, Siracusa and Kjerag
   in Trading Posts, Minos for the Reception Room, the Lungmen Guard pairing), counted in the plan; trainers that
