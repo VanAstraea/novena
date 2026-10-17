@@ -191,6 +191,9 @@ body {
 [hidden] { display: none !important; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { color: var(--accent-strong); text-decoration: underline; }
+/* links inside running text are underlined, so they don't rely on colour alone (WCAG 1.4.1) */
+:where(p, li, dd, td, label, .explain, .note) a:not([class]) {
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
 h1, h2, h3, h4 { line-height: 1.15; margin: 0 0 0.5em; font-stretch: 115%; font-weight: 700; }
 h1, .hero .wordmark { font-variant-numeric: lining-nums tabular-nums; }
 h1 { font-family: var(--serif); font-weight: 600; font-stretch: normal; font-size: 2.3rem; letter-spacing: 0.03em; font-size-adjust: none; }

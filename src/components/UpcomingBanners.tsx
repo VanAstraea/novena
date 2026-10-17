@@ -11,13 +11,16 @@ export type Banner = UpcomingFile["banners"][number];
 export const KIND: Record<string, string> = { limited: "Limited", collab: "Collaboration", special: "Special (pick rate-ups)", kernel: "Kernel" };
 
 /** A date: solid when this server's game data lists it, linked when the wiki dates it, otherwise an estimate. */
-export function Eta({ eta, confirmed, cn, x }: { eta: string; confirmed?: boolean; cn?: string; x?: WikiDated }) {
+/** `plain`: inside a clickable header (a <summary>), where the wiki badge can't be a link; the body links the wiki. */
+export function Eta({ eta, confirmed, cn, x, plain }: { eta: string; confirmed?: boolean; cn?: string; x?: WikiDated; plain?: boolean }) {
   const wiki = !confirmed && x?.dated_by === "wiki";
   const late = !confirmed && !wiki && (x?.overdue || new Date(eta).getTime() < Date.now());
   return (
     <span>
       {confirmed ? <strong>{date(eta)}</strong>
-        : wiki ? <><strong>{date(eta)}</strong> <a class="badge wiki" href={x!.wiki} rel="noopener" title="Dated by the Arknights Terra Wiki from an announcement or the game files, not Novena's estimate">dated by the wiki</a></>
+        : wiki ? <><strong>{date(eta)}</strong> {plain
+          ? <span class="badge wiki" title="Dated by the Arknights Terra Wiki from an announcement or the game files, not Novena's estimate">dated by the wiki</span>
+          : <a class="badge wiki" href={x!.wiki} rel="noopener" title="Dated by the Arknights Terra Wiki from an announcement or the game files, not Novena's estimate">dated by the wiki</a>}</>
         : <>~{date(eta)} <span class="badge est" title="Estimated: CN's date plus the measured lag">estimate</span></>}
       <br /><small class={late ? "warn-text" : "muted"}>{late ? "Expected already: may have been skipped or moved" : relative(eta)}{wiki && x!.end ? ` · until ${date(x!.end)}` : ""}{cn ? ` · CN ${date(cn)}` : ""}</small>
     </span>
@@ -25,8 +28,9 @@ export function Eta({ eta, confirmed, cn, x }: { eta: string; confirmed?: boolea
 }
 
 /** Marks a name this server's game data doesn't give yet: the wiki's (linked), or Novena's own translation of CN's. */
-export function Unofficial({ wiki }: { wiki?: string }) {
-  if (wiki) return <a class="badge unofficial" href={wiki} rel="noopener" title="The Arknights Terra Wiki's name: the announced Global name, or the community's until there is one. The game's own name replaces it once this server lists it.">wiki name</a>;
+export function Unofficial({ wiki, plain }: { wiki?: string; plain?: boolean }) {
+  const title = "The Arknights Terra Wiki's name: the announced Global name, or the community's until there is one. The game's own name replaces it once this server lists it.";
+  if (wiki) return plain ? <span class="badge unofficial" title={title}>wiki name</span> : <a class="badge unofficial" href={wiki} rel="noopener" title={title}>wiki name</a>;
   return <span class="badge unofficial" title="Novena's own translation: Global hasn't named this yet. The official name replaces it when it's announced.">unofficial</span>;
 }
 

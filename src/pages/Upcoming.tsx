@@ -89,9 +89,10 @@ function ShopCard({ e, values, short }: { e: ShopEvent; values: Record<string, n
   return (
     <details class="card" open={e.status === "running" || undefined}>
       <summary style={{ cursor: "pointer" }}>
-        <strong>{e.name}</strong>{e.unofficial && <> <Unofficial wiki={e.name_by === "wiki" ? e.wiki : undefined} /></>} <span class="muted">· {e.status === "running" ? `running, ends ${date(e.end!)}` : <>coming <Eta eta={e.eta!} confirmed={e.confirmed} x={e} /></>}</span>
+        <strong>{e.name}</strong>{e.unofficial && <> <Unofficial wiki={e.name_by === "wiki" ? e.wiki : undefined} plain /></>} <span class="muted">· {e.status === "running" ? `running, ends ${date(e.end!)}` : <>coming <Eta eta={e.eta!} confirmed={e.confirmed} x={e} plain /></>}</span>
         {needTokens > 0 && <span class="badge" style={{ marginLeft: "8px" }}>{needTokens.toLocaleString()} tokens for what you need</span>}
       </summary>
+      <WikiSource x={e} named={e.unofficial && e.name_by === "wiki"} />
       <div class="table-wrap" style={{ marginTop: "10px" }}>
         <table class="cards">
           <thead><tr><th>Offer</th><th class="num">Price</th><th class="num">Stock</th><th class="num">Value</th><th class="num">Per token</th><th class="num">You need</th></tr></thead>
@@ -113,15 +114,23 @@ function ShopCard({ e, values, short }: { e: ShopEvent; values: Record<string, n
   );
 }
 
+/** Under a clickable header: the link to the wiki page its name or date came from (badges there can't be links). */
+function WikiSource({ x, named }: { x: { wiki?: string; dated_by?: string; confirmed?: boolean }; named?: boolean }) {
+  const dated = !x.confirmed && x.dated_by === "wiki";
+  if (!x.wiki || (!dated && !named)) return null;
+  return <p class="muted" style={{ margin: "6px 0 0" }}><small>{named && dated ? "Name and date" : named ? "Name" : "Date"} from the <a href={x.wiki} rel="noopener">Arknights Terra Wiki</a> (CC BY-SA 4.0).</small></p>;
+}
+
 function Events({ up, byId }: { up: UpcomingFile; byId: Map<string, OpIndex> }) {
   return (
     <div class="stack">
       {up.events.map((e) => (
         <details key={e.id} class="card" open={e === up.events.find((x) => new Date(x.eta).getTime() > Date.now())}>
           <summary class="cut" style={{ cursor: "pointer" }}>
-            <span class="cut-title" style={{ fontSize: "1.45rem" }}>{e.name || e.name_en || e.name_cn}</span>{!e.name && e.name_en && <> <Unofficial wiki={e.name_by === "wiki" ? e.wiki : undefined} /></>}
-            <br />{(e.name || e.name_en) && <span class="muted">{e.name_cn} · </span>}<Eta eta={e.eta} confirmed={e.confirmed} cn={e.cn_start} x={e} />
+            <span class="cut-title" style={{ fontSize: "1.45rem" }}>{e.name || e.name_en || e.name_cn}</span>{!e.name && e.name_en && <> <Unofficial wiki={e.name_by === "wiki" ? e.wiki : undefined} plain /></>}
+            <br />{(e.name || e.name_en) && <span class="muted">{e.name_cn} · </span>}<Eta eta={e.eta} confirmed={e.confirmed} cn={e.cn_start} x={e} plain />
           </summary>
+          <WikiSource x={e} named={!e.name && !!e.name_en && e.name_by === "wiki"} />
           <p style={{ marginTop: "8px" }}>{e.stages} stages, {e.guided} with community guides ({e.guides} guides).</p>
           {e.key_ops.length > 0 ? <KeyOps ops={e.key_ops} byId={byId} /> : <p class="muted">No community guides for it yet.</p>}
         </details>

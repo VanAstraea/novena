@@ -42,7 +42,7 @@ function ResetCard({ stg }: { stg: StagesFile }) {
         <dt>Daily reset</dt><dd>{dayTime(nextDailyReset(s, now))}</dd>
         <dt>Weekly reset</dt><dd>{dayTime(nextWeeklyReset(s, now))}</dd>
       </dl>
-      <div class="table-wrap" style={{ marginTop: "10px" }}>
+      <div class="table-wrap" style={{ marginTop: "10px" }} tabIndex={0} role="region" aria-label="Open days this week">
         <table>
           <thead><tr><th>Stages</th>{WEEKDAYS.map((d, i) => <th key={d} class="num" aria-current={i + 1 === weekday ? "date" : undefined}>{i + 1 === weekday ? <u>{d}</u> : d}</th>)}</tr></thead>
           <tbody>
@@ -254,7 +254,7 @@ function PlanView({ r, stg, items, today, setToday, cap, setCap, clear }: {
           <label class="field"><span>Daily sanity</span><input type="number" min={1} value={p.daily} onChange={(e) => savePrefs({ ...p, daily: +(e.target as HTMLInputElement).value || DAILY_SANITY })} /></label>
           <label class="field"><span>Sanity cap</span><input type="number" min={80} value={cap} onChange={(e) => setCap(+(e.target as HTMLInputElement).value || 135)} /></label>
         </div>
-        <div class="table-wrap" style={{ marginTop: "10px" }}>
+        <div class="table-wrap" style={{ marginTop: "10px" }} tabIndex={0} role="region" aria-label="Day by day">
           <table class="cards">
             <thead><tr><th>Day</th><th>Runs</th><th class="num">Sanity</th></tr></thead>
             <tbody>
