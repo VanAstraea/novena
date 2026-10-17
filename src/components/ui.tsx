@@ -106,7 +106,8 @@ export function Art({ srcs, alt = "", class: cls = "", fallback = null, eager = 
   const key = srcs.join("|");
   useEffect(() => setI(0), [key]);
   if (i >= srcs.length) return <>{fallback}</>;
-  return <img class={cls} src={srcs[i]} alt={alt} loading={eager ? "eager" : "lazy"} decoding="async" onLoad={onLoad} onError={() => setI(i + 1)} />;
+  // eager art is the page's largest picture (an operator's splash): fetched first, before icons and the rest
+  return <img class={cls} src={srcs[i]} alt={alt} loading={eager ? "eager" : "lazy"} fetchPriority={eager ? "high" : undefined} decoding="async" onLoad={onLoad} onError={() => setI(i + 1)} />;
 }
 
 /** One of the game's white UI icons (class, branch, elite, potential, mastery, module type). */

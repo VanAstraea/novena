@@ -57,8 +57,10 @@ export const art = {
   avatar: (id: string) => `${ART}/avatar/${e(id)}.png`,
   /** Half-body portrait, as in the game's operator list. E2 art first when asked for, base art as the fallback. */
   portraits: (id: string, elite = 0) => [...(elite >= 2 ? [`${ART}/portrait/${e(id)}_2.png`] : []), `${ART}/portrait/${e(id)}_1.png`],
-  /** Full splash art (about 1 MB each: load only where it's the point). */
-  splashes: (id: string, elite = 0) => [...(elite >= 2 ? [`${ART}/skin/${e(id)}_2b.png`] : []), `${ART}/skin/${e(id)}_1b.png`],
+  /** Splash art, E2 first when asked for: the ArknightsAssets copy first (newer operators' is about a quarter of the
+   *  bytes: Viy's E2 art 1.6 MB against 6.9 MB), the full one when it has none (older operators' base art). */
+  splashes: (id: string, elite = 0) => (elite >= 2 ? ["_2b", "_1b"] : ["_1b"]).flatMap((v) => [
+    `${DYN}/arts/characters/${e(id.toLowerCase())}/${e(id.toLowerCase() + v)}.png`, `${ART}/skin/${e(id)}${v}.png`]),
   /** An outfit's full art, by its skin file name ("char_4193_lemuen_ambienceSynesthesia#7b"). */
   skin: (file: string) => `${ART}/skin/${e(file)}.png`,
   /** The same outfit art at about half the width and a quarter of the bytes (Lemuen's: 963 px wide, 1.3 MB against
