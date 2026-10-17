@@ -115,7 +115,7 @@ these services. Thank you to everyone who runs and contributes to them.
 | [Arknights Terra Wiki](https://arknights.wiki.gg/) | Global dates and English names of upcoming events and banners, for Upcoming (rendered pages, read once a day) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 | [Oldwell](https://oldwell.info/) | Global dates of upcoming events, banners and Contingency Contracts from announcements and datamines, where the wiki has none yet | Used with credit |
 | [ArknightsGameResource](https://github.com/yuanyan3060/ArknightsGameResource) | Operator portraits, splash and outfit art, skill, item and base-skill icons (loaded, not bundled) | Art © Hypergryph / Yostar |
-| [ArknightsAssets2](https://github.com/ArknightsAssets/ArknightsAssets2) | The game's UI icons (classes, branches, elite, potential, mastery, rarity, modules) and story backgrounds (loaded, not bundled) | Art © Hypergryph / Yostar |
+| [ArknightsAssets2](https://github.com/ArknightsAssets/ArknightsAssets2) | The game's UI icons (classes, branches, elite, potential, mastery, rarity, modules) and smaller copies of operator and outfit art (loaded, not bundled) | Art © Hypergryph / Yostar |
 | [Arknights Toolbox depot recognition](https://github.com/arkntools/depot-recognition) | Reading depot screenshots in the browser (bundled library) | MIT |
 
 Every bundled package and font with its license is listed on the site's **Credits** page, generated at build time by

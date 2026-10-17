@@ -14,7 +14,7 @@ const IMAGES = [
   { name: "ArknightsGameResource", by: "yuanyan3060", url: "https://github.com/yuanyan3060/ArknightsGameResource",
     what: "Operator portraits, splash and outfit art (including the home page's Lemuen), skill, item, base-skill and enemy icons." },
   { name: "ArknightsAssets2", by: "ArknightsAssets", url: "https://github.com/ArknightsAssets/ArknightsAssets2",
-    what: "The game's UI icons (classes, branches, elite, potential, mastery, rarity, module types and module art) and story backgrounds (the home page's cathedral hall)." },
+    what: "The game's UI icons (classes, branches, elite, potential, mastery, rarity, module types and module art), and smaller copies of operator and outfit art (the home page and operator pages)." },
 ];
 
 const DATA = [
