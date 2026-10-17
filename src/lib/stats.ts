@@ -65,6 +65,3 @@ export function statsAt(d: OpDetail, spec: BuildSpec): BuildStats {
   const attackTime = total.interval * 100 / total.aspd;
   return { base, trust, pot, module, total, attackTime, atkPerSec: attackTime ? total.atk / attackTime : 0 };
 }
-
-/** The range an operator has at an elite (skills may override it). */
-export const rangeAt = (d: OpDetail, elite: number) => d.phases[Math.min(elite, d.phases.length - 1)].range;

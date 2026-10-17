@@ -56,11 +56,6 @@ export function stateLabel(s: OpState): string {
   });
 }
 
-/** Skill slots unlock with promotion: S2 at E1, S3 at E2. */
-export const skillUnlock = (index: number) => index;
-/** Skill levels 5-7 need E1. */
-export const maxSkillLevel = (elite: number) => (elite >= 1 ? 7 : 4);
-
 /** The state once `target` is reached from `from`, with the game's prerequisites pulled in (a mastery needs E2
  * and SL7, a module E2 and its unlock level), never below `from`. Throws when the operator can't get there. */
 export function reach(d: CostData, rarity: number, name: string, from: OpState, t: Target): OpState {

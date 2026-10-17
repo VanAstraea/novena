@@ -15,7 +15,6 @@ export const IMMUNITIES: { id: string; name: string; term?: string }[] = [
   { id: "fear", name: "Fear", term: "ba.fear" }, { id: "palsy", name: "Paralysis", term: "ba.palsy" },
   { id: "attract", name: "Lure", term: "ba.attract" }, { id: "disarm", name: "Disarmed Combat" },
 ];
-export const immunityName = (id: string) => IMMUNITIES.find((i) => i.id === id)?.name || id;
 
 /** The stats the list sorts by, and every stat the enemy page shows, in order. */
 export const SORTS = ["hp", "atk", "def", "res", "wt"] as const;
