@@ -9,6 +9,9 @@ reorder events (collaborations especially), and an estimate already past is mark
 
 The Arknights Terra Wiki (sources/wikigg.py) replaces an estimate with the Global date once its editors have one (from
 an announcement or the game files), matched by CN start day, and gives the English name; translations.py fills the gaps.
+Where the wiki has no Global date, Oldwell's (sources/oldwell.py: an official announcement or a datamine, with its
+source) replaces the estimate, matched by English name (events), featured operators (banners) or kind (the next
+Contingency Contract).
 """
 
 from __future__ import annotations
@@ -21,7 +24,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from novena_pipeline import gamedata as gd
 from novena_pipeline.translations import english
-from novena_pipeline.sources import copilot, wikigg
+from novena_pipeline.sources import copilot, oldwell, wikigg
 from novena_pipeline.usage import StageIndex, ids_by_cn_name, slot_alternatives, stage_presence
 
 RECENT_EVENTS = 8
@@ -81,7 +84,7 @@ def _iso(ts: float) -> str:
 
 
 def build(server: str, jobs: list[copilot.Job], usage_ops: dict, now: float | None = None,
-          wiki: wikigg.Wiki | None = None) -> dict:
+          wiki: wikigg.Wiki | None = None, well: list[oldwell.Item] | None = None) -> dict:
     now = now or time.time()
     out: dict = {"server": server, "lag_days": None, "events": [], "running": [], "operators": [], "modules": [],
                  "banners": [], "cc": None}
@@ -149,6 +152,7 @@ def build(server: str, jobs: list[copilot.Job], usage_ops: dict, now: float | No
                                **({"spark": 300} if rule == "LIMITED" else {})})
     out["cc"] = cc_schedule(server, now)
     add_wiki(out, server, wiki if wiki is not None else wikigg.load())
+    add_oldwell(out, server, well if well is not None else oldwell.load())
     add_english(out)
     mark_overdue(out, now)
     out["banners"] = sorted((b for b in out["banners"] if now - 14 * DAY <= _ts(b["eta"]) <= now + 200 * DAY), key=lambda b: b["eta"])
@@ -179,7 +183,7 @@ def add_alternatives(ops: list[dict], alts: dict[str, dict], cn_chars: dict, her
 def mark_overdue(out: dict, now: float) -> None:
     """An estimate already past (as CC's): the server skipped it, moved it or is running late. Real dates never are."""
     for x in out["events"] + out["banners"]:
-        x["overdue"] = not x.get("confirmed") and x.get("dated_by") != "wiki" and _ts(x["eta"]) < now
+        x["overdue"] = not x.get("confirmed") and x.get("dated_by") not in ("wiki", "oldwell") and _ts(x["eta"]) < now
 
 
 def _ts(iso: str) -> float:
@@ -247,6 +251,37 @@ def add_wiki(out: dict, server: str, wiki: wikigg.Wiki) -> None:
         kind = "limited" if b["kind"] == "collab" else b["kind"]
         rows = [r for r in wiki.banners if (k := wikigg.banner_kind(r)) and ("limited" if k == "collab" else k) == kind]
         fill(b, wiki_row(rows, cn_day(b["cn_open"])))
+
+
+def add_oldwell(out: dict, server: str, items: list[oldwell.Item]) -> None:
+    """Oldwell's Global dates where neither this server's tables nor the wiki have one. First runs only, as elsewhere;
+    a date must be a real day."""
+    if server not in SHIFT:
+        return
+    dated = [i for i in items if i.day and not i.rerun]
+
+    def put(x: dict, i: oldwell.Item) -> None:
+        if x.get("confirmed") or x.get("dated_by") == "wiki":
+            return
+        begins = datetime(i.day.year, i.day.month, i.day.day, *GLOBAL_START, tzinfo=timezone.utc).timestamp() + SHIFT[server]
+        x.update(eta=_iso(begins), dated_by="oldwell", oldwell={"reason": i.reason, **({"source": i.source} if i.source else {})})
+        x.pop("end", None)
+
+    by_name = {_norm(i.name): i for i in dated if "contingency contract" not in i.kind.lower()}
+    for e in out["events"]:
+        for name in (e.get("name"), e.get("name_en"), english(e.get("name_cn"))):
+            if name and _norm(name) in by_name:
+                put(e, by_name[_norm(name)])
+                break
+    cc = [i for i in dated if "contingency contract" in i.kind.lower()]
+    if out["cc"] and out["cc"].get("next") and len(cc) == 1:
+        put(out["cc"]["next"], cc[0])
+        if out["cc"]["next"].get("dated_by"):
+            out["cc"]["next"]["overdue"] = False
+    for b in out["banners"]:
+        hits = [i for i in dated if set(b.get("featured") or []) & set(i.banner)]
+        if len({i.day for i in hits}) == 1:
+            put(b, hits[0])
 
 
 def add_english(out: dict) -> list[str]:

@@ -46,7 +46,7 @@ export default function Pulls() {
         <Await state={st} what="upcoming banners">
           {([up, ops, usage]) => (
             <>
-              <p class="note" role="note"><strong>Most of these dates are estimates.</strong> A date marked <span class="badge est">estimate</span> is CN's date plus the measured lag ({up.lag_days ?? "?"} days); servers skip and reorder banners. One marked <span class="badge wiki">dated by the wiki</span> comes from the Arknights Terra Wiki, and a date turns solid once this server's game data lists it.</p>
+              <p class="note" role="note"><strong>Most of these dates are estimates.</strong> A date marked <span class="badge est">estimate</span> is CN's date plus the measured lag ({up.lag_days ?? "?"} days); servers skip and reorder banners. One marked <span class="badge wiki">dated by the wiki</span> comes from the Arknights Terra Wiki, one marked <span class="badge wiki">via Oldwell</span> from Oldwell (an announcement, or a dataminer's leak where it says so), and a date turns solid once this server's game data lists it.</p>
               <UpcomingBanners up={up} byId={new Map(ops.map((o) => [o.id, o]))} usage={usage} action={(b) => {
                 const pulls = byThen(b.eta);
                 return (

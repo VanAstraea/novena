@@ -230,3 +230,78 @@ def test_alternatives_fall_back_to_the_archetype_when_guides_name_few(monkeypatc
     assert saria == {"id": "char_saria", "share": 0.5, "like": ["char_nearl", "char_gummy"]}  # no Shu here, never itself
     assert exu == {"id": "char_exu", "share": 0.4, "alts": [["char_kroos", 0.5], ["char_bp", 0.2]], "flex": 0.6}  # enough from guides
     assert shu["alts"] == [["char_saria", 0.25]] and shu["like"] == ["char_nearl", "char_gummy"]  # Saria is listed once
+
+
+# Trimmed from oldwell.info/assets/json/upcoming.json.
+OLDWELL = {"last_updated": "14.10.2026", "list": [
+    {"id": "duel", "name": "Duel Channel: Ivy Vine", "type": "Side Story",
+     "date": {"date": "16.11.2026", "reason": "Y_jun233 Datamine", "source": "https://x.com/Y_jun233/status/1"},
+     "banner": [{"type": "Limited", "operators": [{"name": "Saga", "img": "char_saga.png"}]}], "welfare": [{"img": "char_free.png"}]},
+    {"id": "cpt", "name": "Critical Phase Transition", "type": "Episode",
+     "date": {"date": "20.10.2026", "reason": "Official Announcement", "source": "https://x.com/ArknightsEN/status/2"}},
+    {"id": "rr", "name": "People, A People Rerun", "type": "Side Story Rerun", "date": {"date": "01.12.2026", "reason": "", "source": ""}},
+    {"id": "cc-5", "name": "CC#5", "type": "Contingency Contract", "date": {"date": "10.12.2026", "reason": "Y_jun233 Datamine", "source": ""}},
+    {"id": "later", "name": "Later Story", "type": "Side Story", "date": {"date": "", "reason": "", "source": ""}},
+]}
+
+
+def test_oldwell_parses_dates_operators_and_reasons():
+    from novena_pipeline.sources import oldwell
+    duel, cpt, rr, cc, later = oldwell.parse(OLDWELL)
+    assert (duel.day, duel.reason, duel.banner, duel.welfare) == (date(2026, 11, 16), "Y_jun233 Datamine", ["char_saga"], ["char_free"])
+    assert rr.rerun and not duel.rerun and later.day is None and cc.kind == "Contingency Contract"
+
+
+def test_oldwell_dates_what_the_wiki_and_the_game_dont():
+    from novena_pipeline.sources import oldwell
+    out = _out()
+    out["events"][2]["name_en"] = "Duel Channel: Ivy Vine"
+    out["banners"][0]["featured"] = ["char_saga"]
+    out["banners"][1]["featured"] = ["char_other"]
+    upcoming.add_wiki(out, "en", _wiki())
+    upcoming.add_oldwell(out, "en", oldwell.parse(OLDWELL))
+    cpt, people, duel, rerun = out["events"]
+    assert cpt["dated_by"] == "wiki" and cpt["eta"] == "2026-10-14T15:00:00Z"  # the wiki's date stays
+    assert people["confirmed"] and "oldwell" not in people  # so does the game's
+    assert duel["eta"] == "2026-11-16T15:00:00Z" and duel["dated_by"] == "oldwell"
+    assert duel["oldwell"] == {"reason": "Y_jun233 Datamine", "source": "https://x.com/Y_jun233/status/1"}
+    assert "oldwell" not in rerun  # reruns don't stand in for first runs
+    oath, special = out["banners"]
+    assert oath["dated_by"] == "wiki"  # dated by the wiki already, though Oldwell lists Saga too
+    assert "oldwell" not in special
+    cc = out["cc"]["next"]
+    assert cc["eta"] == "2026-12-10T15:00:00Z" and cc["dated_by"] == "oldwell" and not cc["overdue"]
+
+    plain = _out()
+    plain["banners"][0]["featured"] = ["char_saga"]
+    upcoming.add_oldwell(plain, "kr", oldwell.parse(OLDWELL))
+    assert plain["banners"][0]["eta"] == "2026-11-16T07:00:00Z" and plain["banners"][0]["dated_by"] == "oldwell"
+    cn = _out()
+    upcoming.add_oldwell(cn, "cn", oldwell.parse(OLDWELL))
+    assert all("oldwell" not in e for e in cn["events"])
+
+
+def test_oldwell_dates_are_not_overdue():
+    out = {"events": [{"eta": "2026-01-01T00:00:00Z", "confirmed": False, "dated_by": "oldwell"}], "banners": []}
+    upcoming.mark_overdue(out, datetime(2026, 2, 1, tzinfo=timezone.utc).timestamp())
+    assert out["events"][0]["overdue"] is False
+
+
+def test_oldwell_cache_survives_a_failed_fetch(monkeypatch, tmp_path):
+    import json
+    from novena_pipeline.sources import oldwell
+    monkeypatch.setattr(oldwell, "CACHE", tmp_path / "oldwell.json")
+    monkeypatch.setattr(oldwell, "OFFLINE", False)
+    oldwell.CACHE.write_text(json.dumps(OLDWELL), encoding="utf-8")
+    day_old = time.time() - 86400
+    os.utime(oldwell.CACHE, (day_old, day_old))
+
+    def fail(*a, **k):
+        raise urllib.error.URLError("down")
+    monkeypatch.setattr(oldwell, "get_bytes", fail)
+    assert len(oldwell.load()) == 5
+    monkeypatch.setattr(oldwell, "get_bytes", lambda *a, **k: b"<html>not json</html>")
+    assert len(oldwell.load()) == 5  # a bad answer never replaces the copy
+    week_old = time.time() - 8 * 86400
+    os.utime(oldwell.CACHE, (week_old, week_old))
+    assert oldwell.load() == []  # too old to date anything

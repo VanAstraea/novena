@@ -36,7 +36,7 @@ from novena_pipeline import gamedata as gd
 from novena_pipeline import items as items_mod
 from novena_pipeline import shops as shops_mod
 from novena_pipeline import base, enemies, enemy_stages, guidebook, operators, progress, recruit, roguelike, upcoming, usage
-from novena_pipeline.sources import copilot, penguin, wikigg, yituliu
+from novena_pipeline.sources import copilot, oldwell, penguin, wikigg, yituliu
 
 DATA_VERSION = 1
 
@@ -171,6 +171,8 @@ def main(argv: list[str] | None = None) -> None:
         manifest["servers"][server] = build_server(server, out, usage_data, jobs, yituliu_values)
     if wikigg.load.cache_info().currsize and wikigg.load().fetched:  # read for EN, JP or KR's Upcoming
         manifest["sources"]["wikigg"] = {"date": int(wikigg.load().fetched * 1000)}
+    if oldwell.CACHE.exists() and any(s in upcoming.SHIFT for s in servers):  # read for EN, JP or KR's Upcoming
+        manifest["sources"]["oldwell"] = {"date": int(oldwell.CACHE.stat().st_mtime * 1000)}
     write(out / "manifest.json", manifest)
     log("Done")
 

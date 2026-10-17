@@ -219,17 +219,19 @@ export interface ShopEvent {
   end?: string;
   eta?: string;
   confirmed?: boolean;
-  dated_by?: "wiki";
+  dated_by?: "wiki" | "oldwell";
+  oldwell?: { reason: string; source?: string };
   wiki?: string;
   name_by?: "wiki";
   offers: [string, number, number, number | null, number][]; // item, price in tokens, quantity per purchase, stock or null, section
 }
 export interface ShopsFile { events: ShopEvent[] }
 
-/** An upcoming item's date status, and what the Arknights Terra Wiki adds to it (shared under CC BY-SA 4.0). */
+/** An upcoming item's date status, and what the Arknights Terra Wiki (shared under CC BY-SA 4.0) or Oldwell adds to it. */
 export interface WikiDated {
   overdue?: boolean; // an estimate already past
-  dated_by?: "wiki"; // eta (and end) are the wiki's Global dates, not an estimate
+  dated_by?: "wiki" | "oldwell"; // eta (and end) are the wiki's Global dates, or eta is Oldwell's; not an estimate
+  oldwell?: { reason: string; source?: string }; // where Oldwell's date comes from: an announcement or a datamine
   end?: string;
   wiki?: string; // the wiki's page for it
   name_by?: "wiki"; // name_en is the wiki's

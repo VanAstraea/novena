@@ -5,7 +5,7 @@ import { useEffect } from "preact/hooks";
 import { OpFilters, useOpFilters } from "../components/OpFilters";
 import { Await, Explain, ItemIcon, itemName, itemsSig, metaSig, OpLink, Stars, Tabs, useAsync } from "../components/ui";
 import { CommunityMarks } from "../components/Marks";
-import { Eta, KIND, Unofficial } from "../components/UpcomingBanners";
+import { datamined, Eta, KIND, Unofficial } from "../components/UpcomingBanners";
 import { costTable } from "../lib/account";
 import { planNeeds } from "../lib/needs";
 import { ROLE_HINTS, ROLE_NAMES, ROLES, roleOf } from "../lib/roles";
@@ -13,7 +13,7 @@ import { operators, shops as loadShops, upcoming as loadUpcoming, usage as loadU
 import { date, pct } from "../lib/format";
 import { href, navigate, route, setQuery } from "../lib/router";
 import { account, hasRoster, server } from "../state";
-import type { KeyOp, OpIndex, ShopEvent, UpcomingFile, UsageFile } from "../types";
+import type { KeyOp, OpIndex, ShopEvent, UpcomingFile, UsageFile, WikiDated } from "../types";
 
 type View = "events" | "shops" | "operators" | "modules" | "cc";
 
@@ -37,7 +37,7 @@ export default function Upcoming() {
           const byId = new Map(ops.map((o) => [o.id, o]));
           return (
             <>
-              <p class="note" role="note"><strong>Most of these dates are estimates, not announcements.</strong> CN runs months ahead, so a date marked <span class="badge est">estimate</span> is CN's date plus the lag measured over the last events both servers ran ({up.lag_days ?? "?"} days). Servers skip, swap and reorder things, collaborations especially. A date marked <span class="badge wiki">dated by the wiki</span> comes from the <a href="https://arknights.wiki.gg/wiki/Event" rel="noopener">Arknights Terra Wiki</a>: announced, or found in the game files. A date turns solid (no badge) once this server's own game data lists it; the official news and in-game notices come first.</p>
+              <p class="note" role="note"><strong>Most of these dates are estimates, not announcements.</strong> CN runs months ahead, so a date marked <span class="badge est">estimate</span> is CN's date plus the lag measured over the last events both servers ran ({up.lag_days ?? "?"} days). Servers skip, swap and reorder things, collaborations especially. A date marked <span class="badge wiki">dated by the wiki</span> comes from the <a href="https://arknights.wiki.gg/wiki/Event" rel="noopener">Arknights Terra Wiki</a>: announced, or found in the game files. One marked <span class="badge wiki">via Oldwell</span> comes from <a href="https://oldwell.info/" rel="noopener">Oldwell</a>, an announcement it links; <span class="badge wiki">datamined, via Oldwell</span> is a dataminer's leak, likely but not official. A date turns solid (no badge) once this server's own game data lists it; the official news and in-game notices come first.</p>
               <Tabs label="Upcoming sections" value={view} onChange={(v) => setQuery({ view: v === "events" ? "" : v })} tabs={[
                 { key: "events", label: `Events (${up.events.length})` }, { key: "shops", label: "Event shops" }, { key: "operators", label: `Operators (${up.operators.length})` },
                 { key: "modules", label: "Modules" }, { key: "cc", label: "Contingency Contract" },
@@ -114,11 +114,19 @@ function ShopCard({ e, values, short }: { e: ShopEvent; values: Record<string, n
   );
 }
 
-/** Under a clickable header: the link to the wiki page its name or date came from (badges there can't be links). */
-function WikiSource({ x, named }: { x: { wiki?: string; dated_by?: string; confirmed?: boolean }; named?: boolean }) {
+/** Under a clickable header: where its name or date came from, linked (badges there can't be links). */
+function WikiSource({ x, named }: { x: WikiDated & { confirmed?: boolean }; named?: boolean }) {
   const dated = !x.confirmed && x.dated_by === "wiki";
-  if (!x.wiki || (!dated && !named)) return null;
-  return <p class="muted" style={{ margin: "6px 0 0" }}><small>{named && dated ? "Name and date" : named ? "Name" : "Date"} from the <a href={x.wiki} rel="noopener">Arknights Terra Wiki</a> (CC BY-SA 4.0).</small></p>;
+  const well = !x.confirmed && x.dated_by === "oldwell";
+  const wiki = x.wiki && (dated || named);
+  if (!wiki && !well) return null;
+  return (
+    <p class="muted" style={{ margin: "6px 0 0" }}><small>
+      {wiki && <>{named && dated ? "Name and date" : named ? "Name" : "Date"} from the <a href={x.wiki} rel="noopener">Arknights Terra Wiki</a> (CC BY-SA 4.0).</>}
+      {wiki && well && " "}
+      {well && <>Date from <a href="https://oldwell.info/" rel="noopener">Oldwell</a>{x.oldwell?.reason ? <>: {x.oldwell.source ? <a href={x.oldwell.source} rel="noopener">{x.oldwell.reason}</a> : x.oldwell.reason}</> : null}{datamined(x) ? " (leaked, so it can still move)" : ""}.</>}
+    </small></p>
+  );
 }
 
 function Events({ up, byId }: { up: UpcomingFile; byId: Map<string, OpIndex> }) {

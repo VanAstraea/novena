@@ -14,18 +14,26 @@ export const KIND: Record<string, string> = { limited: "Limited", collab: "Colla
 /** `plain`: inside a clickable header (a <summary>), where the wiki badge can't be a link; the body links the wiki. */
 export function Eta({ eta, confirmed, cn, x, plain }: { eta: string; confirmed?: boolean; cn?: string; x?: WikiDated; plain?: boolean }) {
   const wiki = !confirmed && x?.dated_by === "wiki";
-  const late = !confirmed && !wiki && (x?.overdue || new Date(eta).getTime() < Date.now());
+  const well = !confirmed && x?.dated_by === "oldwell";
+  const late = !confirmed && !wiki && !well && (x?.overdue || new Date(eta).getTime() < Date.now());
+  const wellTitle = `Dated by Oldwell (oldwell.info) from ${x?.oldwell?.reason ? `this: ${x.oldwell.reason}` : "an announcement or a datamine"}, not Novena's estimate`;
   return (
     <span>
       {confirmed ? <strong>{date(eta)}</strong>
         : wiki ? <><strong>{date(eta)}</strong> {plain
           ? <span class="badge wiki" title="Dated by the Arknights Terra Wiki from an announcement or the game files, not Novena's estimate">dated by the wiki</span>
           : <a class="badge wiki" href={x!.wiki} rel="noopener" title="Dated by the Arknights Terra Wiki from an announcement or the game files, not Novena's estimate">dated by the wiki</a>}</>
+        : well ? <><strong>{date(eta)}</strong> {plain
+          ? <span class="badge wiki" title={wellTitle}>{datamined(x) ? "datamined, via Oldwell" : "via Oldwell"}</span>
+          : <a class="badge wiki" href={x?.oldwell?.source || "https://oldwell.info/"} rel="noopener" title={wellTitle}>{datamined(x) ? "datamined, via Oldwell" : "via Oldwell"}</a>}</>
         : <>~{date(eta)} <span class="badge est" title="Estimated: CN's date plus the measured lag">estimate</span></>}
       <br /><small class={late ? "warn-text" : "muted"}>{late ? "Expected already: may have been skipped or moved" : relative(eta)}{wiki && x!.end ? ` · until ${date(x!.end)}` : ""}{cn ? ` · CN ${date(cn)}` : ""}</small>
     </span>
   );
 }
+
+/** Whether Oldwell's date comes from a dataminer rather than an announcement (it can still move). */
+export const datamined = (x?: WikiDated) => /datamine/i.test(x?.oldwell?.reason || "");
 
 /** Marks a name this server's game data doesn't give yet: the wiki's (linked), or Novena's own translation of CN's. */
 export function Unofficial({ wiki, plain }: { wiki?: string; plain?: boolean }) {

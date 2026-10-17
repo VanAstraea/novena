@@ -31,6 +31,9 @@ const DATA = [
   { key: "wikigg", name: "Arknights Terra Wiki", by: "arknights.wiki.gg contributors", url: "https://arknights.wiki.gg/wiki/Event",
     what: "Global (EN/JP/KR) dates of events and banners once announced or found in the game files, and their English names, for Upcoming. Read once a day by the pipeline from the Event, Event/Upcoming and Headhunting/Banners pages.",
     license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/" },
+  { key: "oldwell", name: "Oldwell", by: "oldwell.info", url: "https://oldwell.info/",
+    what: "Global (EN/JP/KR) dates of upcoming events, banners and Contingency Contracts, from official announcements and dataminers' posts (each with its source), where the wiki has no date yet, for Upcoming. Read once a day by the pipeline.",
+    license: "Used with credit" },
 ];
 
 export default function Credits() {
@@ -70,7 +73,7 @@ export default function Credits() {
                         <td data-label="Source"><a href={s.url} rel="noopener">{s.name}</a><br /><small>{s.by}</small></td>
                         <td data-label="Used for">{s.what}</td>
                         <td data-label="License">{"licenseUrl" in s ? <a href={s.licenseUrl} rel="noopener">{s.license}</a> : s.license}</td>
-                        <td data-label="Last updated">{t ? date(t) : s.key === "wikigg" ? "–" : "Live"}</td>
+                        <td data-label="Last updated">{t ? date(t) : s.key === "wikigg" || s.key === "oldwell" ? "–" : "Live"}</td>
                       </tr>
                     );
                   })}
