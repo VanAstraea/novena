@@ -433,9 +433,10 @@ function EditBar({ data, p }: { data: ProgressFile; p: StoryProgress }) {
   const upTo = (n: number, three: boolean) => {
     const before = account.value.progress;
     let next = p;
-    main.forEach((z, i) => { next = withGroup(z.stages, next, i <= n ? (three ? 2 : 1) : 0); });
+    // up to that episode; later ones keep what you marked ("not started" clears them all)
+    main.forEach((z, i) => { if (n < 0 || i <= n) next = withGroup(z.stages, next, n < 0 ? 0 : three ? 2 : 1); });
     saveProgress(next);
-    undoable(n < 0 ? "Main story marked as not started." : `Main story marked up to ${main[n].name}.`, () => saveAccount({ ...account.value, progress: before }));
+    undoable(n < 0 ? "Main story cleared." : `Main story marked up to ${main[n].name}.`, () => saveAccount({ ...account.value, progress: before }));
   };
   const clear = () => {
     const before = account.value.progress;
@@ -453,7 +454,7 @@ function EditBar({ data, p }: { data: ProgressFile; p: StoryProgress }) {
             <option value="">Choose…</option>
             <optgroup label="All at 3★">{main.map((z, i) => <option key={z.id} value={`3${i}`}>{z.name}</option>)}</optgroup>
             <optgroup label="Cleared">{main.map((z, i) => <option key={z.id} value={`c${i}`}>{z.name}</option>)}</optgroup>
-            <option value="c-1">Not started</option>
+            <option value="c-1">None of it (clear the main story)</option>
           </select>
         </label>
         {data.crystal && (
