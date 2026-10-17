@@ -6,6 +6,7 @@ data, credited) and the game's building_data.
                           "groups": [{"desc", "conditions", "necessary": [[[skill ids], [char ids], {product: value}]],
                                       "optional": [...]}]}},
      "control": {skill id: {facility: percent per room}},
+     "factions": {skill id: [rule, ...]}  Control Center effects that count factions (see faction_rules)
      "names": {skill id: name in the server's language}}
 
 MAA scores each skill per facility and product, plus skill groups (Texas + Lappland and the like) whose value only
@@ -23,8 +24,8 @@ Also, after ako's base.py and training.py:
                 "passages": [[row, col, height, width(, 1 in the annex)]], "annex": [slot ids], "capacity": {room: [per level]}}
                the base's slot grid from building_data, rows flipped so the top floor comes first, for the base map
 Training and Workshop skills aren't in MAA's data, so they're read from the game's English descriptions (skill ids
-are the same on every server). Left out: conditional morale effects, faction-counting skills, and the Training Room
-skills that depend on who else is in the base or stored-up effects.
+are the same on every server). Left out: conditional morale effects, the faction-counting Training Room skills, and
+the ones that depend on stored-up effects.
 """
 
 from __future__ import annotations
@@ -165,6 +166,51 @@ def control_buffs(infrast: dict) -> dict[str, dict[str, float]]:
     return out
 
 
+_FAC_ROOM = {"制造站": "Mfg", "贸易站": "Trade"}
+_PER_OP = re.compile(r"每个进驻在(制造站|贸易站)的(.+?)干员[，,]?(.+)$")
+_PRODUCT_PCT = re.compile(r"(作战记录|贵金属)类配方的生产力([+-][\d.]+)%")
+_ROOM_WITH = re.compile(r"每个存在(\d)名(.+?)干员的贸易站，订单获取效率\+([\d.]+)%")
+_IN_BASE = re.compile(r"基建内（[^）]*）每有1名(.+?)干员，会客室线索搜集速度\+([\d.]+)%（最多\+([\d.]+)%")
+_WITH = re.compile(r"当与(.+?)干员进驻控制中枢一起工作时，所有(制造站生产力|贸易站订单效率)\+([\d.]+)%")
+
+
+def faction_rules(infrast: dict, powers: dict[str, str]) -> dict[str, list[dict]]:
+    """Control Center effects that count operators of a faction, from MAA's Chinese descriptions, for factions the game's
+    team table names (`powers`: Chinese name -> id, e.g. 黑钢国际 -> blacksteel). Rules:
+
+        {"k": "per", "f": Mfg|Trade, "t": faction, "v": {product or "all": percent}}   per member working in such a room
+        {"k": "room", "f": "Trade", "t": faction, "n": 3, "v": percent}                each room with n members of it
+        {"k": "base", "f": "Reception", "t": faction, "v": percent, "max": percent}    per member anywhere in the base
+        {"k": "with", "f": Mfg|Trade, "t": faction, "v": percent}                       all such rooms, while one of the
+                                                                                         faction works in the Control
+                                                                                         Center alongside
+    Effects on order limits, special resources or morale, and "Knight" operators (not a faction), are left out."""
+    out: dict[str, list[dict]] = {}
+    for sid, skill in (infrast.get("Control") or {}).get("skills", {}).items():
+        rules = []
+        for clause in re.split(r"[；]", (skill.get("desc") or [""])[0].removeprefix("进驻控制中枢时，")):
+            if "上限" in clause or "心情" in clause:
+                continue
+            if (m := _PER_OP.search(clause)) and m.group(2) in powers:
+                effect = m.group(3)
+                if (pm := _PRODUCT_PCT.findall(effect)):
+                    v = {("CombatRecord" if k == "作战记录" else "PureGold"): float(x) for k, x in pm}
+                elif (pm := re.search(r"(?:生产力|订单获取效率)\+([\d.]+)%", effect)):
+                    v = {"all": float(pm.group(1))}
+                else:
+                    continue
+                rules.append({"k": "per", "f": _FAC_ROOM[m.group(1)], "t": powers[m.group(2)], "v": v})
+            elif (m := _ROOM_WITH.search(clause)) and m.group(2) in powers:
+                rules.append({"k": "room", "f": "Trade", "t": powers[m.group(2)], "n": int(m.group(1)), "v": float(m.group(3))})
+            elif (m := _IN_BASE.search(clause)) and m.group(1) in powers:
+                rules.append({"k": "base", "f": "Reception", "t": powers[m.group(1)], "v": float(m.group(2)), "max": float(m.group(3))})
+            elif (m := _WITH.search(clause)) and m.group(1) in powers:
+                rules.append({"k": "with", "f": "Mfg" if m.group(2).startswith("制造") else "Trade", "t": powers[m.group(1)], "v": float(m.group(3))})
+        if rules:
+            out[sid] = rules
+    return out
+
+
 PASSAGES = ("ELEVATOR", "CORRIDOR")
 _ROOMS = ("CONTROL", "POWER", "MANUFACTURE", "TRADING", "DORMITORY", "WORKSHOP", "HIRE", "TRAINING", "MEETING")
 
@@ -262,6 +308,7 @@ def build(server: str) -> dict:
         }
     train, workshop = training_workshop()
     formulas = {k: f.get("itemId") for k, f in (b.get("manufactFormulas") or {}).items() if f.get("itemId")}  # what a factory makes
-    return {"ops": ops, "rooms": rooms, "control": control_buffs(infrast), "names": names,
+    powers = {v["powerName"]: k for k, v in gd.table("handbook_team_table", "cn").items() if v.get("powerName")}
+    return {"ops": ops, "rooms": rooms, "control": control_buffs(infrast), "factions": faction_rules(infrast, powers), "names": names,
             "morale": morale_effects(infrast), "dorm": dorm_effects(infrast), "train": train, "workshop": workshop, "formulas": formulas,
             "layout": layout(b)}

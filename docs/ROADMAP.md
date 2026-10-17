@@ -30,12 +30,14 @@ tokens, expiring items) · gaps by archetype · base map.
 - **Enemy database:** every handbook enemy with abilities and stats at each level, where each appears (story, events,
   archives, supplies, Annihilation), and a stage search (1-7, CE-5) on the list and in the search box.
 - **Install & offline** (a PWA), and backups that carry everything saved in the browser.
+- **Base:** the Control Center's faction effects (Blacksteel and Pinus Sylvestris in factories, Siracusa and Kjerag
+  in Trading Posts, Minos for the Reception Room, the Lungmen Guard pairing), counted in the plan.
 
 ## Next
 
 - **Operator list from screenshots.** Waiting on sample screenshots of the game's operator list.
-- **Faction and conditional base effects** (ako had some: Control Center faction buffs, faction-counting trainers):
-  Novena Sync now brings who's stationed where, so Base can count them.
+- **More conditional base effects:** the Training Room's faction-counting trainers (Sami, Siracusa, Abyssal Hunters,
+  Knights), effects on Trading Post order limits, and conditional morale effects.
 - **Check on a real account:** run Novena Sync with `NOVENA_SHAPE=1` once (it writes the keys, never the values) to
   confirm the recruit, base and progress field names, how paid Annihilation milestones show, and that
   `retro.block.open` means an archive is unlocked.

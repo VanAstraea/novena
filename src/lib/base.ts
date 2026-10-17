@@ -2,9 +2,10 @@
 // values (each skill's efficiency per facility and product, plus skill groups like Texas + Lappland that only count
 // together). Rooms are filled greedily, production first; with N shifts, shift A gets the best teams from the whole
 // roster, shift B the best of who's left, and so on. The Control Center counts its unconditional base-wide buffs
-// (the highest of each kind), times the rooms they cover. Operators the player pins to a room and shift are placed there
-// first, and the greedy fill works around them. Not modelled here (ako has them): morale, faction buffs,
-// dorms and cross-shift balancing.
+// (the highest of each kind), times the rooms they cover, and its faction effects (Blacksteel in factories, three Kjerag
+// in a Trading Post…) counted on the rooms filled before it. Operators the player pins to a room and shift are placed
+// there first, and the greedy fill works around them. Not modelled here (ako has them): morale, dorms and cross-shift
+// balancing.
 
 export type Facility = "Trade" | "Mfg" | "Power" | "Control" | "Reception" | "Office";
 type Eff = Record<string, number | string>;
@@ -15,6 +16,7 @@ export interface BaseFile {
   ops: Record<string, [string, number, number][][]>;
   rooms: Record<Facility, { skills: Record<string, Eff>; groups: { desc: string; conditions: Record<string, number>; necessary: Part[]; optional: Part[] }[] }>;
   control: Record<string, Partial<Record<Facility, number>>>;
+  factions?: Record<string, FactionRule[]>; // Control Center effects that count a faction (missing in older files)
   names: Record<string, string>;
   morale: Partial<Record<Facility, Record<string, [number, number, number]>>>; // own, room, working (morale per hour)
   dorm: Record<string, [number, number, number, number]>; // everyone, one, own, per dorm level
@@ -35,7 +37,17 @@ export interface BaseLayout {
 }
 
 export interface Room { facility: Facility; product: string; slots: number }
-export interface Team { members: string[]; efficiency: number; group?: string; boosts?: Partial<Record<Facility, number>>; pinned?: string[] }
+/** A faction effect a Control Center skill has: per member working in a Factory or Trading Post ("per"), per Trading
+ *  Post holding `n` of them ("room"), per member anywhere in the base, capped ("base"), or for all such rooms while one
+ *  works in the Control Center alongside ("with"). `v`: percent (per product for "per"). */
+export type FactionRule =
+  | { k: "per"; f: Facility; t: string; v: Record<string, number> }
+  | { k: "room"; f: Facility; t: string; n: number; v: number }
+  | { k: "base"; f: Facility; t: string; v: number; max: number }
+  | { k: "with"; f: Facility; t: string; v: number };
+/** What a faction effect adds: `facility` rooms get `value` percent in all (Reception's isn't production). */
+export interface FactionGain { faction: string; facility: Facility; value: number }
+export interface Team { members: string[]; efficiency: number; group?: string; boosts?: Partial<Record<Facility, number>>; factions?: FactionGain[]; pinned?: string[] }
 
 export const LAYOUTS: Record<string, [number, number, number]> = { "243": [2, 4, 3], "153": [1, 5, 3], "252": [2, 5, 2], "333": [3, 3, 3] };
 export const PRODUCT_LABEL: Record<string, string> = { Money: "LMD", PureGold: "Pure Gold", CombatRecord: "Battle Records", all: "Drones", General: "Clues", HR: "Recruitment", Boost: "Base-wide buffs" };
@@ -84,8 +96,9 @@ function value(eff: Eff, product: string, env: Record<string, number>): number {
 
 export class Evaluator {
   env: Record<string, number>;
-  /** `dormLevels`: every dorm's level added up (4 dorms at level 5 = 20), for skills that grow with them. */
-  constructor(public data: BaseFile, public skills: Map<string, Set<string>>, rooms: Room[], dormLevels = 20) {
+  /** `dormLevels`: every dorm's level added up (4 dorms at level 5 = 20), for skills that grow with them; `factions`:
+   *  each operator's factions, for the Control Center's faction effects. */
+  constructor(public data: BaseFile, public skills: Map<string, Set<string>>, rooms: Room[], dormLevels = 20, public factions: Map<string, string[]> = new Map()) {
     this.env = Object.fromEntries((["Trade", "Mfg", "Power", "Control", "Reception", "Office"] as Facility[]).map((f) => [`NumOf${f}`, rooms.filter((r) => r.facility === f).length]));
     this.env.DormLevels = dormLevels;
   }
@@ -104,11 +117,12 @@ export class Evaluator {
   }
 
   /** The best team for a room from who's free. `fixed`: operators pinned here, always in the team (their own value
-   *  counted, and in skill combinations when they fit one); the free ones fill the rest. */
-  bestTeam(room: Room, free: Set<string>, fixed: string[] = []): Team {
+   *  counted, and in skill combinations when they fit one); the free ones fill the rest. `placed`: the rooms already
+   *  filled this shift (the Control Center's faction effects count who's in them). */
+  bestTeam(room: Room, free: Set<string>, fixed: string[] = [], placed: [Room, Team][] = []): Team {
     fixed = fixed.slice(0, room.slots);
     const pinned = fixed.length ? { pinned: fixed } : {};
-    if (room.facility === "Control") return { ...this.controlTeam(room, free, fixed), ...pinned };
+    if (room.facility === "Control") return { ...this.controlTeam(room, free, fixed, placed), ...pinned };
     const fac = this.data.rooms[room.facility];
     if (!fac) return { members: [...fixed], efficiency: 0, ...pinned };
     const own = (c: string) => this.single(room.facility, c, room.product);
@@ -156,25 +170,57 @@ export class Evaluator {
     return best;
   }
 
-  controlValue(members: string[]): Team {
+  /** A Control Center team's worth: its base-wide buffs (the highest of each kind) over the rooms they cover, plus its
+   *  faction effects on the rooms in `placed`. */
+  controlValue(members: string[], placed: [Room, Team][] = []): Team {
     const boosts: Partial<Record<Facility, number>> = {};
+    const gains: FactionGain[] = [];
+    const of = (id: string, t: string) => !!this.factions.get(id)?.includes(t);
     for (const m of members) for (const s of this.skills.get(m) || []) {
       for (const [f, v] of Object.entries(this.data.control[s] || {}) as [Facility, number][]) boosts[f] = Math.max(boosts[f] || 0, v);
+      for (const r of this.data.factions?.[s] || []) {
+        if (r.k === "with") {
+          if (members.some((x) => x !== m && of(x, r.t))) boosts[r.f] = Math.max(boosts[r.f] || 0, r.v);
+          continue;
+        }
+        let value = 0;
+        if (r.k === "base") {
+          const n = [...members, ...placed.flatMap(([, t]) => t.members)].filter((x) => of(x, r.t)).length;
+          value = Math.min(r.max, n * r.v);
+        } else {
+          for (const [room, team] of placed) {
+            if (room.facility !== r.f) continue;
+            const n = team.members.filter((x) => of(x, r.t)).length;
+            value += r.k === "per" ? n * (r.v[room.product] ?? r.v.all ?? 0) : n >= r.n ? r.v : 0;
+          }
+        }
+        if (value) gains.push({ faction: r.t, facility: r.f, value });
+      }
     }
-    const production = (boosts.Trade || 0) * this.env.NumOfTrade + (boosts.Mfg || 0) * this.env.NumOfMfg;
-    return { members, efficiency: production, boosts };
+    const production = (boosts.Trade || 0) * this.env.NumOfTrade + (boosts.Mfg || 0) * this.env.NumOfMfg
+      + gains.filter((g) => g.facility === "Trade" || g.facility === "Mfg").reduce((t, g) => t + g.value, 0);
+    return { members, efficiency: production, boosts, ...(gains.length ? { factions: gains } : {}) };
   }
 
-  controlTeam(room: Room, free: Set<string>, fixed: string[] = []): Team {
-    const holders = [...free].filter((c) => [...(this.skills.get(c) || [])].some((s) => this.data.control[s])).sort();
+  controlTeam(room: Room, free: Set<string>, fixed: string[] = [], placed: [Room, Team][] = []): Team {
+    const holders = [...free].filter((c) => [...(this.skills.get(c) || [])].some((s) => this.data.control[s] || this.data.factions?.[s])).sort();
     let members: string[] = [...fixed];
-    let current = this.controlValue(members);
+    let current = this.controlValue(members, placed);
     while (members.length < room.slots) {
       let best: Team | null = null;
       for (const c of holders) {
         if (members.includes(c)) continue;
-        const t = this.controlValue([...members, c]);
+        const t = this.controlValue([...members, c], placed);
         if (!best || t.efficiency > best.efficiency) best = t;
+        // an effect that needs a partner of a faction alongside: try the holder with one (the first free, by id)
+        if (members.length + 2 > room.slots) continue;
+        for (const r of [...(this.skills.get(c) || [])].flatMap((sk) => this.data.factions?.[sk] || [])) {
+          if (r.k !== "with" || members.some((x) => this.factions.get(x)?.includes(r.t))) continue;
+          const partner = [...free].filter((x) => x !== c && !members.includes(x) && this.factions.get(x)?.includes(r.t)).sort()[0];
+          if (!partner) continue;
+          const pair = this.controlValue([...members, c, partner], placed);
+          if (pair.efficiency > best.efficiency) best = pair;
+        }
       }
       if (!best || best.efficiency <= current.efficiency) break;
       members = best.members;
@@ -192,7 +238,7 @@ export function assign(rooms: Room[], ev: Evaluator, roster: Set<string>, fixed:
   const free = new Set(roster);
   const out: [Room, Team][] = [];
   for (const room of fillOrder(rooms)) {
-    const team = ev.bestTeam(room, free, fixed(out.length));
+    const team = ev.bestTeam(room, free, fixed(out.length), out);
     team.members.forEach((m) => free.delete(m));
     out.push([room, team]);
   }

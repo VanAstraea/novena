@@ -46,6 +46,8 @@ def test_server_files(server):
     assert len(rec["pool"]) > 100
     top = {t["id"] for t in rec["tags"]}
     assert {11, 14, 17, 28} <= top
+    rules = load(f"{server}/base.json")["factions"]
+    assert any(r["t"] == "blacksteel" for rs in rules.values() for r in rs)
     foes = load(f"{server}/enemies.json")["enemies"]
     assert len(foes) > 1000
     slug = next(e for e in foes if e["id"] == "enemy_1007_slime")

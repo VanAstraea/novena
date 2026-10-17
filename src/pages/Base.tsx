@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { useMemo, useState } from "preact/hooks";
-import { Avatar, Await, CutHead, Explain, ItemIcon, itemName, Tabs, useAsync } from "../components/ui";
+import { Avatar, Await, CutHead, Explain, ItemIcon, itemName, metaSig, Tabs, useAsync } from "../components/ui";
 import { OpPicker } from "../components/OpPicker";
 import { Evaluator, gameOrder, LAYOUTS, movesFrom, NO_PINS, production, PRODUCT_LABEL, ROOM_LABEL, rotation, shiftBySlot, skillsAt, standardLayout, type BaseFile, type BaseLayout, type Pins, type Room, type RoomLevels, type Team } from "../lib/base";
 import { load, operators } from "../lib/data";
@@ -85,15 +85,16 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
   const [dorms, setDorms] = useState<DormSettings>(() => { try { return { ...DEFAULT_DORMS, ...JSON.parse(pref("dorms", "{}")) }; } catch { return DEFAULT_DORMS; } });
   const saveDorms = (patch: Partial<DormSettings>) => { const next = { ...dorms, ...patch }; setDorms(next); setPref("dorms", JSON.stringify(next)); };
   const skills = useMemo(() => new Map(Object.values(roster).map((r) => [r.id, skillsAt(data, r.id, r.elite, r.level)])), [data, roster]);
+  const factions = useMemo(() => new Map([...ops.values()].map((o) => [o.id, o.factions])), [ops]); // for the Control Center's faction effects
   // every dorm's level added up, for skills that grow with them (Narantuya's, some Trading Post and Office skills):
   // your base's own when Novena Sync has seen it, otherwise the dorm settings
   const syncedDorms = synced?.rooms.filter((r) => r.room === "DORMITORY") || [];
   const dormLevels = syncedDorms.length ? syncedDorms.reduce((n, r) => n + (r.level || 0), 0) : dorms.dorms * dorms.level;
   const plan = useMemo(() => {
     const rooms = standardLayout(layout, gold, levels);
-    const ev = new Evaluator(data, skills, rooms, dormLevels);
+    const ev = new Evaluator(data, skills, rooms, dormLevels, factions);
     return rotation(rooms, ev, new Set(Object.keys(roster)), shifts, pins);
-  }, [data, skills, layout, shifts, levels, gold, pins, dormLevels]);
+  }, [data, skills, layout, shifts, levels, gold, pins, dormLevels, factions]);
   const names = (t: Team) => t.members.map((m) => `${ops.get(m)?.name || m}${t.pinned?.includes(m) ? " (pinned)" : ""}`).join(", ");
   const text = plan.map((a, i) => [`Shift ${"ABC"[i]} (${24 / shifts} h)`, ...a.map(([r, t]) => `  ${ROOM_LABEL[r.facility]} (${PRODUCT_LABEL[r.product] || r.product}): ${names(t) || "—"}`)].join("\n")).join("\n\n");
   const k = Math.max(0, "ABC".indexOf(tab));
@@ -103,7 +104,7 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
   const rest = useMemo(() => (plan.length > 1 ? dormPlan(data, skills, plan, k, Object.keys(roster), dorms) : null), [plan, k, dorms]);
   const avg = plan.reduce((s, a) => s + production(a), 0) / plan.length;
   // base skills a promotion away: for owned operators, what E1/E2 would add to the plan (single best room)
-  const unlocks = useMemo(() => unlockGains(data, roster, layout, shifts, avg, levels, gold, pins, dormLevels), [data, roster, layout, shifts, levels, gold, pins, dormLevels]);
+  const unlocks = useMemo(() => unlockGains(data, roster, layout, shifts, avg, levels, gold, pins, dormLevels, factions), [data, roster, layout, shifts, levels, gold, pins, dormLevels, factions]);
   const [nTrade, nMfg] = LAYOUTS[layout];
   const levelPick = (kind: keyof RoomLevels, i: number, label: string) => (
     <label key={`${kind}${i}`} class="field lvl"><span>{label}</span>
@@ -158,7 +159,7 @@ function View({ data, ops }: { data: BaseFile; ops: Map<string, OpIndex> }) {
         </table>
       </div>
       <PinsCard pins={pinOps} out={pins.out} ops={ops} />
-      <Explain>Skill values from MAA's curated base data; skill combinations (like Texas + Lappland) count when all their members are placed. Each shift takes the best teams from who's left. "Lasts" is how long a team works from full morale (24) before its first member runs out, with the game's default drain and the team's own morale skills; it's flagged when that's shorter than the shift. Skills that grow with dorm levels (Narantuya's, some Trading Post and Office skills) use your {dormLevels} dorm levels{syncedDorms.length ? ", from your last sync" : ", from the dorm settings"}. Faction buffs and other conditional effects aren't modelled.</Explain>
+      <Explain>Skill values from MAA's curated base data; skill combinations (like Texas + Lappland) count when all their members are placed. Each shift takes the best teams from who's left. "Lasts" is how long a team works from full morale (24) before its first member runs out, with the game's default drain and the team's own morale skills; it's flagged when that's shorter than the shift. Skills that grow with dorm levels (Narantuya's, some Trading Post and Office skills) use your {dormLevels} dorm levels{syncedDorms.length ? ", from your last sync" : ", from the dorm settings"}. The Control Center's faction effects count who the plan puts in the rooms filled before it: Blacksteel and Pinus Sylvestris operators in factories, Siracusans and three Kjerag operators in a Trading Post, Minos operators anywhere for the Reception Room, and a Lungmen Guard partner alongside. Effects on order limits, special resources or morale, and other conditional effects, aren't modelled.</Explain>
       </>}
       {view === "dorms" && (rest ? <DormCard plan={rest} shift={"ABC"[k]} ops={ops} dorms={dorms} save={saveDorms} />
         : <p class="note">With one shift, nobody rests: every team runs out of morale before the day is over. Two or three shifts let the others recover in the dorms.</p>)}
@@ -310,6 +311,11 @@ function RoomRow({ room, team, ops, hours, shiftHours, pinKey, pins }: { room: R
         <PinTeam pinKey={pinKey} team={team} slots={room.slots} pins={pins} ops={ops} />
         {team.group && <small class="muted">skill combination</small>}
         {team.boosts && Object.keys(team.boosts).length > 0 && <small class="muted">{Object.entries(team.boosts).map(([f, v]) => `${ROOM_LABEL[f as keyof typeof ROOM_LABEL]}s +${v}%`).join(", ")}</small>}
+        {team.factions?.map((g, i) => (
+          <small key={i} class="muted" style={{ display: "block" }}>
+            {metaSig.value?.factions[g.faction] || g.faction}: {g.facility === "Reception" ? `Reception Room +${fmt(g.value)}%` : `${ROOM_LABEL[g.facility]}s ${g.value >= 0 ? "+" : ""}${fmt(g.value)}% in all`}
+          </small>
+        ))}
       </td>
       <td data-label="Bonus" class="num">{team.efficiency ? `+${fmt(team.efficiency)}%` : "–"}</td>
       <td data-label="Lasts" class={`num${hours < shiftHours ? " warn-text" : ""}`} title={hours < shiftHours ? "Runs out of morale before the shift ends" : undefined}>
@@ -319,7 +325,7 @@ function RoomRow({ room, team, ops, hours, shiftHours, pinKey, pins }: { room: R
   );
 }
 
-function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite: number; level: number }>, layout: string, shifts: number, base: number, levels?: RoomLevels, gold?: number, pins?: Pins, dormLevels = 20) {
+function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite: number; level: number }>, layout: string, shifts: number, base: number, levels?: RoomLevels, gold?: number, pins?: Pins, dormLevels = 20, factions?: Map<string, string[]>) {
   const rooms = standardLayout(layout, gold, levels);
   const out: { id: string; elite: number; gain: number }[] = [];
   const skills = new Map(Object.values(roster).map((r) => [r.id, skillsAt(data, r.id, r.elite, r.level)]));
@@ -330,7 +336,7 @@ function unlockGains(data: BaseFile, roster: Record<string, { id: string; elite:
       if ([...next].every((s) => skills.get(r.id)!.has(s))) continue;
       const trial = new Map(skills);
       trial.set(r.id, next);
-      const ev = new Evaluator(data, trial, rooms, dormLevels);
+      const ev = new Evaluator(data, trial, rooms, dormLevels, factions);
       const plan = rotation(rooms, ev, new Set(Object.keys(roster)), shifts, pins);
       const gain = plan.reduce((s, a) => s + production(a), 0) / plan.length - base;
       if (gain > 0.5) out.push({ id: r.id, elite: e, gain });

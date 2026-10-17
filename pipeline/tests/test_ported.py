@@ -79,3 +79,25 @@ def test_dorm_scaled_skills_follow_dorm_levels():
     assert dorm_scaled("进驻人力办公室时，人脉资源的联络速度+5%，每间宿舍每级额外+2%人脉资源的联络速度") == (5.0, 2.0)
     assert dorm_scaled("进驻发电站时，每间宿舍每级为充能速度额外+0.5%") == (0.0, 0.5)
     assert dorm_scaled("进驻会客室时，如果菲亚梅塔进驻在宿舍，则线索搜集速度额外提升10%") is None
+
+
+def test_faction_rules_read_control_center_faction_effects():
+    from novena_pipeline import base
+    infrast = {"Control": {"skills": {
+        "bs": {"desc": ["进驻控制中枢时，自身心情每小时消耗+0.5；每个进驻在制造站的黑钢国际干员，生产力+5%"]},
+        "pine": {"desc": ["进驻控制中枢时，每个进驻在制造站的红松骑士团干员，作战记录类配方的生产力+10%，贵金属类配方的生产力-10%"]},
+        "kj": {"desc": ["进驻控制中枢时，每个存在3名谢拉格干员的贸易站，订单获取效率+10%"]},
+        "karlan": {"desc": ["进驻控制中枢时，每个进驻在贸易站的喀兰贸易干员，订单获取效率-15%，订单上限+6"]},
+        "minos": {"desc": ["进驻控制中枢时，基建内（不包含副手及活动室使用者）每有1名米诺斯干员，会客室线索搜集速度+4%（最多+20%，同种效果取最高）；当与萨尔贡干员进驻控制中枢一起工作时，自身心情每小时消耗+0.02"]},
+        "lgd": {"desc": ["当与龙门近卫局干员进驻控制中枢一起工作时，所有制造站生产力+3%（同种效果取最高）"]},
+        "knight": {"desc": ["进驻控制中枢时，每个进驻在制造站的骑士干员生产力+7%"]},
+        "flat": {"desc": ["进驻控制中枢时，所有制造站生产力+2%"]},
+    }}}
+    powers = {"黑钢国际": "blacksteel", "红松骑士团": "pinus", "谢拉格": "kjerag", "喀兰贸易": "karlan", "米诺斯": "minos", "龙门近卫局": "lgd"}
+    assert base.faction_rules(infrast, powers) == {
+        "bs": [{"k": "per", "f": "Mfg", "t": "blacksteel", "v": {"all": 5.0}}],
+        "pine": [{"k": "per", "f": "Mfg", "t": "pinus", "v": {"CombatRecord": 10.0, "PureGold": -10.0}}],
+        "kj": [{"k": "room", "f": "Trade", "t": "kjerag", "n": 3, "v": 10.0}],
+        "minos": [{"k": "base", "f": "Reception", "t": "minos", "v": 4.0, "max": 20.0}],
+        "lgd": [{"k": "with", "f": "Mfg", "t": "lgd", "v": 3.0}],
+    }  # Karlan Trade changes the order limit, "Knight" isn't a faction, the flat buff is control_buffs'
