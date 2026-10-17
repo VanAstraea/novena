@@ -134,3 +134,63 @@ export function unlockNext(data: ProgressFile, p: StoryProgress, ops: Record<str
       : low.length ? { r, why: "potential", chars: low, opLeft: left } : { r, why: "prime", chars: [], opLeft: left };
   }).filter((x) => x.why !== "prime" || x.opLeft > 0).sort((a, b) => rank[a.why] - rank[b.why] || b.opLeft - a.opLeft || a.r.index - b.r.index);
 }
+
+// --- marking progress by hand ----------------------------------------------------------------------------------------
+// For players who don't sync it: a whole episode, supply group or archive at a time, written into the same record a
+// sync brings (so every "left for you" works the same). A later sync with progress replaces it.
+
+/** 0 not played, 1 cleared, 2 every combat stage at 3★, 3 that and every challenge mode; -1 somewhere in between. */
+export type GroupState = -1 | 0 | 1 | 2 | 3;
+
+export const blankProgress = (now = Date.now()): StoryProgress => ({ stages: {}, open: [], claimed: {}, annihilation: {}, at: now, manual: true });
+
+export function groupState(stages: ProgressStage[], p: StoryProgress): GroupState {
+  const combat = stages.filter(([, , f]) => !(f & (STORY | CHALLENGE)));
+  const challenge = stages.filter(([, , f]) => f & CHALLENGE);
+  if (!combat.length) return 0;
+  const s = combat.map(([id]) => stateOf(p, id));
+  const any = stages.some(([id]) => stateOf(p, id) > 0);
+  if (s.every((x) => x >= 3)) return challenge.every(([id]) => stateOf(p, id) >= 2) ? (challenge.length ? 3 : 2) : 2;
+  if (s.every((x) => x >= 2)) return 1;
+  return any ? -1 : 0;
+}
+
+/** The stages' states set to match a group state. Story stages count as read from 1 on, at 3 (the state their one
+ *  Originite Prime, when they pay one, counts as claimed at). */
+export function withGroup(stages: ProgressStage[], p: StoryProgress, state: 0 | 1 | 2 | 3): StoryProgress {
+  const next = { ...p.stages };
+  for (const [id, , f] of stages) {
+    const v = f & CHALLENGE ? (state >= 3 ? 3 : 0) : f & STORY ? (state >= 1 ? 3 : 0) : state >= 2 ? 3 : state >= 1 ? 2 : 0;
+    if (v) next[id] = v; else delete next[id];
+  }
+  return { ...p, stages: next };
+}
+
+/** An archive's stages set to a state; playing it means it's unlocked, and its trial rewards the new stars reach count
+ *  as claimed (what players do on finishing an archive). */
+export function withArchive(r: Retro, p: StoryProgress, state: 0 | 1 | 2 | 3): StoryProgress {
+  const next = withGroup(r.stages, p, state);
+  const stars = r.trail ? trialStars(r, next) : 0;
+  const claimed = { ...(p.claimed || {}), [r.id]: (r.trail?.rewards || []).filter(([, need]) => stars >= need).map(([id]) => id) };
+  if (!claimed[r.id].length) delete claimed[r.id];
+  const open = new Set(p.open || []);
+  if (state > 0) open.add(r.id);
+  return { ...next, claimed, open: [...open] };
+}
+
+export function withUnlocked(r: Retro, p: StoryProgress, on: boolean): StoryProgress {
+  const open = new Set(p.open || []);
+  if (on) open.add(r.id); else open.delete(r.id);
+  return { ...p, open: [...open] };
+}
+
+/** An Annihilation map's one-time orundum marked as all earned (400 kills, every milestone paid) or none. */
+export function withAnnihilation(a: ProgressFile["annihilation"][number], p: StoryProgress, done: boolean): StoryProgress {
+  const ann = { ...(p.annihilation || {}) };
+  if (done) ann[a.id] = { kills: Math.max(400, ...(a.ladders || []).map(([k]) => k)), rewards: (a.ladders || [[400, 0]]).map(() => 1) };
+  else delete ann[a.id];
+  return { ...p, annihilation: ann };
+}
+
+/** Event Crystals held, counted from now (Monday's top-up adds to it from here). */
+export const withCrystals = (p: StoryProgress, coin: number, now = Date.now()): StoryProgress => ({ ...p, coin: Math.max(0, Math.round(coin)), at: now });

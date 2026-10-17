@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { annihilationLeft, archiveLeft, crystalsNow, opLeft, tally, trialStars, unlockNext, weekFee } from "../../src/lib/storyLeft";
+import { annihilationLeft, annihilationTotalLeft, archiveLeft, blankProgress, crystalsNow, groupState, opLeft, tally, trialStars, unlockNext, weekFee, withAnnihilation, withArchive, withCrystals, withGroup, withUnlocked } from "../../src/lib/storyLeft";
 import type { RosterOp, StoryProgress } from "../../src/state";
-import type { ProgressFile, Retro } from "../../src/types";
+import type { ProgressFile, ProgressStage, Retro } from "../../src/types";
 import { nextWeeklyReset } from "../../src/lib/time";
 
 const NOW = Date.parse("2026-10-12T12:00:00Z");
@@ -70,3 +70,58 @@ describe("what's left for you", () => {
     expect(unlockNext(DATA, P, { char_b: op("char_b", 6), char_c: op("char_c", 6) }, NOW).map((x) => [x.r.id, x.why])).toEqual([["c", "prime"], ["b", "prime"]]);
   });
 });
+
+describe("marking progress by hand", () => {
+  const zone = DATA.zones[0].stages; // 0-1 (Originite Prime), its challenge mode, a story stage
+  const a = DATA.retros[0];
+
+  it("reads how far a group is, with partial progress as its own state", () => {
+    const blank = blankProgress(NOW);
+    expect(groupState(zone, blank)).toBe(0);
+    expect(groupState(zone, { ...blank, stages: { "main_00-02": 2 } })).toBe(-1); // only the story stage
+    expect(groupState(zone, { ...blank, stages: { "main_00-01": 2 } })).toBe(1);
+    expect(groupState(zone, { ...blank, stages: { "main_00-01": 3 } })).toBe(2);
+    expect(groupState(zone, { ...blank, stages: { "main_00-01": 3, "main_00-01#f#": 3 } })).toBe(3);
+  });
+
+  it("sets every stage of a group, and the tally follows", () => {
+    const blank = blankProgress(NOW);
+    const three = withGroup(zone, blank, 2);
+    expect(three.stages).toEqual({ "main_00-01": 3, "main_00-02": 3 });
+    expect(tally(zone, three).opLeft).toBe(1); // the challenge mode's Originite Prime is still to come
+    const all = withGroup(zone, three, 3);
+    expect(tally(zone, all).opLeft).toBe(0);
+    expect(groupState(zone, all)).toBe(3);
+    expect(withGroup(zone, all, 0).stages).toEqual({});
+    const read: ProgressStage[] = [["st", "X-ST-1", 5], ["x1", "X-1", 1]]; // a story stage that pays Originite Prime
+    expect(tally(read, withGroup(read, blank, 1)).opLeft).toBe(1); // X-1's, at 3★
+    expect(tally(read, withGroup(read, blank, 2)).opLeft).toBe(0);
+    expect(withGroup(zone, { ...blank, stages: { other: 3 } }, 1).stages).toEqual({ other: 3, "main_00-01": 2, "main_00-02": 3 });
+  });
+
+  it("an archive played is unlocked, and its trial rewards the stars reach count as claimed", () => {
+    const done = withArchive(a, blankProgress(NOW), 3);
+    expect(done.open).toEqual(["a"]);
+    expect(trialStars(a, done)).toBe(7);
+    expect(done.claimed).toEqual({ a: ["r1", "r2", "r3"] });
+    expect(archiveLeft(a, done, NOW).claimable).toEqual([]);
+    const cleared = withArchive(a, done, 1);
+    expect(cleared.claimed).toEqual({}); // no stage at 3★: no stars
+    expect(withUnlocked(a, cleared, false).open).toEqual([]);
+    expect(withUnlocked(DATA.retros[1], cleared, true).open).toEqual(["a", "b"]);
+  });
+
+  it("marks an Annihilation map's one-time orundum as earned or not", () => {
+    const map = DATA.annihilation[0];
+    const done = withAnnihilation(map, blankProgress(NOW), true);
+    expect(annihilationLeft(map, done)).toBe(0);
+    expect(annihilationTotalLeft(DATA, withAnnihilation(map, done, false))).toBe(1500);
+  });
+
+  it("keeps Event Crystals counted from when they were typed", () => {
+    const p = withCrystals(blankProgress(NOW - WEEK_MS), 2.4, NOW);
+    expect([p.coin, p.at]).toEqual([2, NOW]);
+    expect(crystalsNow(p, DATA, "en", NOW)).toBe(2);
+  });
+});
+const WEEK_MS = 7 * 86400_000;

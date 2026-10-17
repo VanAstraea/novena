@@ -76,6 +76,7 @@ export interface StoryProgress {
   mainStageProgress?: string;
   level?: number;
   at: number;
+  manual?: boolean; // marked (or changed) by hand on Story & archives
 }
 
 /** Training vouchers, sanity potions and other time-limited items: count and expiry (unix seconds, -1 = never). */

@@ -88,8 +88,8 @@ export default function Pulls() {
   );
 }
 
-/** One-time rewards a synced story progress says you haven't claimed: Annihilation milestones, and Originite Prime
- *  (which only counts towards pulls if you convert it). Shown only with story progress from a sync. */
+/** One-time rewards your story progress says you haven't claimed: Annihilation milestones, and Originite Prime
+ *  (which only counts towards pulls if you convert it). Shown only with story progress (synced or marked by hand). */
 function OneTime() {
   const s = server.value;
   const p = account.value.progress;

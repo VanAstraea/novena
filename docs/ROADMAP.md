@@ -1,45 +1,60 @@
 # Roadmap
 
-## Now: launch
+## Launched
 
-- The new design across the site (navy, gold and ivory; the Novena emblem; the first-visit intro; card-to-page transitions).
-- Credits page with every source, mirror, font and package license.
-- Reddit launch post (`docs/reddit-post.md`).
+- The website, with the new design (navy, gold and ivory; the Novena emblem; the first-visit intro; card-to-page
+  transitions), the Credits page with every source, mirror, font and package license, and the Reddit launch post
+  (`docs/reddit-post.md`).
+- Five sections (My account, Plan, Operators, Events, Tools), set out in the architecture plan: Today stays its own
+  page, Sanity Dump stays its own page under Plan.
 
 ## Ported from ako (done)
 
 Event shop advisor · Training Room and Workshop picks · progress with exact costs between snapshots · sanity timer
 with notifications · morale and dorm plan (default numbers) · daily checklist · items to use (vouchers, potential
-tokens, expiring items).
+tokens, expiring items) · gaps by archetype · base map.
 
-## Done in this round (UI plan, Phase 4: arrives with the first Novena Sync release)
+## Done since launch
 
-- **Outfits as worn** on avatars, portraits and the operator page; **recruitment slots** on the Recruitment
-  calculator; **your base now** on Base (rooms, teams, morale, production, drones; the layout picked from yours);
-  **timers** on Today. Each field the app keeps was checked for what it reveals (see `sync/novena_sync/payload.py`).
-  Still to check on a real account: the recruit and base field names (run the app with `NOVENA_SHAPE=1` once: it
-  writes the keys, never the values).
+- **From the Reddit feedback:** new operators at the top of the roster, auto E2/SL7, "Add all 4★", bulk edit; clue
+  and drone reminders; farming drops per stage, craft steps and a Clear button; Upcoming's estimates labelled and the
+  wiki's dates where it has them; Integrated Strategies, Reclamation Algorithm and Paradox Simulation in "What you
+  play"; room levels and gold factory count on Base; story and event progress, from Novena Sync or marked by hand on
+  Story & archives.
+- **Importing:** Krooster profiles (pasted, a saved page or the API page) and depots (Krooster and Penguin Statistics
+  planner exports); the Import guide.
+- **Story & archives:** one-time Originite Prime and orundum, archive trials, free operators and where to get them,
+  what's left for you, and which archive to unlock next.
+- **Operators and planning:** module details everywhere, roles and replacements for guide operators, leave out
+  operators in Priorities (one, a batch or a rarity), tier lists, account stats.
+- **Enemy database:** every handbook enemy with abilities and stats at each level, where each appears (story, events,
+  archives, supplies, Annihilation), and a stage search (1-7, CE-5) on the list and in the search box.
+- **Install & offline** (a PWA), and backups that carry everything saved in the browser.
 
 ## Next
 
-- **Operator list from screenshots.** Waiting on sample screenshots.
+- **Operator list from screenshots.** Waiting on sample screenshots of the game's operator list.
 - **Faction and conditional base effects** (ako had some: Control Center faction buffs, faction-counting trainers):
-  they need to know who's stationed where, so they fit best once Novena Sync can bring the base layout.
+  Novena Sync now brings who's stationed where, so Base can count them.
+- **Check on a real account:** run Novena Sync with `NOVENA_SHAPE=1` once (it writes the keys, never the values) to
+  confirm the recruit, base and progress field names, how paid Annihilation milestones show, and that
+  `retro.block.open` means an archive is unlocked.
+- **Waiting on a decision:** future-event dates from Oldwell (needs the owner's permission); trimming font hinting
+  (about 33 KB a visit).
 
-## Novena Sync (optional companion): built, not yet released
+## Novena Sync (optional companion): released
 
-Code in `sync/`, release builds from `.github/workflows/sync-app.yml` on a `sync-v*` tag. First release after the
-website launches.
+Code in `sync/`, release builds from `.github/workflows/sync-app.yml` on a `sync-v*` tag.
+0.1.0 brought the roster, depot, base, recruitment and sanity; 0.2.0 (2026-10-13) adds optional story, event and
+archive progress (off by default) and a note for players who sign in with Google, Apple, Facebook or as a guest.
 
 - **What it does:** signs in to the player's own account on their own computer, reads it (read-only), and saves a sync
   file that Novena imports. The website itself never asks for a login and never sees credentials.
 - **What it never does:** drive the game, automate anything, or talk to MAA. Read-only, by design.
-- **Trust:** source on GitHub; builds made by GitHub Actions so anyone can check the app matches the code; code-signed
-  if we can.
+- **Trust:** source on GitHub; builds made by GitHub Actions so anyone can check the app matches the code, with
+  SHA-256 checksums. Not code-signed yet (Windows shows "unknown publisher").
 - **Honest labelling:** unofficial, uses the game's unofficial login, at the player's own risk; Yostar's terms don't
   sanction third-party tools.
-- **Quick, repeatable sync:** see below.
-- Released after the website, once we've seen how the community reacts.
 
 ### Making syncs quick (as built)
 

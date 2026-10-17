@@ -8,7 +8,7 @@ import { gzipSync } from "node:zlib";
 
 const KB = 1024;
 const BUDGET = {
-  core: 41 * KB, // index + its static imports, together
+  core: 42 * KB, // index + its static imports, together (raised from 41 KB for stage codes in the search box)
   chunk: 10 * KB, // each lazily loaded chunk (a page, or code pages share) not named below
   // by name, before the hash: the solver (Farming, Priorities, Sanity Dump) and the depot screenshot reader load only
   // when used

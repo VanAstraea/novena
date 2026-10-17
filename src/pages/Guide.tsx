@@ -33,7 +33,7 @@ export default function Guide() {
             </li>
           ))}
         </ul>
-        <Explain>Mix them as you like: Novena Sync or a Krooster profile for operators, screenshots or a planner for the depot, and a quick edit by hand for anything that changed since. Your base comes only with Novena Sync; recruitment slots, sanity and story progress with Novena Sync or a sync data file.</Explain>
+        <Explain>Mix them as you like: Novena Sync or a Krooster profile for operators, screenshots or a planner for the depot, and a quick edit by hand for anything that changed since. Your base comes only with Novena Sync; recruitment slots and sanity with Novena Sync or a sync data file; story progress with either, or marked by hand on Story &amp; archives.</Explain>
       </section>
       <div ref={top} class="guide-top">
         <Tabs label="Ways to import" value={way} onChange={(k) => setQuery({ m: k })} tabs={WAYS.map((w) => ({ key: w.key, label: w.tab }))} />

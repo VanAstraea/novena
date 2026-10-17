@@ -1,14 +1,16 @@
 // Story & archives: what the main story, the Side Story and Intermezzo archives and Annihilation pay out once, and the
 // free operators with where to get each one now. Read from the game's tables; with story progress from a sync (Novena
-// Sync with the option on, or a game sync data file), each part also shows what's left for you.
+// Sync with the option on, or a game sync data file) or marked by hand here (?edit=1), each part also shows what's
+// left for you.
 import type { ComponentChildren } from "preact";
 import { useMemo } from "preact/hooks";
 import { Await, Explain, OpLink, Stars, Tabs, useAsync } from "../components/ui";
 import { operators, progress as loadProgress } from "../lib/data";
 import { CLASS_NAMES, date, fmt, relative } from "../lib/format";
 import { href, route, setQuery } from "../lib/router";
-import { annihilationLeft, annihilationTotalLeft, archiveLeft, crystalsNow, opLeft, tally, unlockNext, weekFee, type ArchiveLeft, type Tally } from "../lib/storyLeft";
-import { account, hasRoster, server, type StoryProgress } from "../state";
+import { annihilationLeft, annihilationTotalLeft, archiveLeft, blankProgress, crystalsNow, groupState, opLeft, tally, unlockNext, weekFee, withAnnihilation, withArchive, withCrystals, withGroup, withUnlocked, type ArchiveLeft, type GroupState, type Tally } from "../lib/storyLeft";
+import { undoable } from "../components/Toast";
+import { account, hasRoster, saveAccount, server, type StoryProgress } from "../state";
 import type { OpIndex, ProgressFile, Retro, WelfareSource } from "../types";
 
 type View = "free" | "main" | "archives" | "annihilation";
@@ -21,7 +23,10 @@ export default function Story() {
   const s = server.value;
   const st = useAsync(() => Promise.all([loadProgress(s), operators(s)]), [s]);
   const view = (route.value.query.get("view") || "free") as View;
-  const p = account.value.progress;
+  const editing = route.value.query.get("edit") === "1";
+  const saved = account.value.progress;
+  // while marking by hand, a blank record stands in until the first change is saved
+  const p = editing ? (saved ? { ...saved, annihilation: saved.annihilation ?? {} } : blankProgress()) : saved;
   return (
     <div class="stack fade-in story">
       <h1>Story &amp; archives</h1>
@@ -33,18 +38,21 @@ export default function Story() {
           return (
             <>
               <Summary data={data} p={p} byId={byId} />
+              {editing ? <EditBar data={data} p={p!} /> : saved && <p class="muted">
+                {saved.manual ? "Your progress as you marked it." : `Progress from your last sync (${relative(saved.at)}).`} <button class="linkish" onClick={() => setQuery({ edit: "1" })}>Change it by hand</button></p>}
               <Tabs label="Story sections" value={view} onChange={(v) => setQuery({ view: v === "free" ? "" : v })} tabs={[
                 { key: "free", label: "Free operators" }, { key: "main", label: "Main story" },
                 { key: "archives", label: "Side Stories & Intermezzi" }, { key: "annihilation", label: "Annihilation" },
               ]} />
               {view === "free" && <Welfare data={data} ops={ops} byId={byId} p={p} />}
-              {view === "main" && <Main data={data} byId={byId} p={p} />}
-              {view === "archives" && <Archives data={data} byId={byId} p={p} />}
-              {view === "annihilation" && <Annihilation data={data} p={p} />}
+              {view === "main" && <Main data={data} byId={byId} p={p} editing={editing} />}
+              {view === "archives" && <Archives data={data} byId={byId} p={p} editing={editing} />}
+              {view === "annihilation" && <Annihilation data={data} p={p} editing={editing} />}
               <Explain>
                 Each part's rewards are read from the game's own tables (via ArknightsGamedata, see Credits) once a day. Originite Prime comes once per stage, on its first 3★ clear;
                 challenge modes count separately. An archive's trial (Record Restoration) counts 3 stars for each of its stages at 3★ and 1 for each challenge mode; story stages count for nothing.
-                "Yours" compares with the roster saved in this browser{p ? <>, and "left for you" with the story progress from your last sync ({relative(p.at)}), which stays in this browser too</> : null}.
+                "Yours" compares with the roster saved in this browser{saved ? <>, and "left for you" with {saved.manual ? "the progress you marked" : `the story progress from your last sync (${relative(saved.at)})`}, which stays in this browser too</> : null}.
+                Marking by hand works a whole episode, supply group or archive at a time; finishing an archive counts its trial rewards as claimed. A sync with story progress replaces what you marked.
               </Explain>
             </>
           );
@@ -95,7 +103,7 @@ function Summary({ data, p, byId }: { data: ProgressFile; p?: StoryProgress; byI
           {caps.slice(1).map(([lv, n]) => <> ({n} from player level {lv})</>)}, which is also as many as the top-up lets you hold.</p>
       )}
       {p ? <UnlockNext data={data} p={p} byId={byId} />
-        : <p class="muted">To see what's left for you, sync with <a href={href("/guide", { m: "sync" })}>Novena Sync</a> with <em>Include story, event and archive progress</em> turned on, or import a <a href={href("/guide", { m: "file" })}>game sync data file</a>.</p>}
+        : route.value.query.get("edit") !== "1" && <p class="muted">To see what's left for you, <button class="linkish" onClick={() => setQuery({ edit: "1" })}>mark what you've done</button> (a few clicks: an episode or archive at a time), sync with <a href={href("/guide", { m: "sync" })}>Novena Sync</a> with <em>Include story, event and archive progress</em> turned on, or import a <a href={href("/guide", { m: "file" })}>game sync data file</a>.</p>}
     </>
   );
 }
@@ -254,7 +262,7 @@ function stageOps(data: ProgressFile): Map<string, string[]> {
   return out;
 }
 
-function Main({ data, byId, p }: { data: ProgressFile; byId: Map<string, OpIndex>; p?: StoryProgress }) {
+function Main({ data, byId, p, editing }: { data: ProgressFile; byId: Map<string, OpIndex>; p?: StoryProgress; editing: boolean }) {
   const gives = useMemo(() => stageOps(data), [data]);
   const zone = (kind: "main" | "supply") => data.zones.filter((z) => z.kind === kind);
   return (
@@ -273,7 +281,7 @@ function Main({ data, byId, p }: { data: ProgressFile; byId: Map<string, OpIndex
                   <td data-label="Operators">
                     {chars.length ? <span class="story-ops">{chars.map(([c, code]) => byId.get(c) && <OpLink key={c} op={byId.get(c)!} sub={code} />)}</span> : <span class="muted">–</span>}
                   </td>
-                  {p && <td data-label="Left for you"><Cleared t={tally(z.stages, p)} /></td>}
+                  {p && <td data-label="Left for you"><Cleared t={tally(z.stages, p)} />{editing && <GroupPick label={z.name} value={groupState(z.stages, p)} challenges={z.stages.some(([, , f]) => f & CHALLENGE)} onChange={(v) => saveProgress(withGroup(z.stages, p, v))} />}</td>}
                 </tr>
               );
             })}
@@ -289,7 +297,7 @@ function Main({ data, byId, p }: { data: ProgressFile; byId: Map<string, OpIndex
               <tr key={z.id}>
                 <td data-label="Stages">{z.name} <small class="muted">({z.stages.map(([, code]) => code).join(", ")})</small></td>
                 <td data-label="Originite Prime" class="num">{z.op}</td>
-                {p && <td data-label="Left for you"><Cleared t={tally(z.stages, p)} /></td>}
+                {p && <td data-label="Left for you"><Cleared t={tally(z.stages, p)} />{editing && <GroupPick label={z.name} value={groupState(z.stages, p)} challenges={false} onChange={(v) => saveProgress(withGroup(z.stages, p, v))} />}</td>}
               </tr>
             ))}
           </tbody>
@@ -317,7 +325,7 @@ function ArchiveMine({ r, mine, byId }: { r: Retro; mine: ArchiveLeft; byId: Map
   );
 }
 
-function Archives({ data, byId, p }: { data: ProgressFile; byId: Map<string, OpIndex>; p?: StoryProgress }) {
+function Archives({ data, byId, p, editing }: { data: ProgressFile; byId: Map<string, OpIndex>; p?: StoryProgress; editing: boolean }) {
   const now = Date.now();
   return (
     <div class="table-wrap">
@@ -347,7 +355,13 @@ function Archives({ data, byId, p }: { data: ProgressFile; byId: Map<string, OpI
                   )}
                   {hasRoster.value && char && <><br /><small class={mine ? "good-text" : "warn-text"}>{mine ? `${char.name}: yours, potential ${mine.pot}` : `${char.name}: not owned`}</small></>}
                 </td>
-                {p && <td data-label="Left for you">{arrived ? <ArchiveMine r={r} mine={archiveLeft(r, p, now)} byId={byId} /> : <span class="muted">–</span>}</td>}
+                {p && <td data-label="Left for you">{arrived ? <>
+                  <ArchiveMine r={r} mine={archiveLeft(r, p, now)} byId={byId} />
+                  {editing && <div class="story-edit">
+                    <label class="row tight"><input type="checkbox" checked={!!p.open?.includes(r.id)} onChange={(e) => saveProgress(withUnlocked(r, p, (e.target as HTMLInputElement).checked))} /> Unlocked</label>
+                    <GroupPick label={r.name} value={groupState(r.stages, p)} challenges={r.stages.some(([, , f]) => f & CHALLENGE)} onChange={(v) => saveProgress(withArchive(r, p, v))} />
+                  </div>}
+                </> : <span class="muted">–</span>}</td>}
               </tr>
             );
           })}
@@ -359,7 +373,7 @@ function Archives({ data, byId, p }: { data: ProgressFile; byId: Map<string, OpI
 
 // --- annihilation ---------------------------------------------------------------------------------------------
 
-function Annihilation({ data, p }: { data: ProgressFile; p?: StoryProgress }) {
+function Annihilation({ data, p, editing }: { data: ProgressFile; p?: StoryProgress; editing: boolean }) {
   const now = Date.now();
   const maps = data.annihilation.filter((a) => a.orundum > 0);
   const total = p ? annihilationTotalLeft(data, p) : null;
@@ -382,7 +396,8 @@ function Annihilation({ data, p }: { data: ProgressFile; p?: StoryProgress }) {
                   <td data-label="Map">{a.name}</td>
                   <td data-label="Region">{a.region || "–"}</td>
                   <td data-label="One-time orundum" class="num">{fmt(a.orundum)}</td>
-                  {total !== null && <td data-label="Left for you" class="num">{left ? <span class="warn-text">{fmt(left)}</span> : <span class="good-text">Done</span>}{kills ? <><br /><small class="muted">best {kills} kills</small></> : null}</td>}
+                  {total !== null && <td data-label="Left for you" class="num">{left ? <span class="warn-text">{fmt(left)}</span> : <span class="good-text">Done</span>}{kills && !editing ? <><br /><small class="muted">best {kills} kills</small></> : null}
+                    {editing && p && <label class="row tight story-edit" style={{ justifyContent: "flex-end" }}><input type="checkbox" checked={!left} onChange={(e) => saveProgress(withAnnihilation(a, p, (e.target as HTMLInputElement).checked))} /> All earned</label>}</td>}
                   <td data-label="Rotation">{on ? <span class="good-text">Now, until {date(a.rotation![1])}</span> : <span class="muted">–</span>}</td>
                 </tr>
               );
@@ -391,5 +406,65 @@ function Annihilation({ data, p }: { data: ProgressFile; p?: StoryProgress }) {
         </table>
       </div>
     </div>
+  );
+}
+
+// --- marking progress by hand ---------------------------------------------------------------------------------
+
+function saveProgress(p: StoryProgress) {
+  saveAccount({ ...account.value, progress: { ...p, manual: true } });
+}
+
+const GROUP_LABELS: [GroupState, string][] = [[0, "Not played"], [1, "Cleared"], [2, "All at 3★"], [3, "All at 3★ and challenge modes"]];
+
+/** How far you are in an episode, supply group or archive. */
+function GroupPick({ label, value, challenges, onChange }: { label: string; value: GroupState; challenges: boolean; onChange: (v: 0 | 1 | 2 | 3) => void }) {
+  return (
+    <select class="story-pick" aria-label={`Your progress in ${label}`} value={String(value)} onChange={(e) => onChange(Number((e.target as HTMLSelectElement).value) as 0 | 1 | 2 | 3)}>
+      {value === -1 && <option value="-1" disabled>Partly done</option>}
+      {GROUP_LABELS.filter(([v]) => challenges || v !== 3).map(([v, l]) => <option key={v} value={String(v)}>{l}</option>)}
+    </select>
+  );
+}
+
+/** The bar above the tables while marking: what this does, a quick way to set the main story, Event Crystals, done. */
+function EditBar({ data, p }: { data: ProgressFile; p: StoryProgress }) {
+  const main = data.zones.filter((z) => z.kind === "main");
+  const upTo = (n: number, three: boolean) => {
+    const before = account.value.progress;
+    let next = p;
+    main.forEach((z, i) => { next = withGroup(z.stages, next, i <= n ? (three ? 2 : 1) : 0); });
+    saveProgress(next);
+    undoable(n < 0 ? "Main story marked as not started." : `Main story marked up to ${main[n].name}.`, () => saveAccount({ ...account.value, progress: before }));
+  };
+  const clear = () => {
+    const before = account.value.progress;
+    saveAccount({ ...account.value, progress: undefined });
+    undoable("Cleared your story progress.", () => saveAccount({ ...account.value, progress: before }));
+  };
+  return (
+    <section class="card story-editbar">
+      <div class="card-head"><h2>Mark your progress</h2><button class="primary" onClick={() => setQuery({ edit: "" })}>Done</button></div>
+      <p class="muted">Pick how far you are in each episode and supply group (Main story), each archive (Side Stories &amp; Intermezzi) and each Annihilation map; the "left for you" figures follow. Saved in this browser as you go.</p>
+      <div class="row" style={{ alignItems: "flex-end" }}>
+        <label class="field">
+          <span>Main story: everything up to</span>
+          <select value="" onChange={(e) => { const v = (e.target as HTMLSelectElement).value; if (v) upTo(Number(v.slice(1)), v[0] === "3"); }}>
+            <option value="">Choose…</option>
+            <optgroup label="All at 3★">{main.map((z, i) => <option key={z.id} value={`3${i}`}>{z.name}</option>)}</optgroup>
+            <optgroup label="Cleared">{main.map((z, i) => <option key={z.id} value={`c${i}`}>{z.name}</option>)}</optgroup>
+            <option value="c-1">Not started</option>
+          </select>
+        </label>
+        {data.crystal && (
+          <label class="field">
+            <span>Event Crystals you have</span>
+            <input type="number" min={0} max={99} value={p.coin ?? ""} placeholder="0" onChange={(e) => saveProgress(withCrystals(p, Number((e.target as HTMLInputElement).value) || 0))} />
+          </label>
+        )}
+        {account.value.progress && <button class="ghost" onClick={clear}>Clear my progress</button>}
+      </div>
+      {account.value.progress && !account.value.progress.manual && <p class="muted">You're changing the progress from your last sync. The next sync with story progress replaces it.</p>}
+    </section>
   );
 }

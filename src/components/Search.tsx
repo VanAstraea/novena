@@ -2,13 +2,13 @@
 // pages, the sub-pages people look for, and a few actions.
 import { signal } from "@preact/signals";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { enemies as loadEnemies, operators, stages as loadStages } from "../lib/data";
+import { enemies as loadEnemies, enemyStages, operators, stages as loadStages } from "../lib/data";
 import { href, navigate } from "../lib/router";
 import { matchScore } from "../lib/search";
 import { pref } from "../lib/storage";
 import { account, server, theme } from "../state";
 import { rememberOperator } from "./OperatorPanel";
-import type { EnemyRow, OpIndex, StageRow } from "../types";
+import type { EnemyRow, EnemyStagesFile, OpIndex, StageRow } from "../types";
 import { pageScore, PAGES, viewScore } from "../pages/registry";
 import { Avatar, ItemIcon, itemsSig } from "./ui";
 
@@ -63,8 +63,19 @@ export function SearchDialog() {
   const [ops, setOps] = useState<OpIndex[]>([]);
   const [stageRows, setStages] = useState<StageRow[]>([]);
   const [foes, setFoes] = useState<EnemyRow[]>([]);
+  // every story, event, supply and Annihilation stage (for "Enemies in 1-7"), with the lookup that reads a code
+  const [fights, setFights] = useState<{ file: EnemyStagesFile; hits: typeof import("../lib/enemies").stageHits } | null>(null);
   const open = searchOpen.value;
   const typed = !!q.trim();
+  const codeLike = /\d/.test(q) && q.trim().length <= 12; // stage codes all have a number: 1-7, CE-5, DM-EX-2
+
+  // The stage list (and the code that reads it) loads only once something like a stage code is typed.
+  useEffect(() => {
+    if (open && codeLike && !fights) {
+      Promise.all([enemyStages(server.value), import("../lib/enemies")]).then(([file, m]) => setFights({ file, hits: m.stageHits }), () => undefined);
+    }
+  }, [open, codeLike, fights]);
+  useEffect(() => setFights(null), [server.value]); // another server's stages: read again when next needed
 
   // The enemy list is bigger than the rest: fetched once something is typed, not when the box opens.
   useEffect(() => {
@@ -106,6 +117,14 @@ export function SearchDialog() {
       const s = matchScore(q, st.code);
       if (s >= 55) out.push({ key: `s${st.id}`, label: `${st.code} (${st.ap} sanity)`, kind: "Stage", to: href("/farming", { stage: st.id }), score: s - 5 });
     }
+    if (fights && codeLike) {
+      const seen = new Set<string>();
+      for (const h of fights.hits(fights.file, q)) {
+        if (seen.has(h.code)) continue;
+        seen.add(h.code);
+        out.push({ key: `f${h.code}`, label: `Enemies in ${h.code}${h.name ? ` ${h.name}` : ""}`, kind: `Stage · ${h.group}`, to: href("/enemies", { stage: h.code }), score: 88 });
+      }
+    }
     for (const e of foes) {
       const s = matchScore(q, e.name);
       if (s) out.push({ key: `e${e.id}`, label: e.name, kind: `Enemy · ${e.level[0]}${e.level.slice(1).toLowerCase()}`, to: href(`/enemy/${e.id}`), score: s - 1 });
@@ -127,7 +146,7 @@ export function SearchDialog() {
       if (s) out.push({ key: `a${a.label}`, label: a.label, kind: "Action", to: "", run: a.run, score: s });
     }
     return out.sort((a, b) => b.score - a.score).slice(0, 30);
-  }, [q, ops, stageRows, foes]);
+  }, [q, ops, stageRows, foes, fights]);
 
   const go = (h: Hit) => {
     searchOpen.value = false;
